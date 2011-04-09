@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, BlahGame!</string>
+    <string name="app_name">BlahBlah</string>
+    <string name="add">Add</string>
+    <string name="remove">Remove</string>
+    <string name="rotate">Rotate</string>
+    <string name="zoom">Zoom</string>
+    <string name="scale">Scale</string>
+</resources>
