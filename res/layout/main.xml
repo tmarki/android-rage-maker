@@ -1,12 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent" android:layout_width="match_parent" android:orientation="vertical">
-    <LinearLayout android:layout_height="wrap_content" android:layout_width="match_parent" android:orientation="horizontal" android:id="@+id/buttonLayout">
-        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/add" android:id="@+id/btnAdd"></Button>
-        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@string/remove" android:id="@+id/btnRemove"></Button>
-        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/btnRotate" android:text="@string/rotate"></Button>
-        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/btnZoom" android:text="@string/zoom"></Button>
-        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/btnScale" android:text="@string/scale"></Button>
-    </LinearLayout>
-    <CustomDrawableView android:id="@+id/mainView" android:adjustViewBounds="false" android:layout_width="match_parent" android:layout_height="match_parent"></CustomDrawableView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
 </LinearLayout>

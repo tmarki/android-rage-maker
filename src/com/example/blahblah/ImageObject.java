@@ -20,52 +20,45 @@ package com.example.blahblah;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RectShape;
-import android.view.animation.Animation;
 import android.graphics.Point;
-import android.view.animation.TranslateAnimation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.Transformation;
 import android.util.Log;
 
 public class ImageObject extends ProxyDrawable {
     
-    private Animation mAnimation;
-    private Transformation mTransformation = new Transformation();
     private Point mPosition = new Point ();
+    private float mRotation = 0.0f;
+    private float mScale = 0.0f;
     private boolean mSelected = false;
+    private boolean InBack = false;
+    public boolean isInBack() {
+		return InBack;
+	}
+
+	public void setInBack(boolean inBack) {
+		InBack = inBack;
+	}
+	
+	private int mDrawableId = -1;
 
     public ImageObject(Drawable target) {
         super(target);
     }
     
-    public ImageObject(Drawable target, Animation animation, int posX, int posY) {
+    public ImageObject (Drawable target, int posX, int posY, float rot, float scale, int drawableId) {
         super(target);
-        mAnimation = animation;
         mPosition.x = posX;
         mPosition.y = posY;
+        mRotation = rot;
+        mScale = scale;
+        mDrawableId = drawableId;
+        target.setBounds(-target.getIntrinsicWidth() / 2, -target.getIntrinsicHeight() / 2, target.getIntrinsicWidth() / 2, target.getIntrinsicHeight() / 2);
+        Log.d ("RAGE", "Initialized ImageObject at" + mPosition.toString());
     }
     
-    public Animation getAnimation() {
-        return mAnimation;
-    }
-    
-    public void setAnimation(Animation anim) {
-        mAnimation = anim;
-    }
-
-    public boolean hasStarted() {
-        return mAnimation != null && mAnimation.hasStarted();
-    }
-    
-    public boolean hasEnded() {
-        return mAnimation == null || mAnimation.hasEnded();
-    }
-    
-    public boolean toggleSelected(){
-    	mSelected = !mSelected;
-    	return mSelected;
+      
+    public void moveBy (int x, int y) {
+    	mPosition.x += x;
+    	mPosition.y += y;
     }
     
     @Override
@@ -73,13 +66,9 @@ public class ImageObject extends ProxyDrawable {
         Drawable dr = getProxy();
         if (dr != null) {
         	int sc = canvas.save();
-            Animation anim = new TranslateAnimation(mPosition.x, 0, mPosition.y, 0);
-            if (anim != null) {
-                anim.getTransformation(
-                                    0,
-                                    mTransformation);
-            }
-            canvas.concat(mTransformation.getMatrix());
+        	canvas.translate(mPosition.x, mPosition.y);
+        	canvas.scale((float)mScale, (float)mScale);
+        	canvas.rotate((float)mRotation);
             dr.draw(canvas);
             if (mSelected)
             {
@@ -95,9 +84,50 @@ public class ImageObject extends ProxyDrawable {
         Drawable dr = getProxy();
         Log.d ("RAGE", "points to test: " + String.valueOf(x) + ", " + String.valueOf(y));
         Log.d ("RAGE", "Bounds: " + String.valueOf(mPosition.x) + ", " + String.valueOf(mPosition.y) + ", " + String.valueOf(dr.getBounds().width()) + ", " + String.valueOf(dr.getBounds().height()));
-        return (x >= mPosition.x) && (x <= mPosition.x + dr.getBounds().width()) &&
-        	(y >= mPosition.y) && (y <= mPosition.y + dr.getBounds().height()); 
+        int wp2 = (int)(((float)dr.getBounds().width() / 2.0) * mScale);
+        int hp2 = dr.getBounds().height() / 2;
+        return (x >= mPosition.x - wp2) && (x <= mPosition.x + wp2) &&
+        	(y >= mPosition.y - hp2) && (y <= mPosition.y + hp2); 
     }
+
+	public Point getPosition() {
+		return mPosition;
+	}
+
+	public void setPosition(Point Position) {
+		this.mPosition = Position;
+	}
+
+	public float getRotation() {
+		return mRotation;
+	}
+
+	public void setRotation(float Rotation) {
+		this.mRotation = Rotation;
+	}
+
+	public float getScale() {
+		return mScale;
+	}
+
+	public void setScale(float Scale) {
+		this.mScale = Scale;
+	}
+
+	public boolean isSelected() {
+		if (mSelected){
+//			getProxy().setState (new int [android.R.attr.state_selected]);
+		}
+		return mSelected;
+	}
+
+	public void setSelected(boolean Selected) {
+		this.mSelected = Selected;
+	}
+	
+	public int getDrawableId () {
+		return mDrawableId;
+	}
     
 }
     
