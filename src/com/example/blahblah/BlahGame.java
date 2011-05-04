@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.nio.CharBuffer;
 import java.util.Currency;
 import java.util.Enumeration;
@@ -29,6 +30,7 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
@@ -140,6 +142,9 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
         	outState.putDouble(String.format("ImageObject%drot", i), ios.get(i).getRotation());
         	outState.putDouble(String.format("ImageObject%dscale", i), ios.get (i).getScale ());*/
         }
+        mainView.addTextObject(100, 80, 20, Color.RED, Typeface.SANS_SERIF, "asdfghjkl", true, true);
+        mainView.addTextObject(100, 120, 20, Color.GREEN, Typeface.SERIF, "zxc\n\rvbnm\ncy,", false, true);
+        mainView.addTextObject(100, 160, 30, Color.BLUE, Typeface.MONOSPACE, "qwertyuiop", true, true);
 //        getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 //        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 //        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);

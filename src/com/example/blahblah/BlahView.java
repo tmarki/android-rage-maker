@@ -2,11 +2,15 @@ package com.example.blahblah;
 
 
 import java.util.Vector;
+
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
 import android.hardware.Camera.PreviewCallback;
@@ -16,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 //import android.view.MotionEvent.PointerCoords;
+import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.util.Log;
 
@@ -27,12 +32,14 @@ public class BlahView extends View {
 	private TouchModes mTouchMode = TouchModes.HAND;
 	
     private Vector<ImageObject> mDrawables = new Vector<ImageObject>();
+    private Vector<TextObject> mTextDrawables = new Vector<TextObject>();
     private Vector<Vector<Point>> mLinePoints = new Vector<Vector<Point>>();
     private Vector<Paint> mLinePaints = new Vector<Paint>();
     private Vector<Point> mCurrentLinePoints = new Vector<Point>();
+    private TextObject mCurrentText = null;
     private Point mCanvasOffset = new Point (0, 0);
     private Rect mCanvasLimits = new Rect (0, 0, 640, 750);
-    private float mCanvasScale = 2.0f;
+    private float mCanvasScale = 1.0f;
     private int mPanelCount = 5;
     private int currentColor = Color.BLACK;
     private int currentStrokeWidth = 3;
@@ -44,7 +51,7 @@ public class BlahView extends View {
     private boolean mMovedSinceDown = false;
     private boolean mModeMenu = false;
     
-    private final int mModeIconSize = 100;
+    private int mModeIconSize = 100;
 
     
     public int getCurrentColor() {
@@ -96,7 +103,11 @@ public class BlahView extends View {
     public void addImageObject (Drawable dr, int x, int y, float rot, float scale, int drawableId) {
         mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId));
     }
-    
+
+    public void addTextObject (int x, int y, int textSize, int color, Typeface tf, String text, boolean bold, boolean italic) {
+        mTextDrawables.add(new TextObject(x, y, textSize, color, tf, text, bold, italic));
+    }
+
     @Override 
     protected void onDraw(Canvas canvas) {
     	int sc = canvas.save();
@@ -150,6 +161,14 @@ public class BlahView extends View {
         		ad.draw(canvas);
         	}
         }
+		for (TextObject to : mTextDrawables) {
+			if (to != null) {
+				to.draw(canvas);
+				Log.d ("RAGE", "Drawing " + to.getText());
+			}
+		}
+		if (mCurrentText != null)
+			mCurrentText.draw (canvas);
         canvas.restoreToCount(sc);
         sc = canvas.save();
     	Drawable dr;
@@ -159,6 +178,7 @@ public class BlahView extends View {
         	dr = getResources().getDrawable(R.drawable.pencil);
         else
         	dr = getResources().getDrawable(R.drawable.type);
+        mModeIconSize = (getWidth() > getHeight () ? getWidth () : getHeight ()) / 8; 
         canvas.translate(getWidth() - mModeIconSize, getHeight() - mModeIconSize);
         dr.setBounds(0, 0, dr.getIntrinsicWidth(), dr.getIntrinsicHeight());
         canvas.scale((float)mModeIconSize / dr.getIntrinsicWidth(), (float)mModeIconSize / dr.getIntrinsicHeight());
@@ -193,6 +213,8 @@ public class BlahView extends View {
 					handleSingleTouchManipulateEvent(event);
 				if (mTouchMode == TouchModes.PENCIL)
 					handleSingleTouchDrawEvent(event);
+				if (mTouchMode == TouchModes.TEXT)
+					handleSingleTouchTextEvent(event);
 				else
 					cancelLongPress();
 			}
@@ -332,6 +354,53 @@ public class BlahView extends View {
 		mPreviousPos.y = (int)event.getY();
 	}
 
+	private void handleSingleTouchTextEvent (MotionEvent event) {
+		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			mMovedSinceDown = false;
+		}
+		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown == false) {
+			AlertDialog.Builder alert = new AlertDialog.Builder(getContext ());
+
+			alert.setTitle("Type in *le text*");
+//			alert.setMessage("Message");
+
+			// Set an EditText view to get user input 
+			final EditText input = new EditText(getContext());
+			alert.setView(input);
+
+			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					String value = input.getText().toString();
+					if (mCurrentText != null)
+					{
+						mTextDrawables.add(new TextObject (mCurrentText));
+					}
+					mCurrentText = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
+							20, Color.BLACK, Typeface.MONOSPACE, value, false, false);
+					invalidate();
+			  }
+			});
+
+			alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			  public void onClick(DialogInterface dialog, int whichButton) {
+			  }
+			});
+
+			alert.show();
+		}
+		else if (event.getAction() == MotionEvent.ACTION_MOVE){
+			int diffX = (int)((event.getX() - mPreviousPos.x) / mCanvasScale);
+			int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
+			if (Math.abs(diffX) > 2 / mCanvasScale || Math.abs(diffY) > 2 / mCanvasScale) {
+				mMovedSinceDown = true;
+				mCurrentText.setX(mCurrentText.getX() + diffX);
+				mCurrentText.setY(mCurrentText.getY() + diffY);
+			}
+		}
+		super.cancelLongPress();
+		mPreviousPos.x = (int)event.getX();
+		mPreviousPos.y = (int)event.getY();
+	}
 
 	@Override
 	protected void onCreateContextMenu(ContextMenu menu) {
