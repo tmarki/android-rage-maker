@@ -77,7 +77,12 @@ public class TextObject {
 			tmptf = Typeface.create(typeface, Typeface.BOLD_ITALIC);
 		p.setTypeface(tmptf);
 		canvas.translate(x, y);
-		canvas.drawText(text, 0, 0, p);
+		int i = 0;
+		for (String s : text.split("\n"))
+		{
+			canvas.drawText(s, 0, i * textSize, p);
+			i++;
+		}
 		canvas.restore();
 	}
 }

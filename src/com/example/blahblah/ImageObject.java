@@ -44,6 +44,17 @@ public class ImageObject extends ProxyDrawable {
         super(target);
     }
     
+    public ImageObject(ImageObject other) {
+    	super (other);
+    	setProxy(other.getProxy());
+        mPosition = new Point (other.mPosition);
+        mRotation = other.mRotation;
+        mScale = other.mScale;
+        mSelected = other.mSelected;
+        InBack = other.InBack;
+    	
+    }
+    
     public ImageObject (Drawable target, int posX, int posY, float rot, float scale, int drawableId) {
         super(target);
         mPosition.x = posX;

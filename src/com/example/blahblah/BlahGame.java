@@ -72,6 +72,8 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 		    }
 		    File dir = new File (Environment.getExternalStorageDirectory() + "/ComicMaker");
 		    File[] files = dir.listFiles();
+		    if (files == null)
+		    	return;
 		    for (File f : files) {
 		    	if (!f.getName().toLowerCase().endsWith(".zip")) {
 		    		continue;
@@ -155,10 +157,13 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_menu, menu);
-	    SubMenu sm = menu.addSubMenu("Comic Packs");
-	    for (CharSequence s : externalImages.keySet()) {
-	    	sm.add(s);
+/*		SubMenu sm = menu.addSubMenu("Add image");
+//	    SubMenu ip = sm.addSubMenu("From image pack");
+        for (CharSequence s : externalImages.keySet()) {
+/*        	if (ip != null)
+        		ip.add(s);
 	    }
+	    sm.add("From external source");*/
 	    Log.d ("RAGE", "Main menu");
 	    return true;
 	}
@@ -203,7 +208,7 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 			AlertDialog alertDialog;
 			alertDialog = new AlertDialog.Builder(this).create();
 			alertDialog.setTitle("About Comic Maker");
-			alertDialog.setMessage("Comic Maker 0.1 by Tamas\n(c) 2011");
+			alertDialog.setMessage("Comic Maker for Android 1.0 by Tamas\n(c) 2011");
 			alertDialog.setButton("Close", new OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					
@@ -212,6 +217,7 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 			alertDialog.show();
 			break;
 		case (R.id.pen_color):
+		case (R.id.text_color):
 			ColorPickerDialog cpd = new ColorPickerDialog(mainView.getContext(), this, mainView.getCurrentColor());
 			cpd.show();
 			break;
@@ -237,7 +243,7 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 			});
 			alertDialog2.show();
 			break;
-		default: // comic pack
+		case (R.id.add_pack): // comic pack
 			if (externalImages.keySet().contains(item.getTitle())) {
 				packSelected = item.getTitle();
 //				Set<CharSequence> cs = externalImages.get(item.getTitle()).keySet().(type[]) collection.toArray(new type[collection.size()]);
@@ -250,14 +256,26 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 
                         /* User clicked so do some stuff */
         				CharSequence[] cs = (CharSequence[]) externalImages.get(packSelected).keySet().toArray(new CharSequence[externalImages.get(packSelected).keySet().size()]);
-/*                    	new AlertDialog.Builder(mainView.getContext())
+                    	new AlertDialog.Builder(mainView.getContext())
                                 .setMessage("You selected: " + which + " , " + cs[which])
-                                .show();*/
+                                .show();
                     }
                 })
                 .create();
 				alertDialog3.show();
 				Log.d ("RAGE", "YEAH " + item.getTitle());
+			}
+			else {
+				AlertDialog alertDialog3;
+				alertDialog3 = new AlertDialog.Builder(this).create();
+				alertDialog3.setTitle("Comic Packs");
+				alertDialog3.setMessage("No comic packs were found. Make sure you place them in the 'ComicMaker' directory on your external storage (SD card).");
+				alertDialog3.setButton("Ok", new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						
+					}
+				});
+				alertDialog3.show();
 			}
 			break;
 			
@@ -291,21 +309,23 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
 		if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
 		{
-			AlertDialog alertDialog;
-			alertDialog = new AlertDialog.Builder(this).create();
-			alertDialog.setTitle("Confirmation");
-			alertDialog.setMessage("Are you sure you want to exit? You'll lose any unsaved work.");
-			alertDialog.setButton("Yes", new OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					finish ();
-				}
-			});
-			alertDialog.setButton2("No", new OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					
-				}
-			});
-			alertDialog.show();
+			if (!mainView.popState()) {
+				AlertDialog alertDialog;
+				alertDialog = new AlertDialog.Builder(this).create();
+				alertDialog.setTitle("Confirmation");
+				alertDialog.setMessage("Are you sure you want to exit?");
+				alertDialog.setButton("Yes", new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						finish ();
+					}
+				});
+				alertDialog.setButton2("No", new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						
+					}
+				});
+				alertDialog.show();
+			}
 			return true;
 		}
 		return super.onKeyUp(keyCode, event);
@@ -316,6 +336,8 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 		// TODO Auto-generated method stub
 		menu.findItem(R.id.pen_color).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL);
 		menu.findItem(R.id.pen_width).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL);
+		menu.findItem(R.id.text_color).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
+		menu.findItem(R.id.text_type).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
 
 	    Log.d ("RAGE", "Main menu");
 		return super.onPrepareOptionsMenu(menu);

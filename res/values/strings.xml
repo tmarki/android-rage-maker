@@ -2,7 +2,9 @@
 <resources>
     <string name="hello">Hello World, BlahGame!</string>
     <string name="app_name">Comic Creator</string>
-    <string name="add">Add</string>
+    <string name="add">Add Image</string>
+    <string name="add_pack">Add from image pack</string>
+    <string name="add_other">Add from other source</string>
     <string name="scale">Scale</string>
     <string name="clear">Clear</string>
     <string name="save">Save</string>
@@ -18,4 +20,6 @@
     <string name="tofront">Bring to front</string>
     <string name="pen_color">Pen color</string>
     <string name="pen_width">Pen width</string>
+    <string name="text_color">Text color</string>
+    <string name="text_type">Text type</string>
 </resources>

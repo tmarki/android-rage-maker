@@ -31,19 +31,45 @@ public class BlahView extends View {
 	
 	private TouchModes mTouchMode = TouchModes.HAND;
 	
-    private Vector<ImageObject> mDrawables = new Vector<ImageObject>();
-    private Vector<TextObject> mTextDrawables = new Vector<TextObject>();
-    private Vector<Vector<Point>> mLinePoints = new Vector<Vector<Point>>();
-    private Vector<Paint> mLinePaints = new Vector<Paint>();
-    private Vector<Point> mCurrentLinePoints = new Vector<Point>();
-    private TextObject mCurrentText = null;
+	class ComicState {
+	    public ComicState() {
+		}
+	    public ComicState(ComicState os) {
+	    	for (ImageObject io : os.mDrawables) {
+	    		mDrawables.add(new ImageObject(io));
+	    	}
+	    	for (TextObject io : os.mTextDrawables) {
+	    		mTextDrawables.add(new TextObject(io));
+	    	}
+	    	mLinePoints = new Vector<Vector<Point>>(os.mLinePoints);
+	    	mLinePaints = new Vector<Paint>(os.mLinePaints);
+/*	    	mTextDrawables = new Vector<TextObject>(os.mTextDrawables);*/
+	    	mCurrentLinePoints = new Vector<Point>(os.mCurrentLinePoints);
+	    	if (os.mCurrentText != null) {
+	    		mCurrentText = new TextObject(os.mCurrentText);
+	    	}
+	    	mPanelCount = os.mPanelCount;
+	    	currentColor = os.currentColor;
+		}
+		private Vector<ImageObject> mDrawables = new Vector<ImageObject>();
+	    private Vector<TextObject> mTextDrawables = new Vector<TextObject>();
+	    private Vector<Vector<Point>> mLinePoints = new Vector<Vector<Point>>();
+	    private Vector<Paint> mLinePaints = new Vector<Paint>();
+	    private Vector<Point> mCurrentLinePoints = new Vector<Point>();
+	    private TextObject mCurrentText = null;
+	    private int mPanelCount = 5;
+	    private int currentColor = Color.BLACK;
+	};
+	
+	private ComicState currentState = new ComicState ();
+	
+	private Vector<ComicState> previousStates = new Vector<ComicState>();
+	
     private Point mCanvasOffset = new Point (0, 0);
     private Rect mCanvasLimits = new Rect (0, 0, 640, 750);
     private float mCanvasScale = 1.0f;
-    private int mPanelCount = 5;
-    private int currentColor = Color.BLACK;
     private int currentStrokeWidth = 3;
-	private Point mPreviousPos = new Point (0, 0); // signle touch events
+	private Point mPreviousPos = new Point (0, 0); // single touch events
     private float mStartDistance = 0.0f;
     private float mStartScale = 0.0f;
     private float mStartRot = 0.0f;
@@ -55,18 +81,21 @@ public class BlahView extends View {
 
     
     public int getCurrentColor() {
-		return currentColor;
+		return currentState.currentColor;
 	}
 
 	public void setCurrentColor(int currentColor) {
-		this.currentColor = currentColor;
+		this.currentState.currentColor = currentColor;
 	}
 	
 	public void resetObjects () {
-		mDrawables.clear ();
-		mLinePaints.clear();
-		mLinePoints.clear();
-		mCurrentLinePoints.clear ();
+		pushState ();
+		currentState.mDrawables.clear ();
+		currentState.mLinePaints.clear();
+		currentState.mLinePoints.clear();
+		currentState.mCurrentLinePoints.clear ();
+		currentState.mTextDrawables.clear ();
+		currentState.mCurrentText = null;
 	}
 	
     public int getCurrentStrokeWidth() {
@@ -85,7 +114,7 @@ public class BlahView extends View {
     }
     
     public ImageObject getSelected(){
-        for (ImageObject ad : mDrawables) {
+        for (ImageObject ad : currentState.mDrawables) {
         	if (ad.isSelected())
         		return ad;
         }
@@ -97,15 +126,17 @@ public class BlahView extends View {
     }
     
     public Vector<ImageObject> getImageObjects (){
-    	return mDrawables;
+    	return currentState.mDrawables;
     }
     
     public void addImageObject (Drawable dr, int x, int y, float rot, float scale, int drawableId) {
-        mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId));
+		pushState ();
+    	currentState.mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId));
     }
 
     public void addTextObject (int x, int y, int textSize, int color, Typeface tf, String text, boolean bold, boolean italic) {
-        mTextDrawables.add(new TextObject(x, y, textSize, color, tf, text, bold, italic));
+		pushState ();
+    	currentState.mTextDrawables.add(new TextObject(x, y, textSize, color, tf, text, bold, italic));
     }
 
     @Override 
@@ -119,56 +150,59 @@ public class BlahView extends View {
         paint.setColor(Color.BLACK);
         paint.setStrokeWidth(3.0f);
         int bott = mCanvasLimits.bottom;
-        int dy = mCanvasLimits.height() / (mPanelCount / 2);
-        if (mPanelCount % 2 == 1) {
-        	dy = mCanvasLimits.height() / (mPanelCount / 2 + 1);
+        int dy = mCanvasLimits.height() / (currentState.mPanelCount / 2);
+        if (currentState.mPanelCount % 2 == 1) {
+        	dy = mCanvasLimits.height() / (currentState.mPanelCount / 2 + 1);
         	bott -= dy;
         }
     	canvas.drawLine(mCanvasLimits.width () / 2, mCanvasLimits.top, mCanvasLimits.width () / 2, bott, paint);
-        for (int i = 0; i < (mPanelCount / 2) + 1; ++i) {
+        for (int i = 0; i < (currentState.mPanelCount / 2) + 1; ++i) {
     		canvas.drawLine(mCanvasLimits.left, mCanvasLimits.top + i * dy, mCanvasLimits.right, mCanvasLimits.top + i * dy, paint);
         }
 		canvas.drawLine(mCanvasLimits.left, mCanvasLimits.top, mCanvasLimits.left, mCanvasLimits.bottom, paint);
 		canvas.drawLine(mCanvasLimits.left, mCanvasLimits.bottom, mCanvasLimits.right, mCanvasLimits.bottom, paint);
 		canvas.drawLine(mCanvasLimits.right, mCanvasLimits.bottom, mCanvasLimits.right, mCanvasLimits.top, paint);
-        for (ImageObject ad : mDrawables) {
+        for (ImageObject ad : currentState.mDrawables) {
         	if (ad != null && ad.isInBack()) {
         		ad.draw(canvas);
         	}
         }
-		for (int i = 0; i < mLinePoints.size(); ++i){
-			if (mLinePoints.get(i).size() == 0) continue;
-			for (int j = 0; j < mLinePoints.get (i).size() - 1; ++j){
-				canvas.drawLine(mLinePoints.get(i).get (j).x, mLinePoints.get(i).get (j).y, mLinePoints.get(i).get (j + 1).x, mLinePoints.get(i).get (j + 1).y, mLinePaints.get (i));
-				canvas.drawCircle(mLinePoints.get(i).get(j).x, mLinePoints.get(i).get(j).y, mLinePaints.get (i).getStrokeWidth() / 2, mLinePaints.get (i));
-				if (j == mLinePoints.get (i).size() - 2)
-					canvas.drawCircle(mLinePoints.get(i).get(j + 1).x, mLinePoints.get(i).get(j + 1).y, mLinePaints.get (i).getStrokeWidth() / 2, mLinePaints.get (i));
+        Vector<Vector<Point>> lp = currentState.mLinePoints; 
+		for (int i = 0; i < lp.size(); ++i){
+			if (lp.get(i).size() == 0) continue;
+			for (int j = 0; j < lp.get (i).size() - 1; ++j){
+				canvas.drawLine(lp.get(i).get (j).x, lp.get(i).get (j).y, lp.get(i).get (j + 1).x, lp.get(i).get (j + 1).y, currentState.mLinePaints.get (i));
+				canvas.drawCircle(lp.get(i).get(j).x, lp.get(i).get(j).y, currentState.mLinePaints.get (i).getStrokeWidth() / 2, currentState.mLinePaints.get (i));
+				if (j == lp.get (i).size() - 2)
+					canvas.drawCircle(lp.get(i).get(j + 1).x, lp.get(i).get(j + 1).y, currentState.mLinePaints.get (i).getStrokeWidth() / 2, currentState.mLinePaints.get (i));
 			}
 		}
-		if (mCurrentLinePoints.size() > 0) {
+		if (currentState.mCurrentLinePoints.size() > 0) {
 			Paint p = new Paint ();
-			p.setColor(this.currentColor);
+			p.setColor(this.currentState.currentColor);
 			p.setStrokeWidth(currentStrokeWidth);
-			for (int i = 0; i < mCurrentLinePoints.size() - 1; ++i){
-				canvas.drawLine(mCurrentLinePoints.get(i).x, mCurrentLinePoints.get(i).y, mCurrentLinePoints.get(i + 1).x, mCurrentLinePoints.get(i + 1).y, p);
-				canvas.drawCircle(mCurrentLinePoints.get(i).x, mCurrentLinePoints.get(i).y, currentStrokeWidth / 2, p);
-				if (i == mCurrentLinePoints.size() - 2)
-					canvas.drawCircle(mCurrentLinePoints.get(i + 1).x, mCurrentLinePoints.get(i + 1).y, currentStrokeWidth / 2, p);
+	        Vector<Point> clp = currentState.mCurrentLinePoints; 
+			
+			for (int i = 0; i < clp.size() - 1; ++i){
+				canvas.drawLine(clp.get(i).x, clp.get(i).y, clp.get(i + 1).x, clp.get(i + 1).y, p);
+				canvas.drawCircle(clp.get(i).x, clp.get(i).y, currentStrokeWidth / 2, p);
+				if (i == clp.size() - 2)
+					canvas.drawCircle(clp.get(i + 1).x, clp.get(i + 1).y, currentStrokeWidth / 2, p);
 			}
 		}
-        for (ImageObject ad : mDrawables) {
-        	if (ad != null && !ad.isInBack()) {
-        		ad.draw(canvas);
-        	}
-        }
-		for (TextObject to : mTextDrawables) {
+		for (TextObject to : currentState.mTextDrawables) {
 			if (to != null) {
 				to.draw(canvas);
 				Log.d ("RAGE", "Drawing " + to.getText());
 			}
 		}
-		if (mCurrentText != null)
-			mCurrentText.draw (canvas);
+        for (ImageObject ad : currentState.mDrawables) {
+        	if (ad != null && !ad.isInBack()) {
+        		ad.draw(canvas);
+        	}
+        }
+		if (currentState.mCurrentText != null)
+			currentState.mCurrentText.draw (canvas);
         canvas.restoreToCount(sc);
         sc = canvas.save();
     	Drawable dr;
@@ -200,7 +234,7 @@ public class BlahView extends View {
 		Log.d("RAGE", String.valueOf (event.getPointerCount()));
 		if (event.getPointerCount() == 1) {
 			mStartDistance = 0.0f;
-			if (event.getAction() == MotionEvent.ACTION_UP
+			if (event.getAction() == MotionEvent.ACTION_DOWN
 					 && event.getX() > getWidth() - mModeIconSize
 					 && event.getX() < getWidth()
 					 && event.getY() > getHeight() - mModeIconSize
@@ -211,9 +245,9 @@ public class BlahView extends View {
 			else {
 				if (mTouchMode == TouchModes.HAND)
 					handleSingleTouchManipulateEvent(event);
-				if (mTouchMode == TouchModes.PENCIL)
+				else if (mTouchMode == TouchModes.PENCIL)
 					handleSingleTouchDrawEvent(event);
-				if (mTouchMode == TouchModes.TEXT)
+				else if (mTouchMode == TouchModes.TEXT)
 					handleSingleTouchTextEvent(event);
 				else
 					cancelLongPress();
@@ -240,7 +274,7 @@ public class BlahView extends View {
 		if (mStartDistance < 0.1f) {
 			mStartDistance = diff;
 			boolean found = false;
-	        for (ImageObject io : mDrawables) {
+	        for (ImageObject io : currentState.mDrawables) {
 	        	if (io.isSelected())
 	        	{
 	        		mStartScale = io.getScale();
@@ -258,7 +292,7 @@ public class BlahView extends View {
 			float scale = diff / mStartDistance;
 			Log.d("RAGE", "Scale " + String.valueOf(scale) + " Start Scale " + String.valueOf(mStartScale));
 			boolean found = false;
-	        for (ImageObject io : mDrawables) {
+	        for (ImageObject io : currentState.mDrawables) {
 	        	float newscale = mStartScale * scale;
 	        	if (io.isSelected() && newscale < 10.0f && newscale > 0.1f)
 	        	{
@@ -280,21 +314,26 @@ public class BlahView extends View {
 	
 	private void handleSingleTouchManipulateEvent (MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
+			pushState ();
 			mMovedSinceDown = false;
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP && !mMovedSinceDown) {
+			if (previousStates.size() > 0)
+				previousStates.remove(previousStates.size() - 1);
 			int selectedId = -1;
-			for (int i = mDrawables.size() - 1; i >= 0; --i) {
-				ImageObject io = mDrawables.elementAt(i);
+			for (int i = currentState.mDrawables.size() - 1; i >= 0; --i) {
+				ImageObject io = currentState.mDrawables.elementAt(i);
 				if (io.pointIn ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
 					Log.d ("RAGE", "Point in!" + io.toString());
 	        		io.setSelected(!io.isSelected());
-					selectedId = i;
+	        		currentState.mDrawables.removeElementAt(i);
+	        		currentState.mDrawables.add(io);
+					selectedId = currentState.mDrawables.size() - 1;
 					break;
 				}
 			}
-	        for (int i = 0; i < mDrawables.size(); ++i) {
-				ImageObject io = mDrawables.elementAt(i);
+	        for (int i = 0; i < currentState.mDrawables.size(); ++i) {
+				ImageObject io = currentState.mDrawables.elementAt(i);
 	        	if (io.isSelected() && i != selectedId)
 	        	{
 	        		io.setSelected(!io.isSelected());
@@ -308,7 +347,7 @@ public class BlahView extends View {
 				super.cancelLongPress();
 				mMovedSinceDown = true;
 				boolean found = false;
-		        for (ImageObject ad : mDrawables) {
+		        for (ImageObject ad : currentState.mDrawables) {
 		        	if (ad.isSelected()) {
 		        		found = true;
 		        		Point p = ad.getPosition();
@@ -322,6 +361,8 @@ public class BlahView extends View {
 		        }
 		        if (!found)
 		        {
+					if (previousStates.size() > 0)
+						previousStates.remove(previousStates.size() - 1);
 		        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
 		        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
 		        		mCanvasOffset.x += diffX;
@@ -337,17 +378,18 @@ public class BlahView extends View {
 
 	private void handleSingleTouchDrawEvent (MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			mCurrentLinePoints.clear();
+			currentState.mCurrentLinePoints.clear();
+			pushState ();
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP) {
-			mLinePoints.add(new Vector<Point>(mCurrentLinePoints));
+			currentState.mLinePoints.add(new Vector<Point>(currentState.mCurrentLinePoints));
 			Paint p = new Paint ();
-			p.setColor(this.currentColor);
+			p.setColor(this.currentState.currentColor);
 			p.setStrokeWidth(currentStrokeWidth);
-			mLinePaints.add (new Paint (p));
+			currentState.mLinePaints.add (new Paint (p));
 		}
 		else if (event.getAction() == MotionEvent.ACTION_MOVE){
-			mCurrentLinePoints.add(new Point ((int)(event.getX() / mCanvasScale), (int)(event.getY() / mCanvasScale)));
+			currentState.mCurrentLinePoints.add(new Point ((int)(event.getX() / mCanvasScale) - mCanvasOffset.x, (int)(event.getY() / mCanvasScale) - mCanvasOffset.y));
 		}
 		super.cancelLongPress();
 		mPreviousPos.x = (int)event.getX();
@@ -371,12 +413,13 @@ public class BlahView extends View {
 			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					String value = input.getText().toString();
-					if (mCurrentText != null)
+					pushState ();
+					if (currentState.mCurrentText != null)
 					{
-						mTextDrawables.add(new TextObject (mCurrentText));
+						currentState.mTextDrawables.add(new TextObject (currentState.mCurrentText));
 					}
-					mCurrentText = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
-							20, Color.BLACK, Typeface.MONOSPACE, value, false, false);
+					currentState.mCurrentText = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
+							20, currentState.currentColor, Typeface.MONOSPACE, value, false, false);
 					invalidate();
 			  }
 			});
@@ -393,8 +436,10 @@ public class BlahView extends View {
 			int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
 			if (Math.abs(diffX) > 2 / mCanvasScale || Math.abs(diffY) > 2 / mCanvasScale) {
 				mMovedSinceDown = true;
-				mCurrentText.setX(mCurrentText.getX() + diffX);
-				mCurrentText.setY(mCurrentText.getY() + diffY);
+				if (currentState.mCurrentText != null) {
+					currentState.mCurrentText.setX(currentState.mCurrentText.getX() + diffX);
+					currentState.mCurrentText.setY(currentState.mCurrentText.getY() + diffY);
+				}
 			}
 		}
 		super.cancelLongPress();
@@ -419,6 +464,25 @@ public class BlahView extends View {
 
 	public void setmTouchMode(TouchModes mTouchMode) {
 		this.mTouchMode = mTouchMode;
+	}
+	
+	public void pushState () {
+		previousStates.add (new ComicState(currentState));
+	}
+	
+	public boolean popState () {
+		int pos = previousStates.size () - 1; 
+		if (pos >= 0) {
+			currentState = new ComicState(previousStates.get(pos));
+			previousStates.removeElementAt(pos);
+			invalidate();
+			return true;
+		}
+		else {
+			resetObjects();
+		}
+		invalidate();
+		return false;
 	}
     
 }
