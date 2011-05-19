@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.nio.CharBuffer;
+import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface.OnClickListener;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -46,6 +48,10 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.RemoteViews.ActionException;
 
 import com.example.blahblah.BlahView;
@@ -59,59 +65,13 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 	private Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> externalImages = new HashMap<CharSequence, Map<CharSequence, Vector<CharSequence>>>();
 	private CharSequence packSelected;
 	private CharSequence folderSelected;
+	private ArrayList<BitmapDrawable> al = new ArrayList<BitmapDrawable>();
+	private ImageSelect imgsel = null;
 	
 	void readExternalFiles(){
-		try {
-		    String state = Environment.getExternalStorageState();
-		    if (Environment.MEDIA_MOUNTED.equals(state)) {
-		    	Log.d ("RAGE", "Media mounted");
-		    } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-		    	Log.d ("RAGE", "Media Read only");
-		    } else {
-		    	Log.d ("RAGE", "Media unavailable");
-		    }
-		    File dir = new File (Environment.getExternalStorageDirectory() + "/ComicMaker");
-		    File[] files = dir.listFiles();
-		    if (files == null)
-		    	return;
-		    for (File f : files) {
-		    	if (!f.getName().toLowerCase().endsWith(".zip")) {
-		    		continue;
-		    	}
-		    	Map<CharSequence, Vector<CharSequence>> imgs = new HashMap<CharSequence,Vector<CharSequence>>(); 
-				ZipFile zf = new ZipFile(f.getAbsolutePath());
-				Enumeration entries = zf.entries();
-		
-			    
-				while (entries.hasMoreElements()) {
-					  ZipEntry ze = (ZipEntry) entries.nextElement();
-					  if (ze.getName().toLowerCase().endsWith(".png") 
-							  || ze.getName().toLowerCase().endsWith(".jpg"))
-					  {
-						  String folder = ze.getName().substring(0, ze.getName().lastIndexOf("/"));
-						  String file = ze.getName().substring(ze.getName().lastIndexOf("/") + 1);
-						  if (file.startsWith(".") || folder.startsWith("."))
-							  continue;
-						  if (!imgs.containsKey(folder)) {
-							  imgs.put(folder, new Vector<CharSequence>());
-						  }
-						  imgs.get(folder).add(file);
-						  Log.d ("RAGE", "Folder: " + folder + ", file: " + file);
-					  }
-/*					  System.out.println("Read " + ze.getName());
-					  long size = ze.getSize();
-					  if (size > 0) {
-				          mainView.addImageObject(new BitmapDrawable (BitmapFactory.decodeStream(zf.getInputStream(ze))), 0, 0, 45.0f, 0.5f, R.drawable.trollface);
-					  }*/
-			    }
-				externalImages.put(zf.getName().substring(zf.getName().lastIndexOf("/") + 1), imgs);
-				
-		    }
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		externalImages = PackHandler.getBundles();
 	}
+	
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +90,7 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
             mainView.addImageObject(dr, 0, 0, 45.0f, 0.5f, R.drawable.trollface);
         	dr = getResources().getDrawable(R.drawable.icon);
             mainView.addImageObject(dr, 300, 300, 0.0f, 2.5f, R.drawable.icon);
+//            mainView.addImageObject((Drawable)getPackDrawable("rage.zip", "rage4", externalImages.get ("rage.zip").get("rage4").get (0).toString()), 200, 200, 0.0f, 2.0f, 0);
         }
         for (int i = 0; i < ioCount; ++i) {
         	int[] params = savedInstanceState.getIntArray(String.format("ImageObject%dpos", i));
@@ -243,27 +204,9 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 			});
 			alertDialog2.show();
 			break;
-		case (R.id.add_pack): // comic pack
-			if (externalImages.keySet().contains(item.getTitle())) {
-				packSelected = item.getTitle();
-//				Set<CharSequence> cs = externalImages.get(item.getTitle()).keySet().(type[]) collection.toArray(new type[collection.size()]);
-				CharSequence[] cs = (CharSequence[]) externalImages.get(item.getTitle()).keySet().toArray(new CharSequence[externalImages.get(item.getTitle()).keySet().size()]);
-				AlertDialog alertDialog3;
-				alertDialog3 = new AlertDialog.Builder(this)
-                .setTitle("Select Folder")
-                .setItems(cs, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        /* User clicked so do some stuff */
-        				CharSequence[] cs = (CharSequence[]) externalImages.get(packSelected).keySet().toArray(new CharSequence[externalImages.get(packSelected).keySet().size()]);
-                    	new AlertDialog.Builder(mainView.getContext())
-                                .setMessage("You selected: " + which + " , " + cs[which])
-                                .show();
-                    }
-                })
-                .create();
-				alertDialog3.show();
-				Log.d ("RAGE", "YEAH " + item.getTitle());
+		case (R.id.add_pack): //  comic pack
+			if (externalImages.size() > 0) {
+				doComicPackSelect();
 			}
 			else {
 				AlertDialog alertDialog3;
@@ -283,6 +226,96 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 			
 		return super.onOptionsItemSelected(item);
 	}
+	
+	private void doComicPackSelect () {
+		CharSequence[] cs = (CharSequence[]) externalImages.keySet().toArray(new CharSequence[externalImages.keySet().size()]);
+		AlertDialog alertDialog3;
+		alertDialog3 = new AlertDialog.Builder(this)
+        .setTitle("Select Pack")
+        .setItems(cs, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+				CharSequence[] cs = (CharSequence[]) externalImages.keySet().toArray(new CharSequence[externalImages.keySet().size()]);
+				packSelected = cs[which];
+				doComicPackFolderSelect();
+            }
+        })
+        .create();
+		alertDialog3.show();
+	}
+	
+	private void doComicPackFolderSelect () {
+		CharSequence[] ccs = (CharSequence[]) externalImages.get (packSelected).keySet().toArray(new CharSequence[externalImages.get (packSelected).keySet().size()]);
+		AlertDialog alertDialog;
+		alertDialog = new AlertDialog.Builder(mainView.getContext())
+        .setTitle("Select Folder")
+        .setItems(ccs, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which2) {
+
+                /* User clicked so do some stuff */
+				CharSequence[] ccs = (CharSequence[]) externalImages.get (packSelected).keySet().toArray(new CharSequence[externalImages.get (packSelected).keySet().size()]);
+				folderSelected = ccs[which2];
+				doComicPackImageSelect();
+/*            	new AlertDialog.Builder(mainView.getContext())
+                        .setMessage("You selected: " + which2 + " , " + ccs[which2])
+                        .show();*/
+            }
+        })
+        .create();
+		alertDialog.show();
+	}
+
+	private OnItemClickListener addFromPackListener = new OnItemClickListener(){
+		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			// TODO Auto-generated method stub
+			Log.d ("RAGE", "Clicked: " + String.valueOf(arg2));
+			imgsel.dismiss();
+			mainView.addImageObject(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (arg2).toString()), 100, 100, 0.0f, 1.0f, 0);
+		}
+    };
+	private void doComicPackImageSelect () {
+//		al.add(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (0).toString()));
+		imgsel = new ImageSelect(this, packSelected.toString(), folderSelected.toString(), addFromPackListener);
+		imgsel.show();
+//		int activityID = 0x100;
+/*		Intent intent = new Intent();
+		intent.setClassName ("com.example.blahblah", "ImageSelect");//.setClass(getApplicationContext(), ImageSelect.class);
+//		intent.putExtra("images", al);
+		startActivityForResult(intent, activityID);
+//		startActivityForResult(intent, activityID);		ImageSelect is = new ImageSelect (al);
+/*		CharSequence[] ccsi = (CharSequence[]) externalImages.get (packSelected).get(folderSelected).toArray(new CharSequence[externalImages.get (packSelected).get(folderSelected).size()]);
+		AlertDialog alertDialog;
+		alertDialog = new AlertDialog.Builder(mainView.getContext())
+        .setTitle("Select Pack")
+        .setItems(ccsi, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which2) {
+
+        		CharSequence[] ccsi = (CharSequence[]) externalImages.get (packSelected).get(folderSelected).toArray(new CharSequence[externalImages.get (packSelected).get(folderSelected).size()]);
+            	new AlertDialog.Builder(mainView.getContext())
+                        .setMessage("You selected: " + which2 + " , " + ccsi[which2])
+                        .show();
+            }
+        })
+        .create();
+		ListView lv = new ListView (this);
+		ArrayList<View> al = new ArrayList<View>();
+		ImageView iv = new ImageView(this);
+		iv.setImageDrawable(getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (0).toString()));
+		al.add(iv);
+		lv.addView(iv);
+		iv = new ImageView(this);
+		iv.setImageDrawable(getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (1).toString()));
+		al.add(iv);
+		lv.addView(iv);
+//		lv.addTouchables(al);
+		alertDialog.setView(lv);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setView(lv);
+		alertDialog = builder.create();
+		alertDialog.show();*/
+	}
+	
+
 	public void colorChanged(int c) {
 		mainView.setCurrentColor(c);
 	}

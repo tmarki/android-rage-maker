@@ -37,32 +37,38 @@ public final class R {
         public static final int type=0x7f020017;
     }
     public static final class id {
-        public static final int about=0x7f060012;
-        public static final int add=0x7f060008;
-        public static final int add_other=0x7f06000a;
-        public static final int add_pack=0x7f060009;
-        public static final int clear=0x7f060011;
+        public static final int about=0x7f060016;
+        public static final int add=0x7f06000c;
+        public static final int add_other=0x7f06000e;
+        public static final int add_pack=0x7f06000d;
+        public static final int clear=0x7f060015;
+        public static final int imageList=0x7f060001;
+        public static final int imageRow=0x7f060006;
         public static final int linearLayout1=0x7f060000;
-        public static final int mode_hand=0x7f060013;
-        public static final int mode_pencil=0x7f060014;
-        public static final int mode_text=0x7f060015;
-        public static final int pen_color=0x7f06000d;
-        public static final int pen_width=0x7f06000e;
-        public static final int remove=0x7f060007;
-        public static final int save=0x7f06000b;
-        public static final int settings=0x7f06000c;
-        public static final int textView1=0x7f060001;
-        public static final int textView2=0x7f060002;
-        public static final int text_color=0x7f06000f;
-        public static final int text_type=0x7f060010;
-        public static final int toback=0x7f060005;
-        public static final int tofront=0x7f060006;
-        public static final int width_bar=0x7f060003;
-        public static final int width_ok=0x7f060004;
+        public static final int mode_hand=0x7f060017;
+        public static final int mode_pencil=0x7f060018;
+        public static final int mode_text=0x7f060019;
+        public static final int pen_color=0x7f060011;
+        public static final int pen_width=0x7f060012;
+        public static final int remove=0x7f06000b;
+        public static final int rowImage=0x7f060007;
+        public static final int rowText=0x7f060008;
+        public static final int save=0x7f06000f;
+        public static final int settings=0x7f060010;
+        public static final int textView1=0x7f060002;
+        public static final int textView2=0x7f060003;
+        public static final int text_color=0x7f060013;
+        public static final int text_type=0x7f060014;
+        public static final int toback=0x7f060009;
+        public static final int tofront=0x7f06000a;
+        public static final int width_bar=0x7f060004;
+        public static final int width_ok=0x7f060005;
     }
     public static final class layout {
-        public static final int main=0x7f030000;
-        public static final int picker=0x7f030001;
+        public static final int imageselect=0x7f030000;
+        public static final int main=0x7f030001;
+        public static final int picker=0x7f030002;
+        public static final int row=0x7f030003;
     }
     public static final class menu {
         public static final int edit_menu=0x7f050000;

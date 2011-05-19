@@ -1,0 +1,5 @@
+
+    <LinearLayout android:layout_width="fill_parent" android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/imageRow">
+        <ImageView android:src="@drawable/icon" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/rowImage"></ImageView>
+        <TextView android:text="TextView" android:id="@+id/rowText" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_gravity="center|center_vertical|left"></TextView>
+    </LinearLayout>

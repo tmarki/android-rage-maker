@@ -132,6 +132,7 @@ public class BlahView extends View {
     public void addImageObject (Drawable dr, int x, int y, float rot, float scale, int drawableId) {
 		pushState ();
     	currentState.mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId));
+    	invalidate ();
     }
 
     public void addTextObject (int x, int y, int textSize, int color, Typeface tf, String text, boolean bold, boolean italic) {
@@ -340,6 +341,16 @@ public class BlahView extends View {
 	        	}
 	        }
 		}
+		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown) {
+			boolean found = false;
+	        for (ImageObject ad : currentState.mDrawables) {
+	        	if (ad.isSelected()) {
+	        		found = true;
+	        	}
+	        }
+			if (!found && (previousStates.size() > 0))
+				previousStates.remove(previousStates.size() - 1);
+		}
 		else if (event.getAction() == MotionEvent.ACTION_MOVE){
 			int diffX = (int)((event.getX() - mPreviousPos.x) / mCanvasScale);
 			int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
@@ -361,8 +372,6 @@ public class BlahView extends View {
 		        }
 		        if (!found)
 		        {
-					if (previousStates.size() > 0)
-						previousStates.remove(previousStates.size() - 1);
 		        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
 		        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
 		        		mCanvasOffset.x += diffX;
