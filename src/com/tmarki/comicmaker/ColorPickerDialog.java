@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 
 import android.os.Bundle;
 import android.app.Dialog;

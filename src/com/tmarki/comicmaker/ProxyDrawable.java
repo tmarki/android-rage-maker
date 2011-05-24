@@ -1,4 +1,4 @@
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 /*
  * Copyright (C) 2008 The Android Open Source Project
  *

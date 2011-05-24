@@ -1,0 +1,8 @@
+    <LinearLayout android:id="@+id/linearLayout1" android:layout_width="fill_parent" android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical" android:gravity="center">
+        <LinearLayout android:id="@+id/linearLayout2" android:layout_height="wrap_content" android:layout_width="fill_parent">
+            <CheckBox android:layout_height="wrap_content" android:id="@+id/bold" android:layout_width="wrap_content" android:text="@string/bold"></CheckBox>
+            <CheckBox android:layout_height="wrap_content" android:id="@+id/italic" android:layout_width="wrap_content" android:text="@string/italic"></CheckBox>
+        </LinearLayout>
+        <SeekBar android:layout_height="wrap_content" android:layout_width="fill_parent" android:id="@+id/fontsize"></SeekBar>
+        <ListView android:layout_width="fill_parent" android:id="@+id/imageList" android:layout_height="fill_parent"></ListView>
+    </LinearLayout>

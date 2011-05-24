@@ -1,4 +1,4 @@
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 /*
  * Copyright (C) 2008 The Android Open Source Project
  *
@@ -24,7 +24,10 @@ import android.graphics.Point;
 import android.util.Log;
 
 public class ImageObject extends ProxyDrawable {
-    
+	
+	public String pack = "";
+	public String folder = "";
+	public String filename = "";
     private Point mPosition = new Point ();
     private float mRotation = 0.0f;
     private float mScale = 0.0f;
@@ -52,16 +55,22 @@ public class ImageObject extends ProxyDrawable {
         mScale = other.mScale;
         mSelected = other.mSelected;
         InBack = other.InBack;
+        filename = other.filename;
+        pack = other.pack;
+        folder = other.folder;
     	
     }
     
-    public ImageObject (Drawable target, int posX, int posY, float rot, float scale, int drawableId) {
+    public ImageObject (Drawable target, int posX, int posY, float rot, float scale, int drawableId, String pac, String foldr, String fil) {
         super(target);
         mPosition.x = posX;
         mPosition.y = posY;
         mRotation = rot;
         mScale = scale;
         mDrawableId = drawableId;
+        filename = fil;
+        pack = pac;
+        folder = foldr;
         target.setBounds(-target.getIntrinsicWidth() / 2, -target.getIntrinsicHeight() / 2, target.getIntrinsicWidth() / 2, target.getIntrinsicHeight() / 2);
         Log.d ("RAGE", "Initialized ImageObject at" + mPosition.toString());
     }

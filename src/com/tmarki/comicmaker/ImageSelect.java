@@ -1,24 +1,20 @@
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 
 import java.util.Vector;
+
+import com.example.blahblah.R;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.drawable.BitmapDrawable;
-import android.view.View.OnClickListener;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -29,17 +25,19 @@ public class ImageSelect extends Dialog {
 	private PackAdapter adapter = null;
 	static public class PackAdapter extends BaseAdapter {
 	    
+		private int ThumbHeight = 50;
 	    private static LayoutInflater inflater=null;
 	    Activity activity = null;
 	    Vector<CharSequence> files = new Vector<CharSequence>();
 	    String packName = "";
 	    String folderName = "";
-	    public PackAdapter(Activity ac, String PackName, String FolderName) {
+	    public PackAdapter(Activity ac, String PackName, String FolderName, int screenH) {
 	    	activity = ac;
 	    	packName = PackName;
 	    	folderName = FolderName;
 	    	files = PackHandler.getBundles().get(PackName).get(FolderName);
 	        inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+	        ThumbHeight = screenH / 4;
 	    }
 
 	    public int getCount() {
@@ -78,7 +76,9 @@ public class ImageSelect extends Dialog {
 	        	holder.text.setText(fn);
 	        BitmapDrawable dr = PackHandler.getPackDrawable(packName, folderName, fn);
 	        holder.image.setImageDrawable(dr);
-//	        imageLoader.DisplayImage(data[position], activity, holder.image);
+	        holder.image.setAdjustViewBounds(true);
+	        holder.image.setMaxHeight(ThumbHeight);
+	        holder.image.setMaxWidth(ThumbHeight);
 	        return vi;
 	    }
 	}
@@ -86,12 +86,14 @@ public class ImageSelect extends Dialog {
 	private String FolderName = "";
 	private Activity activity = null;
 	private OnItemClickListener listener = null;
-	public ImageSelect (Activity ac, String pn, String fn, OnItemClickListener listnr) {
+	private int screenHeight = 320;
+	public ImageSelect (Activity ac, String pn, String fn, OnItemClickListener listnr, int scrnHeight) {
 		super (ac);
 		activity = ac;
 		PackName = pn;
 		FolderName = fn;
 		listener = listnr;
+		screenHeight = scrnHeight;
 	}
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -99,10 +101,10 @@ public class ImageSelect extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.imageselect);
         ListView list = (ListView)findViewById(R.id.imageList);
-        adapter = new PackAdapter(activity, PackName, FolderName);
+        adapter = new PackAdapter(activity, PackName, FolderName, screenHeight);
         list.setAdapter(adapter);
         list.setOnItemClickListener(listener);
-
+        super.setTitle(R.string.select_image);
     }
 
 }

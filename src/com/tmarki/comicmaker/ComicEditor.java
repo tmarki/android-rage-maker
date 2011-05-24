@@ -1,7 +1,10 @@
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 
 
 import java.util.Vector;
+
+import com.example.blahblah.R;
+import com.tmarki.comicmaker.TextObject.FontType;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -25,11 +28,11 @@ import android.widget.PopupWindow;
 import android.util.Log;
 
 
-public class BlahView extends View {
+public class ComicEditor extends View {
 	
 	public enum TouchModes { HAND, PENCIL, TEXT };
 	
-	private TouchModes mTouchMode = TouchModes.HAND;
+	private TouchModes mTouchMode = TouchModes.TEXT;
 	
 	class ComicState {
 	    public ComicState() {
@@ -76,8 +79,32 @@ public class BlahView extends View {
     private float mPrevRot = 0.0f;
     private boolean mMovedSinceDown = false;
     private boolean mModeMenu = false;
+    private FontType defaultFontType = FontType.values()[0];
+    private boolean defaultBold = false;
+    private boolean defaultItalic = false;
+    private int defaultFontSize = 20;
     
-    private int mModeIconSize = 100;
+    public boolean isDefaultBold() {
+		return defaultBold;
+	}
+
+	public void setDefaultBold(boolean defaultBold) {
+		this.defaultBold = defaultBold;
+		if (currentState.mCurrentText != null)
+			currentState.mCurrentText.setBold(defaultBold);
+	}
+
+	public boolean isDefaultItalic() {
+		return defaultItalic;
+	}
+
+	public void setDefaultItalic(boolean defaultItalic) {
+		this.defaultItalic = defaultItalic;
+		if (currentState.mCurrentText != null)
+			currentState.mCurrentText.setItalic(defaultItalic);
+	}
+
+	private int mModeIconSize = 100;
 
     
     public int getCurrentColor() {
@@ -86,6 +113,12 @@ public class BlahView extends View {
 
 	public void setCurrentColor(int currentColor) {
 		this.currentState.currentColor = currentColor;
+	}
+	
+	public void setCurrentFont (FontType ft) {
+		defaultFontType = ft;
+		if (currentState.mCurrentText != null)
+			currentState.mCurrentText.setTypeface(ft);
 	}
 	
 	public void resetObjects () {
@@ -105,8 +138,18 @@ public class BlahView extends View {
 	public void setCurrentStrokeWidth(int currentStrokeWidth) {
 		this.currentStrokeWidth = currentStrokeWidth;
 	}
+	
+	public int getDefaultFontSize() {
+		return defaultFontSize;
+	}
 
-	public BlahView(Context context) {
+	public void setDefaultFontSize(int defaultFontSize) {
+		this.defaultFontSize = defaultFontSize;
+		if (currentState.mCurrentText != null)
+			currentState.mCurrentText.setTextSize(defaultFontSize);
+	}
+
+	public ComicEditor(Context context) {
         super(context);
         setFocusable(true);
         setFocusableInTouchMode(true);
@@ -127,17 +170,72 @@ public class BlahView extends View {
     
     public Vector<ImageObject> getImageObjects (){
     	return currentState.mDrawables;
+
+    }
+
+    public Vector<TextObject> getTextObjects (){ 
+    	Vector<TextObject> ret = new Vector<TextObject>(currentState.mTextDrawables); 
+		if (currentState.mCurrentText != null)
+		{
+			ret.add(new TextObject (currentState.mCurrentText));
+		}
+    	return ret;
     }
     
+    public Vector<Vector<Point>> getPoints () {
+    	Vector<Vector<Point>> ret = new Vector<Vector<Point>> (currentState.mLinePoints);
+		if (currentState.mCurrentLinePoints.size () > 0) {
+			ret.add(new Vector<Point>(currentState.mCurrentLinePoints));
+		}
+    	return ret;
+    }
+
+    public Vector<Paint> getPaints () {
+    	Vector<Paint> ret = new Vector<Paint>(currentState.mLinePaints);
+		if (currentState.mCurrentLinePoints.size () > 0) {
+			Paint p = new Paint ();
+			p.setStrokeWidth(currentStrokeWidth);
+			p.setColor(currentState.currentColor);
+			ret.add(p); 
+		}    	
+    	return ret;
+    }
+    
+    public void addLine (Vector<Point> points, Paint paint){
+		if (currentState.mCurrentLinePoints.size () > 0) {
+			currentState.mLinePoints.add(new Vector<Point>(currentState.mCurrentLinePoints));
+			Paint p = new Paint ();
+			p.setStrokeWidth(currentStrokeWidth);
+			p.setColor(currentState.currentColor);
+			currentState.mLinePaints.add(p);
+		}
+    	currentState.mCurrentLinePoints = new Vector<Point>(points); 
+    	currentStrokeWidth = (int)paint.getStrokeWidth();
+    	currentState.currentColor = paint.getColor();
+    }
+
+    public void resetHistory () {
+    	previousStates.clear();
+    }
+
     public void addImageObject (Drawable dr, int x, int y, float rot, float scale, int drawableId) {
+    	addImageObject(dr, x, y, rot, scale, drawableId, "", "", "");
+    }
+
+    public void addImageObject (Drawable dr, int x, int y, float rot, float scale, int drawableId, String pack, String folder, String file) {
 		pushState ();
-    	currentState.mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId));
+    	currentState.mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId, pack, folder, file));
     	invalidate ();
     }
 
-    public void addTextObject (int x, int y, int textSize, int color, Typeface tf, String text, boolean bold, boolean italic) {
+    public void addTextObject (int x, int y, int textSize, int color, TextObject.FontType ft, String text, boolean bold, boolean italic) {
 		pushState ();
-    	currentState.mTextDrawables.add(new TextObject(x, y, textSize, color, tf, text, bold, italic));
+		if (currentState.mCurrentText != null)
+		{
+			currentState.mTextDrawables.add(new TextObject (currentState.mCurrentText));
+		}
+		currentState.mCurrentText = new TextObject(x, y, textSize, color, ft, text, bold, italic);
+//    	currentState.mTextDrawables.add(new TextObject(x, y, textSize, color, ft, text, bold, italic));
     }
 
     @Override 
@@ -312,7 +410,7 @@ public class BlahView extends View {
 		super.cancelLongPress();
 		
 	}
-	
+
 	private void handleSingleTouchManipulateEvent (MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
 			pushState ();
@@ -391,7 +489,9 @@ public class BlahView extends View {
 			pushState ();
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP) {
-			currentState.mLinePoints.add(new Vector<Point>(currentState.mCurrentLinePoints));
+			if (currentState.mCurrentLinePoints.size () > 0) {
+				currentState.mLinePoints.add(new Vector<Point>(currentState.mCurrentLinePoints));
+			}
 			Paint p = new Paint ();
 			p.setColor(this.currentState.currentColor);
 			p.setStrokeWidth(currentStrokeWidth);
@@ -428,7 +528,7 @@ public class BlahView extends View {
 						currentState.mTextDrawables.add(new TextObject (currentState.mCurrentText));
 					}
 					currentState.mCurrentText = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
-							20, currentState.currentColor, Typeface.MONOSPACE, value, false, false);
+							defaultFontSize, currentState.currentColor, defaultFontType, value, defaultBold, defaultItalic);
 					invalidate();
 			  }
 			});
@@ -472,7 +572,8 @@ public class BlahView extends View {
 	}
 
 	public void setmTouchMode(TouchModes mTouchMode) {
-		this.mTouchMode = mTouchMode;
+		if (mTouchMode != null)
+			this.mTouchMode = mTouchMode;
 	}
 	
 	public void pushState () {

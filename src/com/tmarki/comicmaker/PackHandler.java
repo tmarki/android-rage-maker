@@ -1,4 +1,4 @@
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,6 +79,9 @@ public class PackHandler {
 		return ret;
 	}
 	static public BitmapDrawable getPackDrawable (String filename, String folder, String file) {
+		return getPackDrawable(filename, folder, file, 0);
+	}
+	static public BitmapDrawable getPackDrawable (String filename, String folder, String file, int fixedHeight) {
 		ZipFile zf;
 		try {
 			Log.d ("RAGE", "Trying to return " + filename + "/" + folder + "/" + file);
@@ -93,7 +96,10 @@ public class PackHandler {
 					  String sfile = ze.getName().substring(ze.getName().lastIndexOf("/") + 1);
 					  if (sfile.equals(file) && sfolder.equals(folder)) {
 						  BitmapDrawable bd = new BitmapDrawable(BitmapFactory.decodeStream(zf.getInputStream(ze)));
-						  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());
+						  if (fixedHeight > 0)
+							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getIntrinsicWidth()) / bd.getIntrinsicHeight());
+						  else
+							  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());
 						  Log.d ("RAGE", "Returning " + bd.toString());
 						  return bd;
 					  }

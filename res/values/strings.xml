@@ -22,4 +22,8 @@
     <string name="pen_width">Pen width</string>
     <string name="text_color">Text color</string>
     <string name="text_type">Text type</string>
+    <string name="select_image">Select Image</string>
+    <string name="select_font">Select Font Type</string>
+    <string name="bold">Bold</string>
+    <string name="italic">Italic</string>
 </resources>

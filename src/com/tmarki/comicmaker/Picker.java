@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 
-import com.example.blahblah.ColorPickerDialog.OnColorChangedListener;
+import com.example.blahblah.R;
+import com.tmarki.comicmaker.ColorPickerDialog.OnColorChangedListener;
 
 import android.app.Dialog;
 import android.content.Context;

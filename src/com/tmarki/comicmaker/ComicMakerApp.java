@@ -1,39 +1,16 @@
-package com.example.blahblah;
+package com.tmarki.comicmaker;
 
-import java.io.BufferedInputStream;
 import java.util.Map;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
-import java.lang.reflect.Type;
-import java.nio.CharBuffer;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Vector;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
-import junit.framework.TestResult;
-
-import com.example.blahblah.BlahView.TouchModes;
-import com.example.blahblah.ColorPickerDialog.OnColorChangedListener;
-import com.example.blahblah.Picker.OnWidthChangedListener;
-import com.example.blahblah.ColorPickerDialog;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface.OnClickListener;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.os.Bundle;
@@ -43,75 +20,147 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.RemoteViews.ActionException;
 
-import com.example.blahblah.BlahView;
-import com.example.blahblah.Picker;;
+import com.example.blahblah.R;
+import com.tmarki.comicmaker.ColorPickerDialog;
+import com.tmarki.comicmaker.ComicEditor;
+import com.tmarki.comicmaker.Picker;
+import com.tmarki.comicmaker.ComicEditor.TouchModes;
+import com.tmarki.comicmaker.Picker.OnWidthChangedListener;
+import com.tmarki.comicmaker.TextObject.FontType;
 
 
 
 
-public class BlahGame extends Activity implements ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener {
-	private BlahView mainView;
+public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener {
+	private ComicEditor mainView;
 	private Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> externalImages = new HashMap<CharSequence, Map<CharSequence, Vector<CharSequence>>>();
 	private CharSequence packSelected;
 	private CharSequence folderSelected;
-	private ArrayList<BitmapDrawable> al = new ArrayList<BitmapDrawable>();
 	private ImageSelect imgsel = null;
+	private FontSelect fontselect = null;
 	
 	void readExternalFiles(){
 		externalImages = PackHandler.getBundles();
 	}
 	
 	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		Log.d ("RAGE", "Save instance");
+		super.onSaveInstanceState(outState);
+		outState.putSerializable("touchMode", mainView.getmTouchMode());
+		Vector<ImageObject> ios = mainView.getImageObjects();
+		outState.putInt("imageObjectCount", ios.size ());
+        for (int i = 0; i < ios.size (); ++i) {
+        	int[] params = new int[2];
+        	params[0] = ios.get(i).getPosition().x;
+        	params[1] = ios.get(i).getPosition().y;
+        	outState.putIntArray(String.format("ImageObject%dpos", i), params);
+        	outState.putFloat(String.format("ImageObject%drot", i), ios.get(i).getRotation());
+        	outState.putFloat(String.format("ImageObject%dscale", i), ios.get (i).getScale ());
+        	outState.putInt(String.format("ImageObject%drid", i), ios.get (i).getDrawableId());
+        	outState.putString(String.format("ImageObject%dpack", i), ios.get (i).pack);
+        	outState.putString(String.format("ImageObject%dfolder", i), ios.get (i).folder);
+        	outState.putString(String.format("ImageObject%dfile", i), ios.get (i).filename);
+        }
+		Vector<TextObject> tobs = mainView.getTextObjects();
+		outState.putInt("textObjectCount", tobs.size ());
+        for (int i = 0; i < tobs.size (); ++i) {
+        	outState.putInt(String.format("TextObject%dx", i), tobs.get (i).getX());
+        	outState.putInt(String.format("TextObject%dy", i), tobs.get (i).getY());
+        	outState.putInt(String.format("TextObject%dsize", i), tobs.get (i).getTextSize());
+        	outState.putInt(String.format("TextObject%dcolor", i), tobs.get (i).getColor());
+        	outState.putSerializable(String.format("TextObject%dtypeface", i), tobs.get (i).getTypeface());
+        	outState.putString(String.format("TextObject%dtext", i), tobs.get (i).getText());
+        	outState.putBoolean(String.format("TextObject%dbold", i), tobs.get (i).isBold());
+        	outState.putBoolean(String.format("TextObject%ditalic", i), tobs.get (i).isItalic());
+        }
+        Vector<Vector<Point>> points = mainView.getPoints();
+        Vector<Paint> paints = mainView.getPaints();
+		outState.putInt("lineCount", points.size ());
+        for (int i = 0; i < points.size (); ++i) {
+        	outState.putInt(String.format("line%dpointcount", i), points.get (i).size());
+            for (int j = 0; j < points.get (i).size (); ++j) {
+            	outState.putInt(String.format("line%dpoint%dx", i, j), points.get (i).get(j).x);
+            	outState.putInt(String.format("line%dpoint%dy", i, j), points.get (i).get(j).y);
+            }
+            outState.putFloat(String.format("line%dstroke", i), paints.get (i).getStrokeWidth());
+            outState.putInt(String.format("line%dcolor", i), paints.get (i).getColor());
+        }
+	}
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 		Log.d ("RAGE", "BlahGame created");
 	    Log.d ("RAGE", "Dir: " + Environment.getExternalStorageDirectory());
         super.onCreate(savedInstanceState);
-        mainView = new BlahView (this);
+        mainView = new ComicEditor (this);
         registerForContextMenu(mainView);
         setContentView(mainView);
         readExternalFiles();
+        try {
+        	if (savedInstanceState.getSerializable("touchMode") != null)
+        		mainView.setmTouchMode((ComicEditor.TouchModes)savedInstanceState.getSerializable("touchMode"));
+        }
+        catch (Exception e) {
+        	
+        }
         int ioCount = 0;
         if (savedInstanceState != null)
         	ioCount = savedInstanceState.getInt("imageObjectCount", 0);
-        if (ioCount == 0) {
-        	Drawable dr = getResources().getDrawable(R.drawable.trollface);
-            mainView.addImageObject(dr, 0, 0, 45.0f, 0.5f, R.drawable.trollface);
-        	dr = getResources().getDrawable(R.drawable.icon);
-            mainView.addImageObject(dr, 300, 300, 0.0f, 2.5f, R.drawable.icon);
-//            mainView.addImageObject((Drawable)getPackDrawable("rage.zip", "rage4", externalImages.get ("rage.zip").get("rage4").get (0).toString()), 200, 200, 0.0f, 2.0f, 0);
-        }
         for (int i = 0; i < ioCount; ++i) {
         	int[] params = savedInstanceState.getIntArray(String.format("ImageObject%dpos", i));
         	float rot = savedInstanceState.getFloat(String.format("ImageObject%drot", i));
         	float sc = savedInstanceState.getFloat(String.format("ImageObject%dscale", i));
         	int rid = savedInstanceState.getInt(String.format("ImageObject%drid", i));
+        	String pack = savedInstanceState.getString(String.format("ImageObject%dpack", i));
+        	String folder = savedInstanceState.getString(String.format("ImageObject%dfolder", i));
+        	String file = savedInstanceState.getString(String.format("ImageObject%dfile", i));
         	if (rid > 0) {
         		Drawable dr = getResources().getDrawable(rid);
-        		mainView.addImageObject(dr, params[0], params[1], rot, sc, rid);
+        		mainView.addImageObject (dr, params[0], params[1], rot, sc, rid);
         	}
-/*        	outState.putIntArray(String.format("ImageObject%dpos", i), params);
-        	outState.putDouble(String.format("ImageObject%drot", i), ios.get(i).getRotation());
-        	outState.putDouble(String.format("ImageObject%dscale", i), ios.get (i).getScale ());*/
+        	else if (pack.length() > 0) { 
+    			mainView.addImageObject(PackHandler.getPackDrawable(pack, folder, file), params[0], params[1], rot,sc, rid);
+        	}
         }
-        mainView.addTextObject(100, 80, 20, Color.RED, Typeface.SANS_SERIF, "asdfghjkl", true, true);
-        mainView.addTextObject(100, 120, 20, Color.GREEN, Typeface.SERIF, "zxc\n\rvbnm\ncy,", false, true);
-        mainView.addTextObject(100, 160, 30, Color.BLUE, Typeface.MONOSPACE, "qwertyuiop", true, true);
-//        getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-//        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-
+        int txCount = 0;
+        if (savedInstanceState != null)
+        	txCount = savedInstanceState.getInt("textObjectCount", 0);
+        for (int i = 0; i < txCount; ++i) {
+        	int x = savedInstanceState.getInt(String.format("TextObject%dx", i));
+        	int y = savedInstanceState.getInt(String.format("TextObject%dy", i));
+        	int s = savedInstanceState.getInt(String.format("TextObject%dsize", i));
+        	int c = savedInstanceState.getInt(String.format("TextObject%dcolor", i));
+        	TextObject.FontType ft = (FontType) savedInstanceState.getSerializable(String.format("TextObject%dtypeface", i));
+        	String text = savedInstanceState.getString(String.format("TextObject%dtext", i));
+        	Boolean bold = savedInstanceState.getBoolean(String.format("TextObject%dbold", i));
+        	Boolean italic = savedInstanceState.getBoolean(String.format("TextObject%ditalic", i));
+        	mainView.addTextObject(x, y, s, c, ft, text, bold, italic);
+        }
+        int pCount = 0;
+        if (savedInstanceState != null) 
+        	pCount = savedInstanceState.getInt("lineCount", 0);
+        for (int i = 0; i < pCount; ++i) {
+        	Vector<Point> p = new Vector<Point>();
+        	int cnt = savedInstanceState.getInt(String.format("line%dpointcount", i));
+        	for (int j = 0; j < cnt; ++j) {
+        		int x = savedInstanceState.getInt(String.format("line%dpoint%dx", i, j));
+        		int y = savedInstanceState.getInt(String.format("line%dpoint%dy", i, j));
+        		p.add(new Point (x, y));
+        	}
+        	Paint pp = new Paint ();
+        	pp.setStrokeWidth(savedInstanceState.getFloat(String.format("line%dstroke", i)));
+        	pp.setColor(savedInstanceState.getInt(String.format("line%dcolor", i)));
+        	mainView.addLine(p, pp); 
+        }
+        mainView.resetHistory();
+        mainView.invalidate();
     }
 
 	@Override
@@ -221,7 +270,10 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 				alertDialog3.show();
 			}
 			break;
-			
+		case (R.id.text_type):
+			fontselect = new FontSelect (this, setFontTypeListener, mainView.getDefaultFontSize(), mainView.isDefaultBold(), mainView.isDefaultItalic());
+			fontselect.show();
+			break;
 		}
 			
 		return super.onOptionsItemSelected(item);
@@ -264,78 +316,36 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 		alertDialog.show();
 	}
 
+	private OnItemClickListener setFontTypeListener = new OnItemClickListener(){
+		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+				long arg3) {
+			Log.d ("RAGE", "Clicked: " + String.valueOf(arg2));
+			fontselect.dismiss();
+			mainView.setCurrentFont(TextObject.FontType.values()[arg2]);
+			mainView.setDefaultBold(fontselect.isBold());
+			mainView.setDefaultItalic(fontselect.isItalic());
+			mainView.setDefaultFontSize(fontselect.getFontSize());
+			mainView.invalidate();
+		}
+    };
+
 	private OnItemClickListener addFromPackListener = new OnItemClickListener(){
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 				long arg3) {
-			// TODO Auto-generated method stub
 			Log.d ("RAGE", "Clicked: " + String.valueOf(arg2));
 			imgsel.dismiss();
-			mainView.addImageObject(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (arg2).toString()), 100, 100, 0.0f, 1.0f, 0);
+			String fname = externalImages.get (packSelected).get(folderSelected).get (arg2).toString();
+			mainView.addImageObject(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname), 100, 100, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
 		}
     };
 	private void doComicPackImageSelect () {
-//		al.add(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (0).toString()));
-		imgsel = new ImageSelect(this, packSelected.toString(), folderSelected.toString(), addFromPackListener);
+		imgsel = new ImageSelect(this, packSelected.toString(), folderSelected.toString(), addFromPackListener, mainView.getWidth() > mainView.getHeight () ? mainView.getWidth () : mainView.getHeight ());
 		imgsel.show();
-//		int activityID = 0x100;
-/*		Intent intent = new Intent();
-		intent.setClassName ("com.example.blahblah", "ImageSelect");//.setClass(getApplicationContext(), ImageSelect.class);
-//		intent.putExtra("images", al);
-		startActivityForResult(intent, activityID);
-//		startActivityForResult(intent, activityID);		ImageSelect is = new ImageSelect (al);
-/*		CharSequence[] ccsi = (CharSequence[]) externalImages.get (packSelected).get(folderSelected).toArray(new CharSequence[externalImages.get (packSelected).get(folderSelected).size()]);
-		AlertDialog alertDialog;
-		alertDialog = new AlertDialog.Builder(mainView.getContext())
-        .setTitle("Select Pack")
-        .setItems(ccsi, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which2) {
-
-        		CharSequence[] ccsi = (CharSequence[]) externalImages.get (packSelected).get(folderSelected).toArray(new CharSequence[externalImages.get (packSelected).get(folderSelected).size()]);
-            	new AlertDialog.Builder(mainView.getContext())
-                        .setMessage("You selected: " + which2 + " , " + ccsi[which2])
-                        .show();
-            }
-        })
-        .create();
-		ListView lv = new ListView (this);
-		ArrayList<View> al = new ArrayList<View>();
-		ImageView iv = new ImageView(this);
-		iv.setImageDrawable(getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (0).toString()));
-		al.add(iv);
-		lv.addView(iv);
-		iv = new ImageView(this);
-		iv.setImageDrawable(getPackDrawable(packSelected.toString(), folderSelected.toString(), externalImages.get (packSelected).get(folderSelected).get (1).toString()));
-		al.add(iv);
-		lv.addView(iv);
-//		lv.addTouchables(al);
-		alertDialog.setView(lv);
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setView(lv);
-		alertDialog = builder.create();
-		alertDialog.show();*/
 	}
 	
 
 	public void colorChanged(int c) {
 		mainView.setCurrentColor(c);
-	}
-
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		// TODO Auto-generated method stub
-		Log.d ("RAGE", "Save instance");
-		super.onSaveInstanceState(outState);
-		Vector<ImageObject> ios = mainView.getImageObjects();
-		outState.putInt("imageObjectCount", ios.size ());
-        for (int i = 0; i < ios.size (); ++i) {
-        	int[] params = new int[2];
-        	params[0] = ios.get(i).getPosition().x;
-        	params[1] = ios.get(i).getPosition().y;
-        	outState.putIntArray(String.format("ImageObject%dpos", i), params);
-        	outState.putFloat(String.format("ImageObject%drot", i), ios.get(i).getRotation());
-        	outState.putFloat(String.format("ImageObject%dscale", i), ios.get (i).getScale ());
-        	outState.putInt(String.format("ImageObject%drid", i), ios.get (i).getDrawableId());
-        }
 	}
 
 	@Override
@@ -366,7 +376,6 @@ public class BlahGame extends Activity implements ColorPickerDialog.OnColorChang
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
 		menu.findItem(R.id.pen_color).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL);
 		menu.findItem(R.id.pen_width).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL);
 		menu.findItem(R.id.text_color).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
