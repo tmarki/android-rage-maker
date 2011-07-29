@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <TableLayout android:id="@+id/tableLayout1" android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="fill_parent">
+        <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/panelCountLabel" android:text="Panel Count: 5"></TextView>
+        <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_gravity="center|fill" android:gravity="fill" android:layout_width="fill_parent">
+            <SeekBar android:layout_height="wrap_content" android:id="@+id/panelCount" android:layout_width="wrap_content" android:layout_gravity="center|fill" android:layout_weight="1"></SeekBar>
+        </LinearLayout>
+        <CheckBox android:id="@+id/drawGrid" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="Draw Grid"></CheckBox>
+        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/settingsOk" android:text="Apply"></Button>
+    </TableLayout>

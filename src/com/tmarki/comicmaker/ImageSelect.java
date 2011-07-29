@@ -1,5 +1,6 @@
 package com.tmarki.comicmaker;
 
+import java.util.Map;
 import java.util.Vector;
 
 import com.example.blahblah.R;
@@ -31,11 +32,12 @@ public class ImageSelect extends Dialog {
 	    Vector<CharSequence> files = new Vector<CharSequence>();
 	    String packName = "";
 	    String folderName = "";
-	    public PackAdapter(Activity ac, String PackName, String FolderName, int screenH) {
+	    Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> mExternalImages = null;
+	    public PackAdapter(Activity ac, String PackName, String FolderName, int screenH, Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> externalImages) {
 	    	activity = ac;
 	    	packName = PackName;
 	    	folderName = FolderName;
-	    	files = PackHandler.getBundles().get(PackName).get(FolderName);
+	    	files = externalImages.get(PackName).get(FolderName);
 	        inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	        ThumbHeight = screenH / 4;
 	    }
@@ -87,13 +89,15 @@ public class ImageSelect extends Dialog {
 	private Activity activity = null;
 	private OnItemClickListener listener = null;
 	private int screenHeight = 320;
-	public ImageSelect (Activity ac, String pn, String fn, OnItemClickListener listnr, int scrnHeight) {
+	private Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> mExternalImages = null;
+	public ImageSelect (Activity ac, Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> externalImages, String pn, String fn, OnItemClickListener listnr, int scrnHeight) {
 		super (ac);
 		activity = ac;
 		PackName = pn;
 		FolderName = fn;
 		listener = listnr;
 		screenHeight = scrnHeight;
+		mExternalImages = externalImages;
 	}
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -101,7 +105,7 @@ public class ImageSelect extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.imageselect);
         ListView list = (ListView)findViewById(R.id.imageList);
-        adapter = new PackAdapter(activity, PackName, FolderName, screenHeight);
+        adapter = new PackAdapter(activity, PackName, FolderName, screenHeight, mExternalImages);
         list.setAdapter(adapter);
         list.setOnItemClickListener(listener);
         super.setTitle(R.string.select_image);

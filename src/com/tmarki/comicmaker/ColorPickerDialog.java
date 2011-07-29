@@ -16,6 +16,10 @@
 
 package com.tmarki.comicmaker;
 
+import java.util.Currency;
+
+import com.example.blahblah.R;
+
 import android.os.Bundle;
 import android.app.Dialog;
 import android.content.Context;
@@ -24,210 +28,239 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class ColorPickerDialog extends Dialog {
-
     public interface OnColorChangedListener {
-        void colorChanged(int color);
+        void colorChanged(String key, int color);
     }
 
     private OnColorChangedListener mListener;
-    private int mInitialColor;
+    private int mInitialColor, mDefaultColor;
+    private String mKey;
+    
 
-    private static class ColorPickerView extends View {
-        private Paint mPaint;
-        private Paint mCenterPaint;
-        private final int[] mColors;
-        private OnColorChangedListener mListener;
-        
-        ColorPickerView(Context c, OnColorChangedListener l, int color) {
-            super(c);
-            mListener = l;
-            mColors = new int[] {
-                0xFFFF0000, 0xFFFF00FF, 0xFF0000FF, 0xFF00FFFF, 0xFF00FF00,
-                0xFFFFFF00, 0xFFFF0000
-            };
-            Shader s = new SweepGradient(0, 0, mColors, null);
-            
-            mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mPaint.setShader(s);
-            mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setStrokeWidth(32);
-            
-            mCenterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            mCenterPaint.setColor(color);
-            mCenterPaint.setStrokeWidth(5);
-        }
-        
-        private boolean mTrackingCenter;
-        private boolean mHighlightCenter;
+	private static class ColorPickerView extends View {
+		private Paint mPaint;
+		private float mCurrentHue = 0;
+		private int mCurrentX = 0, mCurrentY = 0;
+		private int mCurrentColor, mDefaultColor;
+		private final int[] mHueBarColors = new int[258];
+		private int[] mMainColors = new int[65536];
+		private OnColorChangedListener mListener;
+		
+	    private int hueBarLeft = 10;
+	    private int hueBarTop = 10;
+	    private int hueBarRight = 190;
+	    private int hueBarBottom = 50;
+	    
+	    private int mainFieldLeft = 5;
+	    private int mainFieldTop = 50;
+	    private int mainFieldRight = 190;
+	    private int mainFieldBottom = 200;
 
-        @Override 
-        protected void onDraw(Canvas canvas) {
-            float r = CENTER_X - mPaint.getStrokeWidth()*0.5f;
-            
-            canvas.translate(CENTER_X, CENTER_X);
-            
-            canvas.drawOval(new RectF(-r, -r, r, r), mPaint);            
-            canvas.drawCircle(0, 0, CENTER_RADIUS, mCenterPaint);
-            
-            if (mTrackingCenter) {
-                int c = mCenterPaint.getColor();
-                mCenterPaint.setStyle(Paint.Style.STROKE);
-                
-                if (mHighlightCenter) {
-                    mCenterPaint.setAlpha(0xFF);
-                } else {
-                    mCenterPaint.setAlpha(0x80);
-                }
-                canvas.drawCircle(0, 0,
-                                  CENTER_RADIUS + mCenterPaint.getStrokeWidth(),
-                                  mCenterPaint);
-                
-                mCenterPaint.setStyle(Paint.Style.FILL);
-                mCenterPaint.setColor(c);
-            }
-        }
-        
-        @Override
-        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            setMeasuredDimension(CENTER_X*2, CENTER_Y*2);
-        }
-        
-        private static final int CENTER_X = 100;
-        private static final int CENTER_Y = 100;
-        private static final int CENTER_RADIUS = 32;
+	    private int button1Left = 5;
+	    private int button1Top = 205;
+	    private int button1Right = 90;
+	    private int button1Bottom = 250;
 
-        private int floatToByte(float x) {
-            int n = java.lang.Math.round(x);
-            return n;
-        }
-        private int pinToByte(int n) {
-            if (n < 0) {
-                n = 0;
-            } else if (n > 255) {
-                n = 255;
-            }
-            return n;
-        }
-        
-        private int ave(int s, int d, float p) {
-            return s + java.lang.Math.round(p * (d - s));
-        }
-        
-        private int interpColor(int colors[], float unit) {
-            if (unit <= 0) {
-                return colors[0];
-            }
-            if (unit >= 1) {
-                return colors[colors.length - 1];
-            }
-            
-            float p = unit * (colors.length - 1);
-            int i = (int)p;
-            p -= i;
+	    private int button2Left = 95;
+	    private int button2Top = 205;
+	    private int button2Right = 200;
+	    private int button2Bottom = 250;
 
-            // now p is just the fractional part [0...1) and i is the index
-            int c0 = colors[i];
-            int c1 = colors[i+1];
-            int a = ave(Color.alpha(c0), Color.alpha(c1), p);
-            int r = ave(Color.red(c0), Color.red(c1), p);
-            int g = ave(Color.green(c0), Color.green(c1), p);
-            int b = ave(Color.blue(c0), Color.blue(c1), p);
-            
-            return Color.argb(a, r, g, b);
-        }
-        
-        private int rotateColor(int color, float rad) {
-            float deg = rad * 180 / 3.1415927f;
-            int r = Color.red(color);
-            int g = Color.green(color);
-            int b = Color.blue(color);
-            
-            ColorMatrix cm = new ColorMatrix();
-            ColorMatrix tmp = new ColorMatrix();
+		ColorPickerView(Context c, OnColorChangedListener l, int color, int defaultColor, int screenW, int screenH) {
+			super(c);
+			mListener = l;
+			mDefaultColor = defaultColor;
 
-            cm.setRGB2YUV();
-            tmp.setRotate(0, deg);
-            cm.postConcat(tmp);
-            tmp.setYUV2RGB();
-            cm.postConcat(tmp);
-            
-            final float[] a = cm.getArray();
+			// Get the current hue from the current color and update the main color field
+			float[] hsv = new float[3];
+			Color.colorToHSV(color, hsv);
+			mCurrentHue = hsv[0];
 
-            int ir = floatToByte(a[0] * r +  a[1] * g +  a[2] * b);
-            int ig = floatToByte(a[5] * r +  a[6] * g +  a[7] * b);
-            int ib = floatToByte(a[10] * r + a[11] * g + a[12] * b);
-            
-            return Color.argb(Color.alpha(color), pinToByte(ir),
-                              pinToByte(ig), pinToByte(ib));
-        }
-        
-        private static final float PI = 3.1415926f;
+			mCurrentColor = color;
 
-        @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            float x = event.getX() - CENTER_X;
-            float y = event.getY() - CENTER_Y;
-            boolean inCenter = java.lang.Math.sqrt(x*x + y*y) <= CENTER_RADIUS;
-            
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    mTrackingCenter = inCenter;
-                    if (inCenter) {
-                        mHighlightCenter = true;
-                        invalidate();
-                        break;
-                    }
-                case MotionEvent.ACTION_MOVE:
-                    if (mTrackingCenter) {
-                        if (mHighlightCenter != inCenter) {
-                            mHighlightCenter = inCenter;
-                            invalidate();
-                        }
-                    } else {
-                        float angle = (float)java.lang.Math.atan2(y, x);
-                        // need to turn angle [-PI ... PI] into unit [0....1]
-                        float unit = angle/(2*PI);
-                        if (unit < 0) {
-                            unit += 1;
-                        }
-                        mCenterPaint.setColor(interpColor(mColors, unit));
-                        invalidate();
-                    }
-                    break;
-                case MotionEvent.ACTION_UP:
-                    if (mTrackingCenter) {
-                        if (inCenter) {
-                            mListener.colorChanged(mCenterPaint.getColor());
-                        }
-                        mTrackingCenter = false;    // so we draw w/o halo
-                        invalidate();
-                    }
-                    break;
-            }
-            return true;
-        }
-    }
+			hueBarRight = screenW - hueBarLeft * 2;
+			mainFieldRight = screenW - mainFieldLeft * 2;
+			int bh = button1Bottom - button1Top;
+			button1Top = screenH - bh * 10;
+			button2Top = screenH - bh * 10;
+			button1Bottom = button1Top + bh;
+			button2Bottom = button2Top + bh;
+			mainFieldBottom = screenH - (hueBarBottom + bh * 10);
+			
+			// Initializes the Paint that will draw the View
+			mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+			mPaint.setTextAlign(Paint.Align.CENTER);
+			mPaint.setTextSize(12);
+		}
+		
+		private int getHueBarColor (int x) {
+			int hueW = hueBarRight - hueBarLeft;
+			x -= hueBarLeft;
+			int normalX = ((x * 255) / hueW);
+			int section = normalX / 42;
+			int i = normalX;
+			if (section != 0)
+				i %= 42;
+			i *= 6;
+			switch (section) {
+				case 0:
+					return Color.rgb(255, 0, i);
+				case 1:
+					return Color.rgb(255- i, 0, 255);
+				case 2:
+					return Color.rgb(0, i, 255);
+				case 3:
+					return Color.rgb(0, 255, 255-i);
+				case 4:
+					return Color.rgb(i, 255, 0);
+				default:
+					return Color.rgb(255, 255-i, 0);
+			}
+		}
 
-    public ColorPickerDialog(Context context,
-                             OnColorChangedListener listener,
-                             int initialColor) {
+		
+		private int getMainColor (int rawx, int rawy){
+			int mfW = mainFieldRight - mainFieldLeft;
+			int mfH = mainFieldBottom - mainFieldTop;
+			int x = ((rawx - mainFieldLeft) * 255) / mfW;
+			int y = ((rawy - mainFieldTop) * 255) / mfH;
+			if (y == 0)
+			{
+//				return Color.rgb(255-(255-Color.red((int)mCurrentHue))*x/255, 255-(255-Color.green((int)mCurrentHue))*x/255, 255-(255-Color.blue((int)mCurrentHue)))*x/255;
+				return Color.rgb(255 - (255-Color.red ((int)mCurrentHue))*x/255, 255-(255-Color.green((int)mCurrentHue))*x/255, 255-(255-Color.blue((int)mCurrentHue))*x/255);
+//				topColors[x] = mMainColors[index];
+			}
+			int tc = getMainColor(rawx, mainFieldTop); 
+			return Color.rgb((255-y)*Color.red(tc)/255, (255-y)*Color.green(tc)/255, (255-y)*Color.blue(tc)/255);
+		}
+
+		@Override
+		protected void onDraw(Canvas canvas) {
+			// Display all the colors of the hue bar with lines
+			for (int x=hueBarLeft; x<hueBarRight; x++)
+			{
+				int col = getHueBarColor(x);
+				// If this is not the current selected hue, display the actual color
+				if (mCurrentHue != col)
+				{
+					mPaint.setColor(col);
+					mPaint.setStrokeWidth(1);
+				}
+				else // else display a slightly larger black line
+				{
+					mPaint.setColor(Color.BLACK);
+					mPaint.setStrokeWidth(3);
+				}
+				canvas.drawLine(x, hueBarTop, x, hueBarBottom, mPaint);
+			}
+
+			// Display the main field colors using LinearGradient
+			for (int x=mainFieldLeft; x<mainFieldRight; x++)
+			{
+				int[] colors = new int[2];
+				colors[0] = getMainColor(x, mainFieldTop);//mMainColors[x];
+				colors[1] = Color.BLACK;
+//				Shader shader = new LinearGradient(mainFieldLeft, mainFieldTop, mainFieldRight, mainFieldBottom, colors, null, Shader.TileMode.REPEAT);
+				Shader shader = new LinearGradient(x, mainFieldTop, x, mainFieldBottom, colors, null, Shader.TileMode.REPEAT);
+				mPaint.setShader(shader);
+				canvas.drawLine(x, mainFieldTop, x, mainFieldBottom, mPaint);
+			}
+			mPaint.setShader(null);
+
+			// Display the circle around the currently selected color in the main field
+			if (mCurrentX != 0 && mCurrentY != 0)
+			{
+				mPaint.setStyle(Paint.Style.STROKE);
+				mPaint.setColor(Color.BLACK);
+				canvas.drawCircle(mCurrentX, mCurrentY, 10, mPaint);
+			}
+
+			// Draw a 'button' with the currently selected color
+			mPaint.setStyle(Paint.Style.FILL);
+			mPaint.setColor(mCurrentColor);
+			canvas.drawRect(button1Left, button1Top, button1Right, button1Bottom, mPaint);
+
+			// Set the text color according to the brightness of the color
+			if (Color.red(mCurrentColor)+Color.green(mCurrentColor)+Color.blue(mCurrentColor) < 384)
+				mPaint.setColor(Color.WHITE);
+			else
+				mPaint.setColor(Color.BLACK);
+			canvas.drawText(getResources().getString(R.string.settings_bg_color_confirm), button1Left + (button1Right - button1Left) / 2, button1Top + (button1Bottom - button1Top) / 2, mPaint);
+
+			// Draw a 'button' with the default color
+			mPaint.setStyle(Paint.Style.FILL);
+			mPaint.setColor(mDefaultColor);
+			canvas.drawRect(button2Left, button2Top, button2Right, button2Bottom, mPaint);
+
+			// Set the text color according to the brightness of the color
+			if (Color.red(mDefaultColor)+Color.green(mDefaultColor)+Color.blue(mDefaultColor) < 384)
+				mPaint.setColor(Color.WHITE);
+			else
+				mPaint.setColor(Color.BLACK);
+			canvas.drawText(getResources().getString(R.string.settings_default_color_confirm), button2Left + (button2Right - button2Left) / 2, button2Top + (button2Bottom - button2Top) / 2, mPaint);
+		}
+
+		@Override
+		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			setMeasuredDimension(hueBarLeft + hueBarRight, button1Left + button1Bottom);
+		}
+
+		@Override
+		public boolean onTouchEvent(MotionEvent event) {
+			if (event.getAction() != MotionEvent.ACTION_DOWN) return true;
+			float x = event.getX();
+			float y = event.getY();
+
+			// If the touch event is located in the hue bar
+			if (x > hueBarLeft && x < hueBarRight && y > hueBarTop && y < hueBarBottom)
+			{
+				// Update the main field colors
+				mCurrentHue = getHueBarColor((int)x);
+				mCurrentColor = getMainColor(mCurrentX, mCurrentY);
+				invalidate();
+			}
+
+			// If the touch event is located in the main field
+			if (x > mainFieldLeft && x < mainFieldRight && y > mainFieldTop && y < mainFieldBottom)
+			{
+				mCurrentColor = getMainColor((int)x, (int)y);
+				invalidate();
+				mCurrentX = (int) x;
+				mCurrentY = (int) y;
+			}
+
+			// If the touch event is located in the left button, notify the listener with the current color
+			if (x > button1Left && x < button1Right && y > button1Top && y < button1Bottom)
+				mListener.colorChanged("", mCurrentColor);
+
+			// If the touch event is located in the right button, notify the listener with the default color
+			if (x > button2Left && x < button2Right && y > button2Top && y < button2Bottom)
+				mListener.colorChanged("", mDefaultColor);
+
+			return true;
+		}
+	}
+
+    public ColorPickerDialog(Context context, OnColorChangedListener listener, String key, int initialColor, int defaultColor) {
         super(context);
-        
+
         mListener = listener;
+        mKey = key;
         mInitialColor = initialColor;
+        mDefaultColor = defaultColor;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         OnColorChangedListener l = new OnColorChangedListener() {
-            public void colorChanged(int color) {
-                mListener.colorChanged(color);
+            public void colorChanged(String key, int color) {
+                mListener.colorChanged(mKey, color);
                 dismiss();
             }
         };
-
-        setContentView(new ColorPickerView(getContext(), l, mInitialColor));
-        setTitle("Pick a Color");
+ 
+        setContentView(new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, getWindow().getWindowManager().getDefaultDisplay().getWidth(), getWindow().getWindowManager().getDefaultDisplay().getHeight()));
+        setTitle(R.string.settings_bg_color_dialog);
     }
 }

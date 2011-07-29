@@ -1,6 +1,8 @@
 package com.tmarki.comicmaker;
 
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Vector;
 
 import com.example.blahblah.R;
@@ -9,11 +11,13 @@ import com.tmarki.comicmaker.TextObject.FontType;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
 import android.hardware.Camera.PreviewCallback;
@@ -25,16 +29,17 @@ import android.view.View;
 //import android.view.MotionEvent.PointerCoords;
 import android.widget.EditText;
 import android.widget.PopupWindow;
+import android.text.format.Time;
 import android.util.Log;
 
 
 public class ComicEditor extends View {
 	
-	public enum TouchModes { HAND, PENCIL, TEXT };
+	public enum TouchModes { HAND, LINE, PENCIL, TEXT };
 	
-	private TouchModes mTouchMode = TouchModes.TEXT;
+	private TouchModes mTouchMode = TouchModes.HAND;
 	
-	class ComicState {
+	public class ComicState {
 	    public ComicState() {
 		}
 	    public ComicState(ComicState os) {
@@ -44,24 +49,24 @@ public class ComicEditor extends View {
 	    	for (TextObject io : os.mTextDrawables) {
 	    		mTextDrawables.add(new TextObject(io));
 	    	}
-	    	mLinePoints = new Vector<Vector<Point>>(os.mLinePoints);
-	    	mLinePaints = new Vector<Paint>(os.mLinePaints);
+	    	mLinePoints = new LinkedList<LinkedList<Point>>(os.mLinePoints);
+	    	mLinePaints = new LinkedList<Paint>(os.mLinePaints);
 /*	    	mTextDrawables = new Vector<TextObject>(os.mTextDrawables);*/
-	    	mCurrentLinePoints = new Vector<Point>(os.mCurrentLinePoints);
+	    	mCurrentLinePoints = new LinkedList<Point>(os.mCurrentLinePoints);
 	    	if (os.mCurrentText != null) {
 	    		mCurrentText = new TextObject(os.mCurrentText);
 	    	}
 	    	mPanelCount = os.mPanelCount;
 	    	currentColor = os.currentColor;
 		}
-		private Vector<ImageObject> mDrawables = new Vector<ImageObject>();
-	    private Vector<TextObject> mTextDrawables = new Vector<TextObject>();
-	    private Vector<Vector<Point>> mLinePoints = new Vector<Vector<Point>>();
-	    private Vector<Paint> mLinePaints = new Vector<Paint>();
-	    private Vector<Point> mCurrentLinePoints = new Vector<Point>();
-	    private TextObject mCurrentText = null;
-	    private int mPanelCount = 5;
-	    private int currentColor = Color.BLACK;
+	    public Vector<ImageObject> mDrawables = new Vector<ImageObject>();
+	    public Vector<TextObject> mTextDrawables = new Vector<TextObject>();
+	    public LinkedList<LinkedList<Point>> mLinePoints = new LinkedList<LinkedList<Point>>();
+	    public LinkedList<Paint> mLinePaints = new LinkedList<Paint>();
+	    public LinkedList<Point> mCurrentLinePoints = new LinkedList<Point>();
+	    public TextObject mCurrentText = null;
+	    public int mPanelCount = 4;
+	    public int currentColor = Color.BLACK;
 	};
 	
 	private ComicState currentState = new ComicState ();
@@ -69,13 +74,15 @@ public class ComicEditor extends View {
 	private Vector<ComicState> previousStates = new Vector<ComicState>();
 	
     private Point mCanvasOffset = new Point (0, 0);
-    private Rect mCanvasLimits = new Rect (0, 0, 640, 750);
+    private Rect mCanvasLimits = new Rect (0, 0, 640, 500);
     private float mCanvasScale = 1.0f;
     private int currentStrokeWidth = 3;
 	private Point mPreviousPos = new Point (0, 0); // single touch events
+	private boolean resizeObjectMode = false;
     private float mStartDistance = 0.0f;
     private float mStartScale = 0.0f;
     private float mStartRot = 0.0f;
+    private int mStartTextSize = 0;
     private float mPrevRot = 0.0f;
     private boolean mMovedSinceDown = false;
     private boolean mModeMenu = false;
@@ -83,6 +90,45 @@ public class ComicEditor extends View {
     private boolean defaultBold = false;
     private boolean defaultItalic = false;
     private int defaultFontSize = 20;
+    private boolean drawGrid = true;
+    private boolean wasMultiTouch = false;
+	private Time lastInvalidate = new Time ();
+	
+	public Vector<ComicState> getHistory () {
+		return previousStates;
+	}
+	
+	public ComicState getStateCopy () {
+		return new ComicState (currentState);
+	}
+	
+	public void pushHistory (ComicState cs) {
+		previousStates.add(cs);
+	}
+
+    public void setPanelCount (int pc) {
+    	if (pc != currentState.mPanelCount) {
+    		pushState();
+    		currentState.mPanelCount = pc;
+        	mCanvasLimits.bottom = (((pc - 1) / 2) + 1) * 250;
+    	}
+    }
+    
+    public void removeImageObject (ImageObject io) {
+    	pushState ();
+        for (ImageObject ad : currentState.mDrawables) {
+        	if (ad == io) {
+        		currentState.mDrawables.remove(io);
+        		break;
+        	}
+        		
+        }
+
+    }
+    
+    public int getPanelCount () {
+    	return currentState.mPanelCount;
+    }
     
     public boolean isDefaultBold() {
 		return defaultBold;
@@ -104,6 +150,14 @@ public class ComicEditor extends View {
 			currentState.mCurrentText.setItalic(defaultItalic);
 	}
 
+	public Point getmCanvasOffset() {
+		return mCanvasOffset;
+	}
+
+	public void setmCanvasOffset(Point mCanvasOffset) {
+		this.mCanvasOffset = mCanvasOffset;
+	}
+
 	private int mModeIconSize = 100;
 
     
@@ -113,6 +167,10 @@ public class ComicEditor extends View {
 
 	public void setCurrentColor(int currentColor) {
 		this.currentState.currentColor = currentColor;
+		if (this.currentState.mCurrentText != null) {
+			this.currentState.mCurrentText.setColor(currentColor);
+			invalidate();
+		}
 	}
 	
 	public void setCurrentFont (FontType ft) {
@@ -182,16 +240,16 @@ public class ComicEditor extends View {
     	return ret;
     }
     
-    public Vector<Vector<Point>> getPoints () {
-    	Vector<Vector<Point>> ret = new Vector<Vector<Point>> (currentState.mLinePoints);
+    public LinkedList<LinkedList<Point>> getPoints () {
+    	LinkedList<LinkedList<Point>> ret = new LinkedList<LinkedList<Point>> (currentState.mLinePoints);
 		if (currentState.mCurrentLinePoints.size () > 0) {
-			ret.add(new Vector<Point>(currentState.mCurrentLinePoints));
+			ret.add(new LinkedList<Point>(currentState.mCurrentLinePoints));
 		}
     	return ret;
     }
 
-    public Vector<Paint> getPaints () {
-    	Vector<Paint> ret = new Vector<Paint>(currentState.mLinePaints);
+    public LinkedList<Paint> getPaints () {
+    	LinkedList<Paint> ret = new LinkedList<Paint>(currentState.mLinePaints);
 		if (currentState.mCurrentLinePoints.size () > 0) {
 			Paint p = new Paint ();
 			p.setStrokeWidth(currentStrokeWidth);
@@ -201,17 +259,22 @@ public class ComicEditor extends View {
     	return ret;
     }
     
-    public void addLine (Vector<Point> points, Paint paint){
+    public void addLine (LinkedList<Point> points, Paint paint){
 		if (currentState.mCurrentLinePoints.size () > 0) {
-			currentState.mLinePoints.add(new Vector<Point>(currentState.mCurrentLinePoints));
+			currentState.mLinePoints.add(new LinkedList<Point>(currentState.mCurrentLinePoints));
 			Paint p = new Paint ();
 			p.setStrokeWidth(currentStrokeWidth);
 			p.setColor(currentState.currentColor);
 			currentState.mLinePaints.add(p);
 		}
-    	currentState.mCurrentLinePoints = new Vector<Point>(points); 
+    	currentState.mCurrentLinePoints = new LinkedList<Point>(points); 
     	currentStrokeWidth = (int)paint.getStrokeWidth();
     	currentState.currentColor = paint.getColor();
+    }
+
+    public void pureAddLine (LinkedList<Point> points, Paint paint){
+		currentState.mLinePoints.add(points);
+		currentState.mLinePaints.add(paint);
     }
 
     public void resetHistory () {
@@ -227,6 +290,10 @@ public class ComicEditor extends View {
     	currentState.mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId, pack, folder, file));
     	invalidate ();
     }
+    
+    public void pureAddImageObject (ImageObject io) {
+    	currentState.mDrawables.add(io);
+    }
 
     public void addTextObject (int x, int y, int textSize, int color, TextObject.FontType ft, String text, boolean bold, boolean italic) {
 		pushState ();
@@ -238,13 +305,12 @@ public class ComicEditor extends View {
 //    	currentState.mTextDrawables.add(new TextObject(x, y, textSize, color, ft, text, bold, italic));
     }
 
-    @Override 
-    protected void onDraw(Canvas canvas) {
-    	int sc = canvas.save();
-        canvas.drawColor(Color.WHITE);
-        canvas.scale(mCanvasScale, mCanvasScale);
-        canvas.translate(mCanvasOffset.x, mCanvasOffset.y);
+    public void pureAddTextObject (TextObject to) {
+		currentState.mTextDrawables.add(to);
+//		currentState.mCurrentText = to;
+    }
 
+    private void drawGridLines (Canvas canvas) {
         Paint paint = new Paint ();
         paint.setColor(Color.BLACK);
         paint.setStrokeWidth(3.0f);
@@ -261,12 +327,19 @@ public class ComicEditor extends View {
 		canvas.drawLine(mCanvasLimits.left, mCanvasLimits.top, mCanvasLimits.left, mCanvasLimits.bottom, paint);
 		canvas.drawLine(mCanvasLimits.left, mCanvasLimits.bottom, mCanvasLimits.right, mCanvasLimits.bottom, paint);
 		canvas.drawLine(mCanvasLimits.right, mCanvasLimits.bottom, mCanvasLimits.right, mCanvasLimits.top, paint);
+    }
+    
+    private void drawImages (Canvas canvas, boolean back) {
+    	ImageObject.setResizeMode(resizeObjectMode);
         for (ImageObject ad : currentState.mDrawables) {
-        	if (ad != null && ad.isInBack()) {
+        	if (ad != null && (ad.isInBack() == back)) {
         		ad.draw(canvas);
         	}
         }
-        Vector<Vector<Point>> lp = currentState.mLinePoints; 
+    }
+    
+    private void drawLines (Canvas canvas) {
+    	LinkedList<LinkedList<Point>> lp = currentState.mLinePoints; 
 		for (int i = 0; i < lp.size(); ++i){
 			if (lp.get(i).size() == 0) continue;
 			for (int j = 0; j < lp.get (i).size() - 1; ++j){
@@ -280,7 +353,7 @@ public class ComicEditor extends View {
 			Paint p = new Paint ();
 			p.setColor(this.currentState.currentColor);
 			p.setStrokeWidth(currentStrokeWidth);
-	        Vector<Point> clp = currentState.mCurrentLinePoints; 
+			LinkedList<Point> clp = currentState.mCurrentLinePoints; 
 			
 			for (int i = 0; i < clp.size() - 1; ++i){
 				canvas.drawLine(clp.get(i).x, clp.get(i).y, clp.get(i + 1).x, clp.get(i + 1).y, p);
@@ -289,26 +362,27 @@ public class ComicEditor extends View {
 					canvas.drawCircle(clp.get(i + 1).x, clp.get(i + 1).y, currentStrokeWidth / 2, p);
 			}
 		}
+    }
+    
+    private void drawText (Canvas canvas) {
 		for (TextObject to : currentState.mTextDrawables) {
 			if (to != null) {
 				to.draw(canvas);
 				Log.d ("RAGE", "Drawing " + to.getText());
 			}
 		}
-        for (ImageObject ad : currentState.mDrawables) {
-        	if (ad != null && !ad.isInBack()) {
-        		ad.draw(canvas);
-        	}
-        }
 		if (currentState.mCurrentText != null)
 			currentState.mCurrentText.draw (canvas);
-        canvas.restoreToCount(sc);
-        sc = canvas.save();
+    }
+    
+    private void drawModeIcon (Canvas canvas) {
     	Drawable dr;
         if (mTouchMode == TouchModes.HAND)
         	dr = getResources().getDrawable(R.drawable.hand);
         else if (mTouchMode == TouchModes.PENCIL)
         	dr = getResources().getDrawable(R.drawable.pencil);
+        else if (mTouchMode == TouchModes.LINE)
+        	dr = getResources().getDrawable(R.drawable.line);
         else
         	dr = getResources().getDrawable(R.drawable.type);
         mModeIconSize = (getWidth() > getHeight () ? getWidth () : getHeight ()) / 8; 
@@ -316,8 +390,42 @@ public class ComicEditor extends View {
         dr.setBounds(0, 0, dr.getIntrinsicWidth(), dr.getIntrinsicHeight());
         canvas.scale((float)mModeIconSize / dr.getIntrinsicWidth(), (float)mModeIconSize / dr.getIntrinsicHeight());
         dr.draw(canvas);
+    }
+    
+    public Bitmap getSaveBitmap () {
+    	ImageObject.setInteractiveMode(false);
+    	Bitmap bmp = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
+    	Canvas canvas = new Canvas (bmp);
+        canvas.drawColor(Color.WHITE);
+        if (drawGrid)
+        	drawGridLines (canvas);
+        drawImages (canvas, true);
+        drawLines (canvas);
+        drawText (canvas);
+        drawImages (canvas, false);
+    	return bmp;
+    }
+
+    @Override 
+    protected void onDraw(Canvas canvas) {
+    	ImageObject.setInteractiveMode(true);
+    	int sc = canvas.save();
+        canvas.drawColor(Color.BLACK);
+        canvas.scale(mCanvasScale, mCanvasScale);
+        canvas.translate(mCanvasOffset.x, mCanvasOffset.y);
+        canvas.clipRect(mCanvasLimits);
+        canvas.drawColor(Color.WHITE);
+        
+        if (drawGrid)
+        	drawGridLines (canvas);
+        drawImages (canvas, true);
+        drawLines (canvas);
+        drawText (canvas);
+        drawImages (canvas, false);
         canvas.restoreToCount(sc);
-//        invalidate();
+        drawModeIcon (canvas);
+
+        canvas.restoreToCount(sc);
     }
 
 	@Override
@@ -333,18 +441,19 @@ public class ComicEditor extends View {
 		Log.d("RAGE", String.valueOf (event.getPointerCount()));
 		if (event.getPointerCount() == 1) {
 			mStartDistance = 0.0f;
-			if (event.getAction() == MotionEvent.ACTION_DOWN
-					 && event.getX() > getWidth() - mModeIconSize
+			if (event.getX() > getWidth() - mModeIconSize
 					 && event.getX() < getWidth()
 					 && event.getY() > getHeight() - mModeIconSize
 					 && event.getY() < getHeight()) {
-				mModeMenu = true;
-				showContextMenu();
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
+					mModeMenu = true;
+					showContextMenu();
+				}
 			}
 			else {
 				if (mTouchMode == TouchModes.HAND)
 					handleSingleTouchManipulateEvent(event);
-				else if (mTouchMode == TouchModes.PENCIL)
+				else if (mTouchMode == TouchModes.PENCIL || mTouchMode == TouchModes.LINE)
 					handleSingleTouchDrawEvent(event);
 				else if (mTouchMode == TouchModes.TEXT)
 					handleSingleTouchTextEvent(event);
@@ -352,21 +461,33 @@ public class ComicEditor extends View {
 					cancelLongPress();
 			}
 		}
-		else
-			handleMultiTouchEvent(event);
-		invalidate();
+		else {
+			if (mTouchMode == TouchModes.HAND)
+				handleMultiTouchManipulateEvent(event);
+			else if (mTouchMode == TouchModes.TEXT)
+				handleMultiTouchTextEvent(event);
+		}
+		Time t = new Time ();
+		t.setToNow();
+		if (lastInvalidate != t) {
+			invalidate();
+			lastInvalidate = t;
+		}
 		super.onTouchEvent(event);
 		return true;
 	}
 	
-	private void handleMultiTouchEvent (MotionEvent event) {
+	private void handleMultiTouchManipulateEvent (MotionEvent event) {
+		wasMultiTouch = true;
 		float x1 = event.getX(0);
 		float x2 = event.getX(1);
 		float y1 = event.getY(0);
 		float y2 = event.getY(1);
 		float diff = (float)Math.sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
 		float a = (x1 - x2);
-		float b = (y1 - y2);
+		float b =  (y1 - y2);
+/*		if (y1 > y2)
+			b = (y2 - y1);*/
 		float q = a / b;
 		float rot = (float)Math.toDegrees(Math.atan (q));
 		Log.d("RAGE", "Diff " + String.valueOf(diff) + " Rot " + String.valueOf(rot));
@@ -393,19 +514,52 @@ public class ComicEditor extends View {
 			boolean found = false;
 	        for (ImageObject io : currentState.mDrawables) {
 	        	float newscale = mStartScale * scale;
+	        	float rotdiff = rot - mPrevRot;
 	        	if (io.isSelected() && newscale < 10.0f && newscale > 0.1f)
 	        	{
 	        		io.setScale(newscale);
-	        		io.setRotation(mPrevRot - rot + mStartRot);
+	        		float newrot = Math.round((mStartRot - rotdiff) / 5.0f) * 5.0f;
+	        		io.setRotation(newrot);
+//	        		io.setRotation(mStartRot - rotdiff);
 	        		found = true;
 	        		break;
 	        	}
 	        }
 	        if (!found) {
 	        	float newscale = mStartScale * scale;
-	        	if (newscale < 5.0f && newscale > 0.2f)
+	        	if (newscale < 5.0f && newscale > 0.2f) {
 	        		mCanvasScale = newscale;
+	        	}
 	        }
+		}
+		super.cancelLongPress();
+		
+	}
+
+	private void handleMultiTouchTextEvent (MotionEvent event) {
+		wasMultiTouch = true;
+		float x1 = event.getX(0);
+		float x2 = event.getX(1);
+		float y1 = event.getY(0);
+		float y2 = event.getY(1);
+		float diff = (float)Math.sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
+		float a = (x1 - x2);
+		float b =  (y1 - y2);
+/*		if (y1 > y2)
+			b = (y2 - y1);*/
+		float q = a / b;
+		float rot = (float)Math.toDegrees(Math.atan (q));
+		Log.d("RAGE", "Diff " + String.valueOf(diff) + " Rot " + String.valueOf(rot));
+		if (mStartDistance < 0.1f) {
+			mStartDistance = diff;
+			mStartScale = 0.0f;
+			boolean found = false;
+			mStartTextSize = currentState.mCurrentText.getTextSize();
+		}
+		else {
+			float scale = diff / mStartDistance;
+			Log.d("RAGE", "Scale " + String.valueOf(scale) + " Start Scale " + String.valueOf(mStartScale));
+			currentState.mCurrentText.setTextSize((int)(mStartTextSize * (scale - mStartScale)));
 		}
 		super.cancelLongPress();
 		
@@ -415,8 +569,14 @@ public class ComicEditor extends View {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
 			pushState ();
 			mMovedSinceDown = false;
+			resizeObjectMode = false;
+			ImageObject io = getSelected();
+			if (io != null && io.pointInResize ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
+				resizeObjectMode = true;
+			}
 		}
-		else if (event.getAction() == MotionEvent.ACTION_UP && !mMovedSinceDown) {
+		else if (event.getAction() == MotionEvent.ACTION_UP && !mMovedSinceDown && !resizeObjectMode && !wasMultiTouch) {
+			resizeObjectMode = false;
 			if (previousStates.size() > 0)
 				previousStates.remove(previousStates.size() - 1);
 			int selectedId = -1;
@@ -439,7 +599,8 @@ public class ComicEditor extends View {
 	        	}
 	        }
 		}
-		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown) {
+		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown && !resizeObjectMode) {
+			resizeObjectMode = false;
 			boolean found = false;
 	        for (ImageObject ad : currentState.mDrawables) {
 	        	if (ad.isSelected()) {
@@ -449,36 +610,53 @@ public class ComicEditor extends View {
 			if (!found && (previousStates.size() > 0))
 				previousStates.remove(previousStates.size() - 1);
 		}
-		else if (event.getAction() == MotionEvent.ACTION_MOVE){
-			int diffX = (int)((event.getX() - mPreviousPos.x) / mCanvasScale);
-			int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
-			if (Math.abs(diffX) > 5 / mCanvasScale || Math.abs(diffY) > 5 / mCanvasScale) {
-				super.cancelLongPress();
-				mMovedSinceDown = true;
-				boolean found = false;
-		        for (ImageObject ad : currentState.mDrawables) {
-		        	if (ad.isSelected()) {
-		        		found = true;
-		        		Point p = ad.getPosition();
-		        		if (p.x + diffX >= mCanvasLimits.left
-		        				&& p.x + diffX <= mCanvasLimits.right
-		        				&& p.y + diffY >= mCanvasLimits.top
-		        				&& p.y + diffY <= mCanvasLimits.bottom
-		        				)
-		        		ad.moveBy((int)(diffX), (int)(diffY));
-		        	}
-		        }
-		        if (!found)
-		        {
-		        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
-		        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
-		        		mCanvasOffset.x += diffX;
-		        	if (((mCanvasOffset.y + diffY) < mCanvasLimits.top && diffY > 0)
-			        		|| (-(mCanvasOffset.y + diffY) + getHeight () / mCanvasScale <= mCanvasLimits.bottom) && diffY < 0)
-		        		mCanvasOffset.y += diffY;
-		        } 
+		else if (event.getAction() == MotionEvent.ACTION_MOVE && !wasMultiTouch){
+			if (!resizeObjectMode) {
+				int diffX = (int)((event.getX() - mPreviousPos.x) / mCanvasScale);
+				int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
+				if (Math.abs(diffX) > 3 * mCanvasScale || Math.abs(diffY) > 3 * mCanvasScale) {
+					super.cancelLongPress();
+					mMovedSinceDown = true;
+					boolean found = false;
+			        for (ImageObject ad : currentState.mDrawables) {
+			        	if (ad.isSelected()) {
+			        		found = true;
+			        		Point p = ad.getPosition();
+			        		if (p.x + diffX >= mCanvasLimits.left
+			        				&& p.x + diffX <= mCanvasLimits.right
+			        				&& p.y + diffY >= mCanvasLimits.top
+			        				&& p.y + diffY <= mCanvasLimits.bottom
+			        				)
+			        		ad.moveBy((int)(diffX), (int)(diffY));
+			        	}
+			        }
+			        if (!found)
+			        {
+			        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
+			        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
+			        		mCanvasOffset.x += diffX;
+			        	if (((mCanvasOffset.y + diffY) < mCanvasLimits.top && diffY > 0)
+				        		|| (-(mCanvasOffset.y + diffY) + getHeight () / mCanvasScale <= mCanvasLimits.bottom) && diffY < 0)
+			        		mCanvasOffset.y += diffY;
+			        } 
+				}
+			}
+			else {
+				cancelLongPress();
+				ImageObject sel = getSelected();
+				if (sel != null) {
+					int direction = 1;
+/*					if (event.getX () > mPreviousPos.x) {
+						direction = 1;
+					}*/
+					double diffSize = event.getX () - mPreviousPos.x;
+					double imgDiag = (Math.sqrt((double)((sel.getIntrinsicWidth()) * (sel.getIntrinsicWidth()) + (sel.getIntrinsicHeight()) * (sel.getIntrinsicHeight()))) / 2.0) * sel.getScale();
+					sel.setScale((float)((imgDiag + (double)direction * diffSize) / imgDiag) * sel.getScale ());
+				}
 			}
 		}
+		if (event.getAction() == MotionEvent.ACTION_UP && wasMultiTouch == true)
+			wasMultiTouch = false;
 		mPreviousPos.x = (int)event.getX();
 		mPreviousPos.y = (int)event.getY();
 	}
@@ -490,7 +668,7 @@ public class ComicEditor extends View {
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP) {
 			if (currentState.mCurrentLinePoints.size () > 0) {
-				currentState.mLinePoints.add(new Vector<Point>(currentState.mCurrentLinePoints));
+				currentState.mLinePoints.add(new LinkedList<Point>(currentState.mCurrentLinePoints));
 			}
 			Paint p = new Paint ();
 			p.setColor(this.currentState.currentColor);
@@ -498,6 +676,8 @@ public class ComicEditor extends View {
 			currentState.mLinePaints.add (new Paint (p));
 		}
 		else if (event.getAction() == MotionEvent.ACTION_MOVE){
+			if (mTouchMode == TouchModes.LINE && currentState.mCurrentLinePoints.size() > 1)
+				currentState.mCurrentLinePoints.removeLast();
 			currentState.mCurrentLinePoints.add(new Point ((int)(event.getX() / mCanvasScale) - mCanvasOffset.x, (int)(event.getY() / mCanvasScale) - mCanvasOffset.y));
 		}
 		super.cancelLongPress();
@@ -509,10 +689,10 @@ public class ComicEditor extends View {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
 			mMovedSinceDown = false;
 		}
-		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown == false) {
+		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown == false && wasMultiTouch == false) {
 			AlertDialog.Builder alert = new AlertDialog.Builder(getContext ());
 
-			alert.setTitle("Type in *le text*");
+			alert.setTitle("Enter the text");
 //			alert.setMessage("Message");
 
 			// Set an EditText view to get user input 
@@ -540,7 +720,7 @@ public class ComicEditor extends View {
 
 			alert.show();
 		}
-		else if (event.getAction() == MotionEvent.ACTION_MOVE){
+		else if (event.getAction() == MotionEvent.ACTION_MOVE && wasMultiTouch == false){
 			int diffX = (int)((event.getX() - mPreviousPos.x) / mCanvasScale);
 			int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
 			if (Math.abs(diffX) > 2 / mCanvasScale || Math.abs(diffY) > 2 / mCanvasScale) {
@@ -550,6 +730,9 @@ public class ComicEditor extends View {
 					currentState.mCurrentText.setY(currentState.mCurrentText.getY() + diffY);
 				}
 			}
+		}
+		if (event.getAction() == MotionEvent.ACTION_UP) {
+			wasMultiTouch = false;
 		}
 		super.cancelLongPress();
 		mPreviousPos.x = (int)event.getX();
@@ -593,6 +776,16 @@ public class ComicEditor extends View {
 		}
 		invalidate();
 		return false;
+	}
+
+
+	public boolean isDrawGrid() {
+		return drawGrid;
+	}
+
+
+	public void setDrawGrid(boolean drawGrid) {
+		this.drawGrid = drawGrid;
 	}
     
 }

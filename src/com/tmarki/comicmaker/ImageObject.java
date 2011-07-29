@@ -19,6 +19,8 @@ package com.tmarki.comicmaker;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Paint.Style;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
 import android.util.Log;
@@ -32,7 +34,18 @@ public class ImageObject extends ProxyDrawable {
     private float mRotation = 0.0f;
     private float mScale = 0.0f;
     private boolean mSelected = false;
-    private boolean InBack = false;
+    private boolean InBack = true;
+    private boolean flipVertical = false;
+    private boolean flipHorizontal = false;
+    private final int resizeBoxSize = 32;
+    static boolean resizeMode = false; // admittedly this is not the nicest way to do it
+    static void setResizeMode (boolean rm) {
+    	resizeMode = rm;
+    }
+    static boolean interactiveMode = false;
+    static void setInteractiveMode (boolean rm) {
+    	interactiveMode = rm;
+    }
     public boolean isInBack() {
 		return InBack;
 	}
@@ -87,14 +100,26 @@ public class ImageObject extends ProxyDrawable {
         if (dr != null) {
         	int sc = canvas.save();
         	canvas.translate(mPosition.x, mPosition.y);
-        	canvas.scale((float)mScale, (float)mScale);
+        	canvas.scale( (float)mScale, (float)mScale);
+        	int sc2 = canvas.save();
         	canvas.rotate((float)mRotation);
+        	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
             dr.draw(canvas);
-            if (mSelected)
+            canvas.restoreToCount(sc2);
+            if (mSelected && interactiveMode)
             {
             	Paint paint = new Paint ();
             	paint.setARGB(128, 128, 128, 128);
-            	canvas.drawRect(dr.getBounds(), paint);
+            	Rect imgrect = dr.getBounds(); 
+            	canvas.drawRect(imgrect, paint);
+            	Rect resizerect = new Rect ();
+            	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
+            	paint.setARGB(255, 0, 0, 0);
+            	if (!resizeMode)
+            		paint.setStyle(Style.STROKE);
+            	paint.setStrokeWidth(2.0f);
+            	canvas.drawRect(resizerect, paint);
+            	canvas.drawText(String.valueOf(mRotation), 0, 0, paint);
             }
             canvas.restoreToCount(sc);
         }
@@ -102,12 +127,18 @@ public class ImageObject extends ProxyDrawable {
     
     public boolean pointIn(int x, int y){
         Drawable dr = getProxy();
-        Log.d ("RAGE", "points to test: " + String.valueOf(x) + ", " + String.valueOf(y));
-        Log.d ("RAGE", "Bounds: " + String.valueOf(mPosition.x) + ", " + String.valueOf(mPosition.y) + ", " + String.valueOf(dr.getBounds().width()) + ", " + String.valueOf(dr.getBounds().height()));
         int wp2 = (int)(((float)dr.getBounds().width() / 2.0) * mScale);
-        int hp2 = dr.getBounds().height() / 2;
+        int hp2 = (int)((dr.getBounds().height() / 2.0) * mScale);
         return (x >= mPosition.x - wp2) && (x <= mPosition.x + wp2) &&
         	(y >= mPosition.y - hp2) && (y <= mPosition.y + hp2); 
+    }
+
+    public boolean pointInResize(int x, int y){
+        Drawable dr = getProxy();
+        int wp2 = (int)(((float)dr.getBounds().width() / 2.0) * mScale);
+        int hp2 = (int)((dr.getBounds().height() / 2.0) * mScale);
+        return (x >= mPosition.x + wp2 - resizeBoxSize) && (x <= mPosition.x + wp2) &&
+        	(y >= mPosition.y + hp2 - resizeBoxSize) && (y <= mPosition.y + hp2); 
     }
 
 	public Point getPosition() {
@@ -131,7 +162,10 @@ public class ImageObject extends ProxyDrawable {
 	}
 
 	public void setScale(float Scale) {
-		this.mScale = Scale;
+        Drawable dr = getProxy();
+        Rect r = dr.getBounds();
+		if (r.width() * Scale >= resizeBoxSize && r.height() * Scale >= resizeBoxSize)
+			this.mScale = Scale;
 	}
 
 	public boolean isSelected() {
@@ -147,6 +181,18 @@ public class ImageObject extends ProxyDrawable {
 	
 	public int getDrawableId () {
 		return mDrawableId;
+	}
+	public boolean isFlipVertical() {
+		return flipVertical;
+	}
+	public void setFlipVertical(boolean flipVertical) {
+		this.flipVertical = flipVertical;
+	}
+	public boolean isFlipHorizontal() {
+		return flipHorizontal;
+	}
+	public void setFlipHorizontal(boolean flipHorizontal) {
+		this.flipHorizontal = flipHorizontal;
 	}
     
 }

@@ -29,15 +29,17 @@ public class FontSelect extends Dialog {
 	    
 		private int SampleHeight = 50;
 	    private static LayoutInflater inflater=null;
-	    Activity activity = null;
-	    boolean Bold = false;
-	    boolean Italic = false;
-	    public PackAdapter(Activity ac, int fontSize, boolean b, boolean i) {
+	    private Activity activity = null;
+	    private boolean Bold = false;
+	    private boolean Italic = false;
+	    private int maxFontHeight = 70;
+	    public PackAdapter(Activity ac, int fontSize, int maxFS, boolean b, boolean i) {
 	    	activity = ac;
 	        inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	        SampleHeight = fontSize;
 	        Bold = b;
 	        Italic = i;
+	        maxFontHeight = maxFS;
 	    }
 
 	    public int getCount() {
@@ -65,6 +67,7 @@ public class FontSelect extends Dialog {
 	            holder.text=(TextView)vi.findViewById(R.id.rowText);
 	            holder.text.setTypeface(TextObject.getTypefaceObj(TextObject.FontType.values()[position], Bold, Italic));
 	            holder.text.setTextSize(SampleHeight);
+	            holder.text.setMinHeight(maxFontHeight);
 	            holder.text.setText(TextObject.FontType.values()[position].toString());
 	        }
 	        else
@@ -98,17 +101,17 @@ public class FontSelect extends Dialog {
 	private boolean Bold = false;
 	private boolean Italic = false;
 	private int minFontSize = 10;
-	private int maxFontSize = 50;
-	public int getFontSize () {
+	private int maxFontSize = 70;
+/*	public int getFontSize () {
 		return fontSize;
-	}
+	}*/
 	private OnCheckedChangeListener boldClicked = new OnCheckedChangeListener() {
 		
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 			Bold = isChecked;
 			adapter.setBold(isChecked);
 	        ListView list = (ListView)findViewById(R.id.imageList);
-	        adapter = new PackAdapter(activity, fontSize, Bold, Italic);
+	        adapter = new PackAdapter(activity, fontSize, maxFontSize, Bold, Italic);
 	        list.setAdapter(adapter);
 		}
 	};
@@ -118,11 +121,11 @@ public class FontSelect extends Dialog {
 			Italic = isChecked;
 			adapter.setItalic(isChecked);
 	        ListView list = (ListView)findViewById(R.id.imageList);
-	        adapter = new PackAdapter(activity, fontSize, Bold, Italic);
+	        adapter = new PackAdapter(activity, fontSize, maxFontSize, Bold, Italic);
 	        list.setAdapter(adapter);
 		}
 	};
-	private OnSeekBarChangeListener fontsizeChange = new OnSeekBarChangeListener() {
+/*	private OnSeekBarChangeListener fontsizeChange = new OnSeekBarChangeListener() {
 		
 		public void onStopTrackingTouch(SeekBar seekBar) {
 			
@@ -136,16 +139,16 @@ public class FontSelect extends Dialog {
 				boolean fromUser) {
 			fontSize = progress + minFontSize;
 	        ListView list = (ListView)findViewById(R.id.imageList);
-	        adapter = new PackAdapter(activity, fontSize, Bold, Italic);
+	        adapter = new PackAdapter(activity, fontSize, maxFontSize, Bold, Italic);
 			adapter.setFontSize(progress + minFontSize);
 	        list.setAdapter(adapter);
 		}
-	};
+	};*/
 	public FontSelect (Activity ac, OnItemClickListener listnr, int fontS, boolean b, boolean i) {
 		super (ac);
 		activity = ac;
 		listener = listnr;
-		fontSize = fontS;
+		fontSize = 20;
 		Bold = b;
 		Italic = i;
 	}
@@ -155,7 +158,7 @@ public class FontSelect extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fontselect);
         ListView list = (ListView)findViewById(R.id.imageList);
-        adapter = new PackAdapter(activity, fontSize, Bold, Italic);
+        adapter = new PackAdapter(activity, fontSize, maxFontSize, Bold, Italic);
         list.setAdapter(adapter);
         list.setOnItemClickListener(listener);
         
@@ -165,10 +168,10 @@ public class FontSelect extends Dialog {
         CheckBox italic = (CheckBox)findViewById(R.id.italic);
         italic.setOnCheckedChangeListener(italicClicked);
         italic.setChecked(Italic);
-        SeekBar fontsize = (SeekBar)findViewById(R.id.fontsize);
+/*        SeekBar fontsize = (SeekBar)findViewById(R.id.fontsize);
         fontsize.setMax (maxFontSize - minFontSize);
         fontsize.setOnSeekBarChangeListener(fontsizeChange);
-        fontsize.setProgress(fontSize);
+        fontsize.setProgress(fontSize);*/
         super.setTitle(R.string.select_font);
     }
 	public boolean isBold() {

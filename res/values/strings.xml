@@ -14,8 +14,9 @@
     <string name="zoom">Zoom</string>
     <string name="remove">Remove</string>
     <string name="mode_hand">Manipulate mode</string>
-    <string name="mode_pencil">Draw mode</string>
+    <string name="mode_pencil">Free draw mode</string>
     <string name="mode_text">Type mode</string>
+    <string name="mode_line">Line mode</string>
     <string name="toback">Send to back</string>
     <string name="tofront">Bring to front</string>
     <string name="pen_color">Pen color</string>
@@ -26,4 +27,9 @@
     <string name="select_font">Select Font Type</string>
     <string name="bold">Bold</string>
     <string name="italic">Italic</string>
+    <string name="flipV">Flip Vertically</string>
+    <string name="flipH">Flip Horizontally</string>
+    <string name="settings_bg_color_confirm">Use Color</string>
+    <string name="settings_default_color_confirm">Use Default</string>
+    <string name="settings_bg_color_dialog">Select Color</string>
 </resources>
