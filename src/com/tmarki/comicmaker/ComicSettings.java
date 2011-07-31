@@ -1,7 +1,7 @@
 package com.tmarki.comicmaker;
 import java.util.Currency;
 
-import com.example.blahblah.R;
+import com.tmarki.comicmaker.R;
 
 import android.os.Bundle;
 import android.view.View;

@@ -12,7 +12,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import com.example.blahblah.R;
+import com.tmarki.comicmaker.R;
 
 import android.app.AlertDialog;
 import android.content.res.AssetManager;

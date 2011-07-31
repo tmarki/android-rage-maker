@@ -15,7 +15,7 @@
  */
 package com.tmarki.comicmaker;
 
-import com.example.blahblah.R;
+import com.tmarki.comicmaker.R;
 import com.tmarki.comicmaker.ColorPickerDialog.OnColorChangedListener;
 
 import android.app.Dialog;

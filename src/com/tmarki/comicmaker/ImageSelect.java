@@ -3,7 +3,7 @@ package com.tmarki.comicmaker;
 import java.util.Map;
 import java.util.Vector;
 
-import com.example.blahblah.R;
+import com.tmarki.comicmaker.R;
 
 import android.app.Activity;
 import android.app.Dialog;

@@ -45,9 +45,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-import com.example.blahblah.R;
 import com.tmarki.comicmaker.ColorPickerDialog;
 import com.tmarki.comicmaker.ComicEditor;
+import com.tmarki.comicmaker.R;
 import com.tmarki.comicmaker.ComicEditor.ComicState;
 import com.tmarki.comicmaker.Picker;
 import com.tmarki.comicmaker.ColorPickerDialog.OnColorChangedListener;
