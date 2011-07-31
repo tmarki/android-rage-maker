@@ -119,7 +119,7 @@ public class ImageObject extends ProxyDrawable {
             		paint.setStyle(Style.STROKE);
             	paint.setStrokeWidth(2.0f);
             	canvas.drawRect(resizerect, paint);
-            	canvas.drawText(String.valueOf(mRotation), 0, 0, paint);
+//            	canvas.drawText(String.valueOf(mRotation), 0, 0, paint);
             }
             canvas.restoreToCount(sc);
         }

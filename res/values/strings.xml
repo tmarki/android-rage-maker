@@ -30,6 +30,6 @@
     <string name="flipV">Flip Vertically</string>
     <string name="flipH">Flip Horizontally</string>
     <string name="settings_bg_color_confirm">Use Color</string>
-    <string name="settings_default_color_confirm">Use Default</string>
+    <string name="settings_default_color_confirm">Use Previous</string>
     <string name="settings_bg_color_dialog">Select Color</string>
 </resources>

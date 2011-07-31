@@ -26,7 +26,11 @@ public class PackHandler {
 	
 	static private final String DEFAULT_COMIC_PACK = "default rage pack";
 	static private AssetManager assetMan = null;
-//	static private Map<CharSequence, Map<CharSequence, Map<CharSequence, ZipEntry>>> zipEntryCache = new HashMap<CharSequence, Map<CharSequence, Map<CharSequence, ZipEntry>>>(); 
+//	static private Map<CharSequence, Map<CharSequence, Map<CharSequence, ZipEntry>>> zipEntryCache = new HashMap<CharSequence, Map<CharSequence, Map<CharSequence, ZipEntry>>>();
+	
+	static public void setAssetManager (AssetManager am) {
+		assetMan = am;
+	}
 	
 	static public Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> getBundles (AssetManager am) {
 		Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> ret = new HashMap<CharSequence, Map<CharSequence, Vector<CharSequence>>>();
@@ -157,6 +161,7 @@ public class PackHandler {
 			ZipInputStream zf = new ZipInputStream(assetMan.open(DEFAULT_COMIC_PACK));
 			while (true) {
 				  ZipEntry ze = zf.getNextEntry();
+				  if (ze == null) break;
 				  if (ze.getName().toLowerCase().endsWith(".png") 
 						  || ze.getName().toLowerCase().endsWith(".jpg"))
 				  {

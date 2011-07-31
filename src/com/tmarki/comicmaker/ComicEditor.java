@@ -16,6 +16,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -94,6 +95,14 @@ public class ComicEditor extends View {
     private boolean wasMultiTouch = false;
 	private Time lastInvalidate = new Time ();
 	
+	public float getCanvasScale () {
+		return mCanvasScale;
+	}
+
+	public void setCanvasScale (float cs) {
+		mCanvasScale = cs;
+	}
+
 	public Vector<ComicState> getHistory () {
 		return previousStates;
 	}
@@ -311,6 +320,8 @@ public class ComicEditor extends View {
     }
 
     private void drawGridLines (Canvas canvas) {
+    	if (currentState.mPanelCount < 2)
+    		return;
         Paint paint = new Paint ();
         paint.setColor(Color.BLACK);
         paint.setStrokeWidth(3.0f);
@@ -342,6 +353,7 @@ public class ComicEditor extends View {
     	LinkedList<LinkedList<Point>> lp = currentState.mLinePoints; 
 		for (int i = 0; i < lp.size(); ++i){
 			if (lp.get(i).size() == 0) continue;
+			Log.d ("RAGE", String.format ("Line count: %s", lp.size ()));
 			for (int j = 0; j < lp.get (i).size() - 1; ++j){
 				canvas.drawLine(lp.get(i).get (j).x, lp.get(i).get (j).y, lp.get(i).get (j + 1).x, lp.get(i).get (j + 1).y, currentState.mLinePaints.get (i));
 				canvas.drawCircle(lp.get(i).get(j).x, lp.get(i).get(j).y, currentState.mLinePaints.get (i).getStrokeWidth() / 2, currentState.mLinePaints.get (i));
@@ -354,7 +366,7 @@ public class ComicEditor extends View {
 			p.setColor(this.currentState.currentColor);
 			p.setStrokeWidth(currentStrokeWidth);
 			LinkedList<Point> clp = currentState.mCurrentLinePoints; 
-			
+			Log.d ("RAGE", String.format ("Line count: %s", clp.size ()));
 			for (int i = 0; i < clp.size() - 1; ++i){
 				canvas.drawLine(clp.get(i).x, clp.get(i).y, clp.get(i + 1).x, clp.get(i + 1).y, p);
 				canvas.drawCircle(clp.get(i).x, clp.get(i).y, currentStrokeWidth / 2, p);
@@ -389,6 +401,10 @@ public class ComicEditor extends View {
         canvas.translate(getWidth() - mModeIconSize, getHeight() - mModeIconSize);
         dr.setBounds(0, 0, dr.getIntrinsicWidth(), dr.getIntrinsicHeight());
         canvas.scale((float)mModeIconSize / dr.getIntrinsicWidth(), (float)mModeIconSize / dr.getIntrinsicHeight());
+        RectF r = new RectF (-5.0f, -5.0f, (float)dr.getIntrinsicWidth() + 10.0f, (float)dr.getIntrinsicHeight() + 10.0f);
+        Paint p = new Paint ();
+        p.setColor(currentState.currentColor);
+        canvas.drawRoundRect(r, 4, 4, p);
         dr.draw(canvas);
     }
     

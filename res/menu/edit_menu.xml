@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/toback"
+          android:title="@string/toback" />
+    <item android:id="@+id/tofront"
+          android:title="@string/tofront" />
+    <item android:id="@+id/flipV"
+          android:title="@string/flipV" />
+    <item android:id="@+id/flipH"
+          android:title="@string/flipH" />
+    <item android:id="@+id/remove"
+          android:title="@string/remove" />
+</menu>

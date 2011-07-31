@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/mode_hand"
+		  android:icon="@drawable/hand"
+          android:title="@string/mode_hand" />
+    <item android:id="@+id/mode_pencil"
+		  android:icon="@drawable/pencil"
+          android:title="@string/mode_pencil" />
+    <item android:id="@+id/mode_text"
+		  android:icon="@drawable/type"
+          android:title="@string/mode_text" ></item><item android:title="@string/mode_line" android:icon="@drawable/line" android:id="@+id/mode_line"></item>
+    
+</menu>

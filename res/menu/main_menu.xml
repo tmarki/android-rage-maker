@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- <item android:id="@+id/add"
+          android:title="@string/add">
+        <menu>
+	    	<item android:id="@+id/add_pack"
+	          android:title="@string/add_pack" />
+	    	<item android:id="@+id/add_other"
+	          android:title="@string/add_other" />
+	    </menu>
+    </item>-->
+    <item android:id="@+id/save"
+          android:title="@string/save" />
+    <item android:id="@+id/settings"
+          android:title="@string/settings" />
+    <item android:id="@+id/pen_color"
+          android:title="@string/pen_color" />
+    <item android:id="@+id/pen_width"
+          android:title="@string/pen_width" />
+    <item android:id="@+id/text_color"
+          android:title="@string/text_color" />
+    <item android:id="@+id/text_type"
+          android:title="@string/text_type" />
+    <item android:id="@+id/clear"
+          android:title="@string/clear" />
+    <item android:id="@+id/about"
+          android:title="@string/about" />
+</menu>

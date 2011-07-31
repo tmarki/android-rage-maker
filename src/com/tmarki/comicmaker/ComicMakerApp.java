@@ -80,6 +80,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		Log.d ("RAGE", "Save instance");
 		super.onSaveInstanceState(outState);
 		outState.putSerializable("touchMode", mainView.getmTouchMode());
+		outState.putInt("currentColor", mainView.getCurrentColor());
+		outState.putInt("currentStrokeWidth", mainView.getCurrentStrokeWidth());
+		outState.putInt("currentPanelCount", mainView.getPanelCount());
+		outState.putBoolean("drawGrid", mainView.isDrawGrid());
+		outState.putFloat("canvasScale", mainView.getCanvasScale());
+		outState.putInt("canvasX", mainView.getmCanvasOffset().x);
+		outState.putInt("canvasY", mainView.getmCanvasOffset().y);
+		saveExternalSources(outState);
 		saveImagesToBundle(outState, mainView.getImageObjects(), "");
 		saveTextObjectsToBundle (outState, mainView.getTextObjects(), "");
 		saveLinesToBundle (outState, mainView.getPoints(), mainView.getPaints(), "");
@@ -89,25 +97,30 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			saveImagesToBundle(outState, history.get (i).mDrawables, String.format("h%s", i));
 			saveTextObjectsToBundle (outState, history.get (i).mTextDrawables, String.format("h%s", i));
 			saveLinesToBundle (outState, history.get (i).mLinePoints, history.get (i).mLinePaints, String.format("h%s", i));
+			outState.putInt(String.format ("h%spanelCount", i), history.get (i).mPanelCount);
 		}
 	}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-		Log.d ("RAGE", "BlahGame created");
-	    Log.d ("RAGE", "Dir: " + Environment.getExternalStorageDirectory());
         super.onCreate(savedInstanceState);
         mainView = new ComicEditor (this);
         registerForContextMenu(mainView);
         setContentView(mainView);
-        readExternalFiles();
-        try {
+        if (savedInstanceState != null) {
         	if (savedInstanceState.getSerializable("touchMode") != null)
         		mainView.setmTouchMode((ComicEditor.TouchModes)savedInstanceState.getSerializable("touchMode"));
+        	mainView.setCurrentColor(savedInstanceState.getInt("currentColor"));
+            mainView.setCurrentStrokeWidth(savedInstanceState.getInt("currentStrokeWidth"));
+            mainView.setPanelCount(savedInstanceState.getInt("currentPanelCount"));
+            mainView.setDrawGrid(savedInstanceState.getBoolean("drawGrid"));
+            mainView.setCanvasScale (savedInstanceState.getFloat("canvasScale"));
+            mainView.setmCanvasOffset(new Point (savedInstanceState.getInt ("canvasX"), savedInstanceState.getInt ("canvasY")));
+            PackHandler.setAssetManager(getAssets ());
+            loadExternalSources(savedInstanceState);
         }
-        catch (Exception e) {
-        	
-        }
+        else
+        	readExternalFiles();
         for (ImageObject io : loadImagesFromBundle (savedInstanceState, "")) {
         	mainView.pureAddImageObject(io);
         }
@@ -131,12 +144,33 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	cs.mTextDrawables = loadTextsFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.mLinePoints = loadPointsFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.mLinePaints = new LinkedList<Paint> ();
+        	cs.mPanelCount = savedInstanceState.getInt(String.format("h%spanelCount", i));
         	for (int j = 0; j < cs.mLinePoints.size (); ++j) {
         		cs.mLinePaints.add(getPaintForPoint(savedInstanceState, j, String.format("h%s", i)));
         	}
         	mainView.pushHistory(cs);
         }
         mainView.invalidate();
+    }
+    
+    private void saveExternalSources (Bundle outState) {
+    	int i = 0;
+    	outState.putInt("packCount", externalImages.keySet().size ());
+    	for (CharSequence pack : externalImages.keySet()) {
+    		outState.putCharSequence(String.format ("pack%s", i), pack);
+        	outState.putInt(String.format ("folderCount%s", i), externalImages.get (pack).keySet().size ());
+        	int j = 0;
+        	for (CharSequence folder : externalImages.get(pack).keySet()) {
+        		outState.putCharSequence(String.format ("folder%s-%s", i, j), folder);
+            	outState.putInt(String.format ("fileCount%s-%s", i, j), externalImages.get (pack).get (folder).size ());
+            	int k = 0;
+            	for (CharSequence file : externalImages.get (pack).get (folder)) {
+            		outState.putCharSequence(String.format ("file%s-%s-%s", i, j, k++), file);
+            	}
+            	j++;
+        	}
+        	i++;
+    	}
     }
     
     private void saveImagesToBundle (Bundle outState, Vector<ImageObject> ios, String tag) {
@@ -152,6 +186,8 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	outState.putString(String.format(tag + "ImageObject%dpack", i), ios.get (i).pack);
         	outState.putString(String.format(tag + "ImageObject%dfolder", i), ios.get (i).folder);
         	outState.putString(String.format(tag + "ImageObject%dfile", i), ios.get (i).filename);
+        	outState.putBoolean(String.format(tag + "ImageObject%dfv", i), ios.get(i).isFlipVertical());
+        	outState.putBoolean(String.format(tag + "ImageObject%dfh", i), ios.get(i).isFlipHorizontal());
         }
     }
     
@@ -181,6 +217,39 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             outState.putInt(String.format(tag + "line%dcolor", i), paints.get (i).getColor());
         }
     }
+
+    private void loadExternalSources (Bundle savedInstanceState) {
+    	externalImages.clear();
+    	int pc = savedInstanceState.getInt("packCount");
+    	for (int i = 0; i < pc; ++i) {
+    		CharSequence pack = savedInstanceState.getCharSequence(String.format ("pack%s", i));
+    		Map<CharSequence, Vector<CharSequence>> folders = new HashMap<CharSequence, Vector<CharSequence>> ();
+    		int foc = savedInstanceState.getInt(String.format ("folderCount%s", i));
+    		for (int j = 0; j < foc; ++j) {
+    			Vector<CharSequence> files = new Vector<CharSequence> ();
+    			CharSequence folder = savedInstanceState.getCharSequence(String.format ("folder%s-%s", i, j));
+    			int fic = savedInstanceState.getInt(String.format ("fileCount%s-%s", i, j));
+    			for (int k = 0; k < fic; ++k) {
+    				files.add(savedInstanceState.getCharSequence(String.format ("file%s-%s-%s", i, j, k)));
+    			}
+    			folders.put(folder, files);
+    		}
+    		externalImages.put(pack, folders);
+    	}
+/*    	for (CharSequence pack : externalImages.keySet()) {
+    		outState.putCharSequence(String.format ("pack%s", i++), pack);
+        	outState.putInt(String.format ("folderCount%s", i), externalImages.get (pack).keySet().size ());
+        	int j = 0;
+        	for (CharSequence folder : externalImages.get(pack).keySet()) {
+        		outState.putCharSequence(String.format ("folder%s-%s", i, j++), folder);
+            	outState.putInt(String.format ("fileCount%s-%s", i, j), externalImages.get (pack).get (folder).size ());
+            	int k = 0;
+            	for (CharSequence file : externalImages.get (pack).get (folder)) {
+            		outState.putCharSequence(String.format ("file%s-%s-%s", i, j, k++), file);
+            	}
+        	}
+    	}*/
+    }
     
     private Vector<ImageObject> loadImagesFromBundle (Bundle savedInstanceState, String tag) {
     	Vector<ImageObject> ret = new Vector<ImageObject> ();
@@ -195,19 +264,25 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	String pack = savedInstanceState.getString(String.format(tag + "ImageObject%dpack", i));
         	String folder = savedInstanceState.getString(String.format(tag + "ImageObject%dfolder", i));
         	String file = savedInstanceState.getString(String.format(tag + "ImageObject%dfile", i));
+        	ImageObject io = null;
         	if (rid > 0) {
         		Drawable dr = getResources().getDrawable(rid);
-        		ret.add(new ImageObject(dr, params[0], params[1], rot, sc, rid, pack, folder, file));
+        		io = new ImageObject(dr, params[0], params[1], rot, sc, rid, pack, folder, file);
         		//mainView.addImageObject (dr, params[0], params[1], rot, sc, rid);
         	}
         	else if (pack.length() > 0) { 
-        		ret.add(new ImageObject(PackHandler.getPackDrawable(pack, folder, file), params[0], params[1], rot, sc, rid, pack, folder, file));
+        		io = new ImageObject(PackHandler.getPackDrawable(pack, folder, file), params[0], params[1], rot, sc, rid, pack, folder, file);
 //    			mainView.addImageObject(PackHandler.getPackDrawable(pack, folder, file), params[0], params[1], rot,sc, rid, pack, folder, file);
         	}
         	else if (file.length() > 0) {
 				BitmapDrawable bdr = new BitmapDrawable(file);
-        		ret.add(new ImageObject(bdr, params[0], params[1], rot, sc, rid, pack, folder, file));
+        		io = new ImageObject(bdr, params[0], params[1], rot, sc, rid, pack, folder, file);
 //				mainView.addImageObject(bdr, params[0], params[1], rot, sc, rid, pack, folder, file);
+        	}
+        	if (io != null) {
+        		io.setFlipHorizontal(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfh", i)));
+        		io.setFlipVertical(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfv", i)));
+        		ret.add (io);
         	}
         }
         return ret;
