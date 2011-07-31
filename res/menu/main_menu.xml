@@ -13,6 +13,8 @@
           android:title="@string/save" />
     <item android:id="@+id/settings"
           android:title="@string/settings" />
+    <item android:id="@+id/share"
+          android:title="@string/share" />
     <item android:id="@+id/pen_color"
           android:title="@string/pen_color" />
     <item android:id="@+id/pen_width"

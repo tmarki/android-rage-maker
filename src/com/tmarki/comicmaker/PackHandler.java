@@ -168,7 +168,7 @@ public class PackHandler {
 					  String sfolder = ze.getName().substring(0, ze.getName().lastIndexOf("/"));
 					  if (!sfolder.equals(folder)) continue;
 					  String sfile = ze.getName().substring(ze.getName().lastIndexOf("/") + 1);
-					  if (sfile.equals(file) && sfolder.equals(folder)) {
+					  if (sfile.equals(file)) {
 						  BitmapDrawable bd = new BitmapDrawable(BitmapFactory.decodeStream(zf));
 						  if (fixedHeight > 0)
 							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getIntrinsicWidth()) / bd.getIntrinsicHeight());

@@ -478,9 +478,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			});
 			settings.show();
 			break;
-		case (R.id.save):
+		case (R.id.share):
 			AlertDialog.Builder alert = new AlertDialog.Builder(this);
-	
+		
 			alert.setTitle("Enter file name");
 	//		alert.setMessage("Message");
 	
@@ -498,6 +498,12 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 						if (!f.exists())
 							f.mkdirs();
 						b.compress(CompressFormat.JPEG, 95, new FileOutputStream(Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+						Intent share = new Intent(Intent.ACTION_SEND);
+						share.setType("image/jpeg");
+
+						share.putExtra(Intent.EXTRA_STREAM,	Uri.parse("file://" + Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+
+						startActivity(Intent.createChooser(share, "Share Comic"));			
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 						text = "There was an error while saving the comic.";
@@ -514,6 +520,43 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			});
 	
 			alert.show();
+			break;
+		case (R.id.save):
+			AlertDialog.Builder salert = new AlertDialog.Builder(this);
+	
+			salert.setTitle("Enter file name");
+	//		alert.setMessage("Message");
+	
+			// Set an EditText view to get user input 
+			final EditText sinput = new EditText(this);
+			salert.setView(sinput);
+	
+			salert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int whichButton) {
+					String value = sinput.getText().toString();
+					Bitmap b = mainView.getSaveBitmap();
+					CharSequence text = "Comic saved successfully!";
+					try {
+						java.io.File f = new java.io.File (Environment.getExternalStorageDirectory() + "/Pictures");
+						if (!f.exists())
+							f.mkdirs();
+						b.compress(CompressFormat.JPEG, 95, new FileOutputStream(Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+						text = "There was an error while saving the comic.";
+					}
+					int duration = Toast.LENGTH_SHORT;
+					Toast toast = Toast.makeText(getApplicationContext(), text, duration);
+					toast.show();
+			  }
+			});
+	
+			salert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			  public void onClick(DialogInterface dialog, int whichButton) {
+			  }
+			});
+	
+			salert.show();
 			break;
 		default:
 			if (menuitem_OtherSource == item) {
@@ -603,6 +646,12 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             }
         })
         .create();
+/*		alertDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
+			
+			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+				return false;
+			}
+		});*/
 		alertDialog.show();
 	}
 
