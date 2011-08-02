@@ -11,10 +11,6 @@
     </item>-->
     <item android:id="@+id/save"
           android:title="@string/save" />
-    <item android:id="@+id/settings"
-          android:title="@string/settings" />
-    <item android:id="@+id/share"
-          android:title="@string/share" />
     <item android:id="@+id/pen_color"
           android:title="@string/pen_color" />
     <item android:id="@+id/pen_width"
@@ -23,6 +19,10 @@
           android:title="@string/text_color" />
     <item android:id="@+id/text_type"
           android:title="@string/text_type" />
+    <item android:id="@+id/settings"
+          android:title="@string/settings" />
+    <item android:id="@+id/share"
+          android:title="@string/share" />
     <item android:id="@+id/clear"
           android:title="@string/clear" />
     <item android:id="@+id/about"

@@ -12,9 +12,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
@@ -50,10 +52,24 @@ public class ComicEditor extends View {
 	    	for (TextObject io : os.mTextDrawables) {
 	    		mTextDrawables.add(new TextObject(io));
 	    	}
-	    	mLinePoints = new LinkedList<LinkedList<Point>>(os.mLinePoints);
+//	    	mLinePoints = new LinkedList<LinkedList<Point>>(os.mLinePoints);
+	    	linePoints = new Vector<float[]>();
+	    	for (int i = 0; i < os.linePoints.size(); ++i) {
+	    		float src[] = os.linePoints.get (0);
+	    		Log.d ("RAGE", String.format("%d", src.length));
+	    		float tmp[] = new float[os.linePoints.get(0).length];
+	    		System.arraycopy(src, 0, tmp, 0, src.length);
+	    		linePoints.add (tmp);
+	    	}
+	    		
 	    	mLinePaints = new LinkedList<Paint>(os.mLinePaints);
 /*	    	mTextDrawables = new Vector<TextObject>(os.mTextDrawables);*/
-	    	mCurrentLinePoints = new LinkedList<Point>(os.mCurrentLinePoints);
+//	    	mCurrentLinePoints = new LinkedList<Point>(os.mCurrentLinePoints);
+	    	if (os.currentLinePoints != null) {
+	    		float src[] = os.currentLinePoints;
+	    		currentLinePoints = new float[os.currentLinePoints.length];
+	    		System.arraycopy(src, 0, currentLinePoints, 0, os.currentLinePoints.length);
+	    	}
 	    	if (os.mCurrentText != null) {
 	    		mCurrentText = new TextObject(os.mCurrentText);
 	    	}
@@ -62,9 +78,11 @@ public class ComicEditor extends View {
 		}
 	    public Vector<ImageObject> mDrawables = new Vector<ImageObject>();
 	    public Vector<TextObject> mTextDrawables = new Vector<TextObject>();
-	    public LinkedList<LinkedList<Point>> mLinePoints = new LinkedList<LinkedList<Point>>();
+//	    public LinkedList<LinkedList<Point>> mLinePoints = new LinkedList<LinkedList<Point>>();
+	    public Vector<float[]> linePoints = new Vector<float[]>();
 	    public LinkedList<Paint> mLinePaints = new LinkedList<Paint>();
-	    public LinkedList<Point> mCurrentLinePoints = new LinkedList<Point>();
+//	    public LinkedList<Point> mCurrentLinePoints = new LinkedList<Point>();
+	    public float[] currentLinePoints = null;
 	    public TextObject mCurrentText = null;
 	    public int mPanelCount = 4;
 	    public int currentColor = Color.BLACK;
@@ -94,6 +112,7 @@ public class ComicEditor extends View {
     private boolean drawGrid = true;
     private boolean wasMultiTouch = false;
 	private Time lastInvalidate = new Time ();
+	private Bitmap linesLayer = null;
 	
 	public float getCanvasScale () {
 		return mCanvasScale;
@@ -192,8 +211,7 @@ public class ComicEditor extends View {
 		pushState ();
 		currentState.mDrawables.clear ();
 		currentState.mLinePaints.clear();
-		currentState.mLinePoints.clear();
-		currentState.mCurrentLinePoints.clear ();
+		currentState.currentLinePoints = null;
 		currentState.mTextDrawables.clear ();
 		currentState.mCurrentText = null;
 	}
@@ -249,40 +267,32 @@ public class ComicEditor extends View {
     	return ret;
     }
     
-    public LinkedList<LinkedList<Point>> getPoints () {
-    	LinkedList<LinkedList<Point>> ret = new LinkedList<LinkedList<Point>> (currentState.mLinePoints);
-		if (currentState.mCurrentLinePoints.size () > 0) {
-			ret.add(new LinkedList<Point>(currentState.mCurrentLinePoints));
-		}
-    	return ret;
-    }
-
-    public LinkedList<Paint> getPaints () {
-    	LinkedList<Paint> ret = new LinkedList<Paint>(currentState.mLinePaints);
-		if (currentState.mCurrentLinePoints.size () > 0) {
-			Paint p = new Paint ();
-			p.setStrokeWidth(currentStrokeWidth);
-			p.setColor(currentState.currentColor);
-			ret.add(p); 
-		}    	
-    	return ret;
+    public Vector<float[]> getPoints () {
+    	return new Vector<float[]> (currentState.linePoints);
     }
     
-    public void addLine (LinkedList<Point> points, Paint paint){
-		if (currentState.mCurrentLinePoints.size () > 0) {
-			currentState.mLinePoints.add(new LinkedList<Point>(currentState.mCurrentLinePoints));
+    public LinkedList<Paint> getPaints () {
+    	return new LinkedList<Paint>(currentState.mLinePaints);
+    }
+    
+    public void addLine (float[] points, Paint paint){
+    	if (currentState.currentLinePoints != null) {
+    		currentState.linePoints.add(currentState.currentLinePoints);
 			Paint p = new Paint ();
 			p.setStrokeWidth(currentStrokeWidth);
 			p.setColor(currentState.currentColor);
 			currentState.mLinePaints.add(p);
-		}
-    	currentState.mCurrentLinePoints = new LinkedList<Point>(points); 
+    	}
+		currentState.currentLinePoints = new float[points.length];
+		System.arraycopy(points, 0, currentState.currentLinePoints, 0, points.length);
     	currentStrokeWidth = (int)paint.getStrokeWidth();
     	currentState.currentColor = paint.getColor();
     }
 
-    public void pureAddLine (LinkedList<Point> points, Paint paint){
-		currentState.mLinePoints.add(points);
+    public void pureAddLine (float[] points, Paint paint){
+//		currentState.mLinePoints.add(points);
+		linesLayer = null;
+    	currentState.linePoints.add (points);
 		currentState.mLinePaints.add(paint);
     }
 
@@ -348,31 +358,29 @@ public class ComicEditor extends View {
         	}
         }
     }
-    
+
     private void drawLines (Canvas canvas) {
-    	LinkedList<LinkedList<Point>> lp = currentState.mLinePoints; 
-		for (int i = 0; i < lp.size(); ++i){
-			if (lp.get(i).size() == 0) continue;
-			Log.d ("RAGE", String.format ("Line count: %s", lp.size ()));
-			for (int j = 0; j < lp.get (i).size() - 1; ++j){
-				canvas.drawLine(lp.get(i).get (j).x, lp.get(i).get (j).y, lp.get(i).get (j + 1).x, lp.get(i).get (j + 1).y, currentState.mLinePaints.get (i));
-				canvas.drawCircle(lp.get(i).get(j).x, lp.get(i).get(j).y, currentState.mLinePaints.get (i).getStrokeWidth() / 2, currentState.mLinePaints.get (i));
-				if (j == lp.get (i).size() - 2)
-					canvas.drawCircle(lp.get(i).get(j + 1).x, lp.get(i).get(j + 1).y, currentState.mLinePaints.get (i).getStrokeWidth() / 2, currentState.mLinePaints.get (i));
-			}
-		}
-		if (currentState.mCurrentLinePoints.size() > 0) {
-			Paint p = new Paint ();
-			p.setColor(this.currentState.currentColor);
-			p.setStrokeWidth(currentStrokeWidth);
-			LinkedList<Point> clp = currentState.mCurrentLinePoints; 
-			Log.d ("RAGE", String.format ("Line count: %s", clp.size ()));
-			for (int i = 0; i < clp.size() - 1; ++i){
-				canvas.drawLine(clp.get(i).x, clp.get(i).y, clp.get(i + 1).x, clp.get(i + 1).y, p);
-				canvas.drawCircle(clp.get(i).x, clp.get(i).y, currentStrokeWidth / 2, p);
-				if (i == clp.size() - 2)
-					canvas.drawCircle(clp.get(i + 1).x, clp.get(i + 1).y, currentStrokeWidth / 2, p);
-			}
+    	if (linesLayer == null) {
+    		linesLayer = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
+    		Canvas canv = new Canvas (linesLayer);
+    		canv.drawARGB(0, 0, 0, 0);
+	    	for (int i = 0; i < currentState.linePoints.size(); ++i) {
+	    		float[] lp = currentState.linePoints.get (i);
+	    		canv.drawLines(lp, currentState.mLinePaints.get (i));
+	    		for (int j = 0; j < lp.length; j += 4) {
+	    			canv.drawCircle(lp[j], lp[j + 1], currentState.mLinePaints.get (i).getStrokeWidth() / 2.0f, currentState.mLinePaints.get (i));
+	    		}
+    			canv.drawCircle(lp[lp.length - 2], lp[lp.length - 1], currentState.mLinePaints.get (i).getStrokeWidth() / 2.0f, currentState.mLinePaints.get (i));
+	    	}
+    	}
+		Paint p = new Paint ();
+		p.setColor(this.currentState.currentColor);
+		p.setStrokeWidth(currentStrokeWidth);
+    	canvas.drawBitmap(linesLayer, 0, 0, p);
+    	if (currentState.currentLinePoints == null)  return;
+    	canvas.drawLines(currentState.currentLinePoints, p);
+		for (int j = 0; j < currentState.currentLinePoints.length; j += 4) {
+			canvas.drawCircle(currentState.currentLinePoints[j], currentState.currentLinePoints[j + 1], currentStrokeWidth / 2, p);
 		}
     }
     
@@ -396,7 +404,7 @@ public class ComicEditor extends View {
         else if (mTouchMode == TouchModes.LINE)
         	dr = getResources().getDrawable(R.drawable.line);
         else
-        	dr = getResources().getDrawable(R.drawable.type);
+        	dr = getResources().getDrawable(R.drawable.text);
         mModeIconSize = (getWidth() > getHeight () ? getWidth () : getHeight ()) / 8; 
         canvas.translate(getWidth() - mModeIconSize, getHeight() - mModeIconSize);
         dr.setBounds(0, 0, dr.getIntrinsicWidth(), dr.getIntrinsicHeight());
@@ -446,13 +454,12 @@ public class ComicEditor extends View {
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		// TODO Auto-generated method stub
 		super.onSizeChanged(w, h, oldw, oldh);
+
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		// TODO Auto-generated method stub
 		Log.d("RAGE", event.toString ());
 		Log.d("RAGE", String.valueOf (event.getPointerCount()));
 		if (event.getPointerCount() == 1) {
@@ -534,7 +541,7 @@ public class ComicEditor extends View {
 	        	if (io.isSelected() && newscale < 10.0f && newscale > 0.1f)
 	        	{
 	        		io.setScale(newscale);
-	        		float newrot = Math.round((mStartRot - rotdiff) / 5.0f) * 5.0f;
+	        		float newrot = Math.round((mStartRot - rotdiff) / 1.0f);
 	        		io.setRotation(newrot);
 //	        		io.setRotation(mStartRot - rotdiff);
 	        		found = true;
@@ -545,6 +552,7 @@ public class ComicEditor extends View {
 	        	float newscale = mStartScale * scale;
 	        	if (newscale < 5.0f && newscale > 0.2f) {
 	        		mCanvasScale = newscale;
+		        	linesLayer = null;
 	        	}
 	        }
 		}
@@ -561,15 +569,12 @@ public class ComicEditor extends View {
 		float diff = (float)Math.sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
 		float a = (x1 - x2);
 		float b =  (y1 - y2);
-/*		if (y1 > y2)
-			b = (y2 - y1);*/
 		float q = a / b;
 		float rot = (float)Math.toDegrees(Math.atan (q));
 		Log.d("RAGE", "Diff " + String.valueOf(diff) + " Rot " + String.valueOf(rot));
 		if (mStartDistance < 0.1f) {
 			mStartDistance = diff;
 			mStartScale = 0.0f;
-			boolean found = false;
 			mStartTextSize = currentState.mCurrentText.getTextSize();
 		}
 		else {
@@ -630,7 +635,6 @@ public class ComicEditor extends View {
 			if (!resizeObjectMode) {
 				int diffX = (int)((event.getX() - mPreviousPos.x) / mCanvasScale);
 				int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
-				if (Math.abs(diffX) > 3 * mCanvasScale || Math.abs(diffY) > 3 * mCanvasScale) {
 					super.cancelLongPress();
 					mMovedSinceDown = true;
 					boolean found = false;
@@ -648,6 +652,7 @@ public class ComicEditor extends View {
 			        }
 			        if (!found)
 			        {
+			        	linesLayer = null;
 			        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
 			        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
 			        		mCanvasOffset.x += diffX;
@@ -662,15 +667,11 @@ public class ComicEditor extends View {
 				ImageObject sel = getSelected();
 				if (sel != null) {
 					int direction = 1;
-/*					if (event.getX () > mPreviousPos.x) {
-						direction = 1;
-					}*/
 					double diffSize = event.getX () - mPreviousPos.x;
 					double imgDiag = (Math.sqrt((double)((sel.getIntrinsicWidth()) * (sel.getIntrinsicWidth()) + (sel.getIntrinsicHeight()) * (sel.getIntrinsicHeight()))) / 2.0) * sel.getScale();
 					sel.setScale((float)((imgDiag + (double)direction * diffSize) / imgDiag) * sel.getScale ());
 				}
 			}
-		}
 		if (event.getAction() == MotionEvent.ACTION_UP && wasMultiTouch == true)
 			wasMultiTouch = false;
 		mPreviousPos.x = (int)event.getX();
@@ -679,22 +680,50 @@ public class ComicEditor extends View {
 
 	private void handleSingleTouchDrawEvent (MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			currentState.mCurrentLinePoints.clear();
 			pushState ();
+			currentState.currentLinePoints = null;
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP) {
-			if (currentState.mCurrentLinePoints.size () > 0) {
-				currentState.mLinePoints.add(new LinkedList<Point>(currentState.mCurrentLinePoints));
-			}
 			Paint p = new Paint ();
 			p.setColor(this.currentState.currentColor);
 			p.setStrokeWidth(currentStrokeWidth);
 			currentState.mLinePaints.add (new Paint (p));
+			
+			if (currentState.currentLinePoints != null) {
+				float tmp[] = new float[currentState.currentLinePoints.length];
+				System.arraycopy(currentState.currentLinePoints, 0, tmp, 0, tmp.length);
+				currentState.linePoints.add(tmp);
+				currentState.mLinePaints.add (p);
+				currentState.currentLinePoints = null;
+			}
+			linesLayer = null;
 		}
 		else if (event.getAction() == MotionEvent.ACTION_MOVE){
-			if (mTouchMode == TouchModes.LINE && currentState.mCurrentLinePoints.size() > 1)
-				currentState.mCurrentLinePoints.removeLast();
-			currentState.mCurrentLinePoints.add(new Point ((int)(event.getX() / mCanvasScale) - mCanvasOffset.x, (int)(event.getY() / mCanvasScale) - mCanvasOffset.y));
+			int x = (int)(event.getX() / mCanvasScale) - mCanvasOffset.x;
+			int y = (int)(event.getY() / mCanvasScale) - mCanvasOffset.y;
+			if (mTouchMode == TouchModes.LINE && currentState.currentLinePoints != null && currentState.currentLinePoints.length > 0) {
+				currentState.currentLinePoints[currentState.currentLinePoints.length - 2] = x;
+				currentState.currentLinePoints[currentState.currentLinePoints.length - 1] = y;
+			}
+			else {
+				float tmp[] = null;
+				int len = 0;
+				if (currentState.currentLinePoints != null) {
+					len = currentState.currentLinePoints.length;
+					tmp = new float[len + 4];
+					System.arraycopy(currentState.currentLinePoints, 0, tmp, 0, len);
+					tmp[len] = tmp[len - 2];
+					tmp[len + 1] = tmp[len - 1];
+				}
+				else {
+					tmp = new float[4];
+					tmp[0] = mPreviousPos.x / mCanvasScale - mCanvasOffset.x;
+					tmp[1] = mPreviousPos.y / mCanvasScale - mCanvasOffset.y;
+				}
+				tmp[len + 2] = x;
+				tmp[len + 3] = y;
+				currentState.currentLinePoints = tmp;
+			}
 		}
 		super.cancelLongPress();
 		mPreviousPos.x = (int)event.getX();
@@ -709,7 +738,6 @@ public class ComicEditor extends View {
 			AlertDialog.Builder alert = new AlertDialog.Builder(getContext ());
 
 			alert.setTitle("Enter the text");
-//			alert.setMessage("Message");
 
 			// Set an EditText view to get user input 
 			final EditText input = new EditText(getContext());
@@ -780,7 +808,8 @@ public class ComicEditor extends View {
 	}
 	
 	public boolean popState () {
-		int pos = previousStates.size () - 1; 
+		int pos = previousStates.size () - 1;
+		linesLayer = null;
 		if (pos >= 0) {
 			currentState = new ComicState(previousStates.get(pos));
 			previousStates.removeElementAt(pos);

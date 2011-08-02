@@ -24,7 +24,7 @@
         <TextView android:id="@+id/textView1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Thin"></TextView>
         <TextView android:layout_gravity="right" android:layout_width="fill_parent" android:id="@+id/textView2" android:gravity="right" android:layout_height="wrap_content" android:text="Thick"></TextView>
     </LinearLayout>
-    <SeekBar android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/width_bar" android:max="20"></SeekBar>
+    <SeekBar android:layout_width="fill_parent" android:layout_height="wrap_content" android:id="@+id/width_bar" android:max="40"></SeekBar>
     <Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="Ok" android:id="@+id/width_ok"></Button>
 
 	

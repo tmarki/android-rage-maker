@@ -96,7 +96,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		for (int i = 0; i < history.size (); ++i) {
 			saveImagesToBundle(outState, history.get (i).mDrawables, String.format("h%s", i));
 			saveTextObjectsToBundle (outState, history.get (i).mTextDrawables, String.format("h%s", i));
-			saveLinesToBundle (outState, history.get (i).mLinePoints, history.get (i).mLinePaints, String.format("h%s", i));
+			saveLinesToBundle (outState, history.get (i).linePoints, history.get (i).mLinePaints, String.format("h%s", i));
 			outState.putInt(String.format ("h%spanelCount", i), history.get (i).mPanelCount);
 		}
 	}
@@ -127,9 +127,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         for (TextObject to : loadTextsFromBundle (savedInstanceState, "")) {
         	mainView.pureAddTextObject(to);
         }
-        LinkedList<LinkedList<Point>> points = loadPointsFromBundle (savedInstanceState, "");
+        Vector<float[]> points = loadPointsFromBundle (savedInstanceState, "");
         for (int i = 0; i < points.size (); ++i) {
-        	LinkedList<Point> p = points.get(i);
+        	float[] p = points.get(i);
         	if (p == null)
         		continue;
         	mainView.pureAddLine (p, getPaintForPoint(savedInstanceState, i, ""));
@@ -142,10 +142,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	ComicState cs = mainView.getStateCopy();
         	cs.mDrawables = loadImagesFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.mTextDrawables = loadTextsFromBundle(savedInstanceState, String.format("h%s", i));
-        	cs.mLinePoints = loadPointsFromBundle(savedInstanceState, String.format("h%s", i));
+        	cs.linePoints = loadPointsFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.mLinePaints = new LinkedList<Paint> ();
         	cs.mPanelCount = savedInstanceState.getInt(String.format("h%spanelCount", i));
-        	for (int j = 0; j < cs.mLinePoints.size (); ++j) {
+        	for (int j = 0; j < cs.linePoints.size (); ++j) {
         		cs.mLinePaints.add(getPaintForPoint(savedInstanceState, j, String.format("h%s", i)));
         	}
         	mainView.pushHistory(cs);
@@ -205,9 +205,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         }
     }
     
-    private void saveLinesToBundle (Bundle outState, LinkedList<LinkedList<Point>> points, LinkedList<Paint> paints, String tag) {
+    private void saveLinesToBundle (Bundle outState, Vector<float[]> points, LinkedList<Paint> paints, String tag) {
 		outState.putInt(tag + "lineCount", points.size ());
-        for (int i = 0; i < points.size (); ++i) {
+		for (int i = 0; i < points.size (); ++i) {
+			outState.putFloatArray(String.format(tag + "line%s", i), points.get(i));
+            outState.putFloat(String.format(tag + "line%dstroke", i), paints.get (i).getStrokeWidth());
+            outState.putInt(String.format(tag + "line%dcolor", i), paints.get (i).getColor());
+		}
+/*        for (int i = 0; i < points.size (); ++i) {
         	outState.putInt(String.format(tag + "line%dpointcount", i), points.get (i).size());
             for (int j = 0; j < points.get (i).size (); ++j) {
             	outState.putInt(String.format(tag + "line%dpoint%dx", i, j), points.get (i).get(j).x);
@@ -215,7 +220,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             }
             outState.putFloat(String.format(tag + "line%dstroke", i), paints.get (i).getStrokeWidth());
             outState.putInt(String.format(tag + "line%dcolor", i), paints.get (i).getColor());
-        }
+        }*/
     }
 
     private void loadExternalSources (Bundle savedInstanceState) {
@@ -308,8 +313,17 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
     	return ret;
     }
 
-    private LinkedList<LinkedList<Point>> loadPointsFromBundle (Bundle savedInstanceState, String tag) {
-    	LinkedList<LinkedList<Point>> ret = new LinkedList<LinkedList<Point>> ();
+    private Vector<float[]> loadPointsFromBundle (Bundle savedInstanceState, String tag) {
+    	Vector<float[]> ret = new Vector<float[]>();
+    	if (savedInstanceState == null)
+    		return ret;
+    	int pc = savedInstanceState.getInt(tag + "lineCount", 0);
+    	for (int i = 0; i < pc; ++i) {
+    		float p[] = savedInstanceState.getFloatArray(String.format(tag + "line%s", i));
+    		ret.add(p);
+    	}
+    	return ret;
+/*    	LinkedList<LinkedList<Point>> ret = new LinkedList<LinkedList<Point>> ();
         int pCount = 0;
         if (savedInstanceState != null) 
         	pCount = savedInstanceState.getInt(tag + "lineCount", 0);
@@ -321,13 +335,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         		int y = savedInstanceState.getInt(String.format(tag + "line%dpoint%dy", i, j));
         		p.add(new Point (x, y));
         	}
-/*        	Paint pp = new Paint ();
-        	pp.setStrokeWidth(savedInstanceState.getFloat(String.format(tag + "line%dstroke", i)));
-        	pp.setColor(savedInstanceState.getInt(String.format(tag + "line%dcolor", i)));*/
         	ret.add (p);
-//        	mainView.addLine(p, pp); 
         }
-    	return ret;
+    	return ret;*/
     }
     
     private Paint getPaintForPoint (Bundle savedInstanceState, int lineInd, String tag) {

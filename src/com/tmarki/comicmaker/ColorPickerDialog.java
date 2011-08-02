@@ -24,8 +24,10 @@ import android.os.Bundle;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.*;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 
 public class ColorPickerDialog extends Dialog {
     public interface OnColorChangedListener {
@@ -81,11 +83,11 @@ public class ColorPickerDialog extends Dialog {
 			hueBarRight = screenW - hueBarLeft * 2;
 			mainFieldRight = screenW - mainFieldLeft * 2;
 			int bh = button1Bottom - button1Top;
-			button1Top = screenH - bh * 10;
-			button2Top = screenH - bh * 10;
+			button1Top = screenH - bh * 5;
+			button2Top = screenH - bh * 5;
 			button1Bottom = button1Top + bh;
 			button2Bottom = button2Top + bh;
-			mainFieldBottom = screenH - (hueBarBottom + bh * 10);
+			mainFieldBottom = screenH - (hueBarBottom + bh * 5);
 			
 			// Initializes the Paint that will draw the View
 			mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -260,7 +262,15 @@ public class ColorPickerDialog extends Dialog {
             }
         };
  
-        setContentView(new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, getWindow().getWindowManager().getDefaultDisplay().getWidth(), getWindow().getWindowManager().getDefaultDisplay().getHeight()));
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.copyFrom(getWindow().getAttributes());
+        lp.width = WindowManager.LayoutParams.FILL_PARENT;
+        lp.height = WindowManager.LayoutParams.FILL_PARENT;
+        getWindow().setAttributes(lp);
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindow ().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        setContentView(new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, metrics.widthPixels, metrics.heightPixels));
         setTitle(R.string.settings_bg_color_dialog);
+        
     }
 }
