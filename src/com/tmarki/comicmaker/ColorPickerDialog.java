@@ -27,6 +27,7 @@ import android.graphics.*;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 
 public class ColorPickerDialog extends Dialog {
@@ -44,14 +45,12 @@ public class ColorPickerDialog extends Dialog {
 		private float mCurrentHue = 0;
 		private int mCurrentX = 0, mCurrentY = 0;
 		private int mCurrentColor, mDefaultColor;
-		private final int[] mHueBarColors = new int[258];
-		private int[] mMainColors = new int[65536];
 		private OnColorChangedListener mListener;
 		
-	    private int hueBarLeft = 10;
-	    private int hueBarTop = 10;
+	    private int hueBarLeft = 5;
+	    private int hueBarTop = 0;
 	    private int hueBarRight = 190;
-	    private int hueBarBottom = 50;
+	    private int hueBarBottom = 40;
 	    
 	    private int mainFieldLeft = 5;
 	    private int mainFieldTop = 50;
@@ -79,30 +78,21 @@ public class ColorPickerDialog extends Dialog {
 			mCurrentHue = hsv[0];
 
 			mCurrentColor = color;
-
-			hueBarRight = screenW - hueBarLeft * 2;
-			mainFieldRight = screenW - mainFieldLeft * 2;
-			int bh = button1Bottom - button1Top;
-			button1Top = screenH - bh * 5;
-			button2Top = screenH - bh * 5;
-			button1Bottom = button1Top + bh;
-			button2Bottom = button2Top + bh;
-			mainFieldBottom = screenH - (hueBarBottom + bh * 5);
 			
 			// Initializes the Paint that will draw the View
 			mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 			mPaint.setTextAlign(Paint.Align.CENTER);
-			mPaint.setTextSize(12);
+			mPaint.setTextSize(14);
 		}
 		
 		private int getHueBarColor (int x) {
 			int hueW = hueBarRight - hueBarLeft;
 			x -= hueBarLeft;
-			int normalX = ((x * 255) / hueW);
-			int section = normalX / 42;
+			int normalX = ((x * 256) / hueW);
+			int section = normalX / 43;
 			int i = normalX;
 			if (section != 0)
-				i %= 42;
+				i %= 43;
 			i *= 6;
 			switch (section) {
 				case 0:
@@ -115,8 +105,10 @@ public class ColorPickerDialog extends Dialog {
 					return Color.rgb(0, 255, 255-i);
 				case 4:
 					return Color.rgb(i, 255, 0);
-				default:
+				case 5:
 					return Color.rgb(255, 255-i, 0);
+				default:
+					return Color.rgb (0, 0, 0);
 			}
 		}
 
@@ -139,6 +131,19 @@ public class ColorPickerDialog extends Dialog {
 		@Override
 		protected void onDraw(Canvas canvas) {
 			// Display all the colors of the hue bar with lines
+//			canvas.drawColor(Color.BLACK);
+			hueBarRight = getWidth() - hueBarLeft * 2;
+			mainFieldRight = getWidth() - mainFieldLeft * 2;
+			int bh = button1Bottom - button1Top;
+			button1Top = getHeight() - bh - hueBarLeft;
+			button1Right = getWidth() / 2 - button1Left;
+			button2Top = getHeight() - bh - button1Left;
+			button2Left = getWidth() / 2;
+			button2Right = button2Left + button1Right - button1Left;
+			button1Bottom = button1Top + bh;
+			button2Bottom = button2Top + bh;
+			mainFieldBottom = getHeight() - bh - hueBarLeft;
+			
 			for (int x=hueBarLeft; x<hueBarRight; x++)
 			{
 				int col = getHueBarColor(x);
@@ -151,12 +156,13 @@ public class ColorPickerDialog extends Dialog {
 				else // else display a slightly larger black line
 				{
 					mPaint.setColor(Color.BLACK);
-					mPaint.setStrokeWidth(3);
+//					mPaint.setStrokeWidth(3);
 				}
 				canvas.drawLine(x, hueBarTop, x, hueBarBottom, mPaint);
 			}
 
 			// Display the main field colors using LinearGradient
+			mPaint.setStrokeWidth(1);
 			for (int x=mainFieldLeft; x<mainFieldRight; x++)
 			{
 				int[] colors = new int[2];
@@ -202,10 +208,10 @@ public class ColorPickerDialog extends Dialog {
 			canvas.drawText(getResources().getString(R.string.settings_default_color_confirm), button2Left + (button2Right - button2Left) / 2, button2Top + (button2Bottom - button2Top) / 2, mPaint);
 		}
 
-		@Override
+/*		@Override
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 			setMeasuredDimension(hueBarLeft + hueBarRight, button1Left + button1Bottom);
-		}
+		}*/
 
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
@@ -262,14 +268,12 @@ public class ColorPickerDialog extends Dialog {
             }
         };
  
-        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-        lp.copyFrom(getWindow().getAttributes());
-        lp.width = WindowManager.LayoutParams.FILL_PARENT;
-        lp.height = WindowManager.LayoutParams.FILL_PARENT;
-        getWindow().setAttributes(lp);
+        getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
         DisplayMetrics metrics = new DisplayMetrics();
         getWindow ().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        setContentView(new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, metrics.widthPixels, metrics.heightPixels));
+        ColorPickerView cpv = new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, metrics.widthPixels, metrics.heightPixels);
+        setContentView(cpv);
+//        setContentView(new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, getCurrentFocus().getWidth(), getCurrentFocus().getHeight()));
         setTitle(R.string.settings_bg_color_dialog);
         
     }

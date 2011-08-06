@@ -68,6 +68,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	private FontSelect fontselect = null;
 	private ComicSettings settings = null;
 	private MenuItem menuitem_OtherSource = null;
+	private String lastSaveName = "";
 	private Map<MenuItem, CharSequence> menuitems_Packs = new HashMap<MenuItem, CharSequence> ();
 	
 	void readExternalFiles(){
@@ -87,6 +88,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		outState.putFloat("canvasScale", mainView.getCanvasScale());
 		outState.putInt("canvasX", mainView.getmCanvasOffset().x);
 		outState.putInt("canvasY", mainView.getmCanvasOffset().y);
+		outState.putString ("lastSaveName", lastSaveName);
 		saveExternalSources(outState);
 		saveImagesToBundle(outState, mainView.getImageObjects(), "");
 		saveTextObjectsToBundle (outState, mainView.getTextObjects(), "");
@@ -101,10 +103,22 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		}
 	}
 
+	private void setDetailTitle () {
+		if (lastSaveName != "")
+			setTitle (getString(R.string.app_name) + " - " + lastSaveName + " - " + String.format("%.0f%%", mainView.getCanvasScale() * 100.0));
+		else
+			setTitle (getString (R.string.app_name) + " - " + String.format("%.0f%%", mainView.getCanvasScale() * 100.0));
+		
+	}
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainView = new ComicEditor (this);
+        mainView = new ComicEditor (this, new ComicEditor.ZoomChangeListener() {
+			public void ZoomChanged(float newScale) {
+				setDetailTitle ();
+			}
+		});
         registerForContextMenu(mainView);
         setContentView(mainView);
         if (savedInstanceState != null) {
@@ -116,8 +130,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             mainView.setDrawGrid(savedInstanceState.getBoolean("drawGrid"));
             mainView.setCanvasScale (savedInstanceState.getFloat("canvasScale"));
             mainView.setmCanvasOffset(new Point (savedInstanceState.getInt ("canvasX"), savedInstanceState.getInt ("canvasY")));
+            lastSaveName = savedInstanceState.getString("lastSaveName");
             PackHandler.setAssetManager(getAssets ());
             loadExternalSources(savedInstanceState);
+            setDetailTitle ();
         }
         else
         	readExternalFiles();
@@ -415,19 +431,29 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			AlertDialog alertDialog;
 			alertDialog = new AlertDialog.Builder(this).create();
 			alertDialog.setTitle("About Rage Comic Maker");
-			alertDialog.setMessage("Rage Comic Maker v1.0\nfor Android\n\n(c) 2011 Tamas Marki\nThis is free software. Use it at your own risk.");
-			alertDialog.setButton("Close", new OnClickListener() {
+			alertDialog.setMessage("Rage Comic Maker v1.0\nfor Android\n\n(c) 2011 Tamas Marki\nThis is open source software. Use it at your own risk.\nThe source code is available at the home page.");
+			alertDialog.setButton("Home Page", new OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
-					
+					String url = "http://code.google.com/p/android-rage-maker/";
+					Intent i = new Intent(Intent.ACTION_VIEW);
+					i.setData(Uri.parse(url));
+					startActivity(i);					
 				}
 			});
+			alertDialog.setButton2("Report a Bug", new OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					String url = "http://code.google.com/p/android-rage-maker/issues/entry";
+					Intent i = new Intent(Intent.ACTION_VIEW);
+					i.setData(Uri.parse(url));
+					startActivity(i);					
+				}
+			});
+			alertDialog.setIcon(R.drawable.icon);
 			alertDialog.show();
 			break;
 		case (R.id.pen_color):
 		case (R.id.text_color):
-//			ColorPickerDialog cpd = new ColorPickerDialog(mainView.getContext(), this, mainView.getCurrentColor());
 			ColorPickerDialog cpd = new ColorPickerDialog(mainView.getContext(), this, "key", mainView.getCurrentColor(), mainView.getCurrentColor());
-//			ColorPickerDialog(Context context, OnColorChangedListener listener, String key, int initialColor, int defaultColor) {
 			cpd.show();
 			break;
 		case (R.id.pen_width):
@@ -453,25 +479,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			alertDialog2.show();
 			break;
 		
-/*		case (R.id.add_pack): //  comic pack
-			if (externalImages.size() == 0)
-				readExternalFiles();
-			if (externalImages.size() > 0) {
-				doComicPackSelect();
-			}
-			else {
-				AlertDialog alertDialog3;
-				alertDialog3 = new AlertDialog.Builder(this).create();
-				alertDialog3.setTitle("Comic Packs");
-				alertDialog3.setMessage("No comic packs were found. Make sure you place them in the 'ComicMaker' directory on your external storage (SD card).");
-				alertDialog3.setButton("Ok", new OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						
-					}
-				});
-				alertDialog3.show();
-			}
-			break;*/
 		case (R.id.text_type):
 			fontselect = new FontSelect (this, setFontTypeListener, mainView.getDefaultFontSize(), mainView.isDefaultBold(), mainView.isDefaultItalic());
 			fontselect.show();
@@ -489,47 +496,27 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			settings.show();
 			break;
 		case (R.id.share):
-			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+			if (lastSaveName == "") {
+				AlertDialog.Builder alert = new AlertDialog.Builder(this);
+				alert.setTitle("Enter file name");
+				final EditText input = new EditText(this);
+				alert.setView(input);
+				alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						doSave (input.getText().toString(), true);
+				  }
+				});
 		
-			alert.setTitle("Enter file name");
-	//		alert.setMessage("Message");
-	
-			// Set an EditText view to get user input 
-			final EditText input = new EditText(this);
-			alert.setView(input);
-	
-			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					String value = input.getText().toString();
-					Bitmap b = mainView.getSaveBitmap();
-					CharSequence text = "Comic saved successfully!";
-					try {
-						java.io.File f = new java.io.File (Environment.getExternalStorageDirectory() + "/Pictures");
-						if (!f.exists())
-							f.mkdirs();
-						b.compress(CompressFormat.JPEG, 95, new FileOutputStream(Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
-						Intent share = new Intent(Intent.ACTION_SEND);
-						share.setType("image/jpeg");
-
-						share.putExtra(Intent.EXTRA_STREAM,	Uri.parse("file://" + Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
-
-						startActivity(Intent.createChooser(share, "Share Comic"));			
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-						text = "There was an error while saving the comic.";
-					}
-					int duration = Toast.LENGTH_SHORT;
-					Toast toast = Toast.makeText(getApplicationContext(), text, duration);
-					toast.show();
-			  }
-			});
-	
-			alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-			  public void onClick(DialogInterface dialog, int whichButton) {
-			  }
-			});
-	
-			alert.show();
+				alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				  public void onClick(DialogInterface dialog, int whichButton) {
+				  }
+				});
+		
+				alert.show();
+			}
+			else {
+				doSave (lastSaveName, true);
+			}
 			break;
 		case (R.id.save):
 			AlertDialog.Builder salert = new AlertDialog.Builder(this);
@@ -543,21 +530,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	
 			salert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
-					String value = sinput.getText().toString();
-					Bitmap b = mainView.getSaveBitmap();
-					CharSequence text = "Comic saved successfully!";
-					try {
-						java.io.File f = new java.io.File (Environment.getExternalStorageDirectory() + "/Pictures");
-						if (!f.exists())
-							f.mkdirs();
-						b.compress(CompressFormat.JPEG, 95, new FileOutputStream(Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-						text = "There was an error while saving the comic.";
-					}
-					int duration = Toast.LENGTH_SHORT;
-					Toast toast = Toast.makeText(getApplicationContext(), text, duration);
-					toast.show();
+					doSave (sinput.getText().toString(), false);
 			  }
 			});
 	
@@ -588,6 +561,35 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			
 		return super.onOptionsItemSelected(item);
 	}
+	
+	private void doSave (String fname, boolean doShare) {
+		String value = fname;
+		Bitmap b = mainView.getSaveBitmap();
+		CharSequence text = "Comic saved successfully!";
+		try {
+			java.io.File f = new java.io.File (Environment.getExternalStorageDirectory() + "/Pictures");
+			if (!f.exists())
+				f.mkdirs();
+			b.compress(CompressFormat.JPEG, 95, new FileOutputStream(Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+			lastSaveName = value;
+			setDetailTitle ();
+			if (doShare) {
+	            Intent share = new Intent(Intent.ACTION_SEND);
+	            share.setType("image/jpeg");
+	
+	            share.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+	            share.putExtra(Intent.EXTRA_TITLE, value);
+	
+	            startActivity(Intent.createChooser(share, "Share Comic"));
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			text = "There was an error while saving the comic.";
+		}
+		int duration = Toast.LENGTH_SHORT;
+		Toast toast = Toast.makeText(getApplicationContext(), text, duration);
+		toast.show();
+	}
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) { 
@@ -597,7 +599,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			if (requestCode == 1) {
 				String fname = getRealPathFromURI (data.getData());
 				BitmapDrawable bdr = new BitmapDrawable(fname);
-				mainView.addImageObject(bdr, mainView.getmCanvasOffset().x + 10, mainView.getmCanvasOffset().y + 10, 0.0f, 1.0f, 0, "", "", fname);
+				mainView.addImageObject(bdr, -mainView.getmCanvasOffset().x + bdr.getIntrinsicWidth(), -mainView.getmCanvasOffset().y + bdr.getIntrinsicWidth(), 0.0f, 1.0f, 0, "", "", fname);
 			}
 		}
 	}
@@ -684,11 +686,16 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			Log.d ("RAGE", "Clicked: " + String.valueOf(arg2));
 			imgsel.dismiss();
 			String fname = externalImages.get (packSelected).get(folderSelected).get (arg2).toString();
-			mainView.addImageObject(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname), 100, 100, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
+			BitmapDrawable id = PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname); 
+			mainView.addImageObject(id, -mainView.getmCanvasOffset().x + id.getIntrinsicWidth(), -mainView.getmCanvasOffset().y + id.getIntrinsicWidth(), 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
 		}
     };
 	private void doComicPackImageSelect () {
-		imgsel = new ImageSelect(this, externalImages, packSelected.toString(), folderSelected.toString(), addFromPackListener, mainView.getWidth() > mainView.getHeight () ? mainView.getWidth () : mainView.getHeight ());
+		imgsel = new ImageSelect(this, externalImages, packSelected.toString(), folderSelected.toString(), addFromPackListener, mainView.getWidth() > mainView.getHeight () ? mainView.getWidth () : mainView.getHeight (), new ImageSelect.BackPressedListener() {
+			public void backPressed() {
+				doComicPackFolderSelect();
+			}
+		});
 		imgsel.show();
 	}
 	
