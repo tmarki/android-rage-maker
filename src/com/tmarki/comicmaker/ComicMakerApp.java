@@ -1,22 +1,18 @@
 package com.tmarki.comicmaker;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Arrays;
-import android.os.FileObserver;
 
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.SortedMap;
 import java.util.Vector;
 
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface.OnClickListener;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -26,11 +22,9 @@ import android.graphics.Point;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.FileObserver;
 import android.provider.MediaStore;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -50,7 +44,6 @@ import com.tmarki.comicmaker.ComicEditor;
 import com.tmarki.comicmaker.R;
 import com.tmarki.comicmaker.ComicEditor.ComicState;
 import com.tmarki.comicmaker.Picker;
-import com.tmarki.comicmaker.ColorPickerDialog.OnColorChangedListener;
 import com.tmarki.comicmaker.ComicEditor.TouchModes;
 import com.tmarki.comicmaker.Picker.OnWidthChangedListener;
 import com.tmarki.comicmaker.TextObject.FontType;
@@ -78,7 +71,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		Log.d ("RAGE", "Save instance");
 		super.onSaveInstanceState(outState);
 		outState.putSerializable("touchMode", mainView.getmTouchMode());
 		outState.putInt("currentColor", mainView.getCurrentColor());
@@ -228,15 +220,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             outState.putFloat(String.format(tag + "line%dstroke", i), paints.get (i).getStrokeWidth());
             outState.putInt(String.format(tag + "line%dcolor", i), paints.get (i).getColor());
 		}
-/*        for (int i = 0; i < points.size (); ++i) {
-        	outState.putInt(String.format(tag + "line%dpointcount", i), points.get (i).size());
-            for (int j = 0; j < points.get (i).size (); ++j) {
-            	outState.putInt(String.format(tag + "line%dpoint%dx", i, j), points.get (i).get(j).x);
-            	outState.putInt(String.format(tag + "line%dpoint%dy", i, j), points.get (i).get(j).y);
-            }
-            outState.putFloat(String.format(tag + "line%dstroke", i), paints.get (i).getStrokeWidth());
-            outState.putInt(String.format(tag + "line%dcolor", i), paints.get (i).getColor());
-        }*/
     }
 
     private void loadExternalSources (Bundle savedInstanceState) {
@@ -257,19 +240,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
     		}
     		externalImages.put(pack, folders);
     	}
-/*    	for (CharSequence pack : externalImages.keySet()) {
-    		outState.putCharSequence(String.format ("pack%s", i++), pack);
-        	outState.putInt(String.format ("folderCount%s", i), externalImages.get (pack).keySet().size ());
-        	int j = 0;
-        	for (CharSequence folder : externalImages.get(pack).keySet()) {
-        		outState.putCharSequence(String.format ("folder%s-%s", i, j++), folder);
-            	outState.putInt(String.format ("fileCount%s-%s", i, j), externalImages.get (pack).get (folder).size ());
-            	int k = 0;
-            	for (CharSequence file : externalImages.get (pack).get (folder)) {
-            		outState.putCharSequence(String.format ("file%s-%s-%s", i, j, k++), file);
-            	}
-        	}
-    	}*/
     }
     
     private Vector<ImageObject> loadImagesFromBundle (Bundle savedInstanceState, String tag) {
@@ -289,16 +259,13 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	if (rid > 0) {
         		Drawable dr = getResources().getDrawable(rid);
         		io = new ImageObject(dr, params[0], params[1], rot, sc, rid, pack, folder, file);
-        		//mainView.addImageObject (dr, params[0], params[1], rot, sc, rid);
         	}
         	else if (pack.length() > 0) { 
         		io = new ImageObject(PackHandler.getPackDrawable(pack, folder, file), params[0], params[1], rot, sc, rid, pack, folder, file);
-//    			mainView.addImageObject(PackHandler.getPackDrawable(pack, folder, file), params[0], params[1], rot,sc, rid, pack, folder, file);
         	}
         	else if (file.length() > 0) {
 				BitmapDrawable bdr = new BitmapDrawable(file);
         		io = new ImageObject(bdr, params[0], params[1], rot, sc, rid, pack, folder, file);
-//				mainView.addImageObject(bdr, params[0], params[1], rot, sc, rid, pack, folder, file);
         	}
         	if (io != null) {
         		io.setFlipHorizontal(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfh", i)));
@@ -339,21 +306,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
     		ret.add(p);
     	}
     	return ret;
-/*    	LinkedList<LinkedList<Point>> ret = new LinkedList<LinkedList<Point>> ();
-        int pCount = 0;
-        if (savedInstanceState != null) 
-        	pCount = savedInstanceState.getInt(tag + "lineCount", 0);
-        for (int i = 0; i < pCount; ++i) {
-        	LinkedList<Point> p = new LinkedList<Point>();
-        	int cnt = savedInstanceState.getInt(String.format(tag + "line%dpointcount", i));
-        	for (int j = 0; j < cnt; ++j) {
-        		int x = savedInstanceState.getInt(String.format(tag + "line%dpoint%dx", i, j));
-        		int y = savedInstanceState.getInt(String.format(tag + "line%dpoint%dy", i, j));
-        		p.add(new Point (x, y));
-        	}
-        	ret.add (p);
-        }
-    	return ret;*/
     }
     
     private Paint getPaintForPoint (Bundle savedInstanceState, int lineInd, String tag) {
@@ -376,7 +328,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	}
 	    }
 	    menuitem_OtherSource = sm.add("From other source");
-	    Log.d ("RAGE", "Main menu");
 	    return true;
 	}
 
@@ -418,13 +369,11 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			io.setFlipVertical(!io.isFlipVertical());
 		}
 		mainView.invalidate();
-		Log.d ("RAGE", item.toString());
 		return super.onContextItemSelected(item);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Log.d ("RAGE", item.toString());
 		switch (item.getItemId())
 		{
 		case R.id.about:
@@ -523,8 +472,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			AlertDialog.Builder salert = new AlertDialog.Builder(this);
 	
 			salert.setTitle("Enter file name");
-	//		alert.setMessage("Message");
-	
 			// Set an EditText view to get user input 
 			final EditText sinput = new EditText(this);
 			sinput.setText(lastSaveName);
@@ -551,10 +498,8 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				intent.setType("image/*");
 				intent.setAction(Intent.ACTION_GET_CONTENT);
 				startActivityForResult(Intent.createChooser(intent, "Select Picture"),1);
-				Log.d ("RAGE", "item ID: " + String.valueOf(item.getItemId()));
 			}
 			else if (menuitems_Packs.containsKey(item)) {
-//				CharSequence[] cs = (CharSequence[]) externalImages.keySet().toArray(new CharSequence[externalImages.keySet().size()]);
 				packSelected = menuitems_Packs.get(item);
 				doComicPackFolderSelect();
 			}
@@ -622,24 +567,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		return cursor.getString(column_index);
 	}
 
-	private void doComicPackSelect () {
-		CharSequence[] cs = (CharSequence[]) externalImages.keySet().toArray(new CharSequence[externalImages.keySet().size()]);
-		Arrays.sort(cs);
-		AlertDialog alertDialog3;
-		alertDialog3 = new AlertDialog.Builder(this)
-        .setTitle("Select Pack")
-        .setItems(cs, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-				CharSequence[] cs = (CharSequence[]) externalImages.keySet().toArray(new CharSequence[externalImages.keySet().size()]);
-				Arrays.sort(cs);
-				packSelected = cs[which];
-				doComicPackFolderSelect();
-            }
-        })
-        .create();
-		alertDialog3.show();
-	}
-	
 	private void doComicPackFolderSelect () {
 		CharSequence[] ccs = (CharSequence[]) externalImages.get (packSelected).keySet().toArray(new CharSequence[externalImages.get (packSelected).keySet().size()]);
 		Arrays.sort(ccs);
@@ -654,30 +581,19 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				Arrays.sort(ccs);
 				folderSelected = ccs[which2];
 				doComicPackImageSelect();
-/*            	new AlertDialog.Builder(mainView.getContext())
-                        .setMessage("You selected: " + which2 + " , " + ccs[which2])
-                        .show();*/
             }
         })
         .create();
-/*		alertDialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-			
-			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-				return false;
-			}
-		});*/
 		alertDialog.show();
 	}
 
 	private OnItemClickListener setFontTypeListener = new OnItemClickListener(){
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 				long arg3) {
-			Log.d ("RAGE", "Clicked: " + String.valueOf(arg2));
 			fontselect.dismiss();
 			mainView.setCurrentFont(TextObject.FontType.values()[arg2]);
 			mainView.setDefaultBold(fontselect.isBold());
 			mainView.setDefaultItalic(fontselect.isItalic());
-//			mainView.setDefaultFontSize(fontselect.getFontSize());
 			mainView.invalidate();
 		}
     };
@@ -685,7 +601,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	private OnItemClickListener addFromPackListener = new OnItemClickListener(){
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 				long arg3) {
-			Log.d ("RAGE", "Clicked: " + String.valueOf(arg2));
 			imgsel.dismiss();
 			String fname = externalImages.get (packSelected).get(folderSelected).get (arg2).toString();
 			BitmapDrawable id = PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname); 
@@ -739,7 +654,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		menu.findItem(R.id.text_color).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
 		menu.findItem(R.id.text_type).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
 
-	    Log.d ("RAGE", "Main menu");
 		return super.onPrepareOptionsMenu(menu);
 	}
 

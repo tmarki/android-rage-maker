@@ -2,7 +2,6 @@ package com.tmarki.comicmaker;
 
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Vector;
 
 import com.tmarki.comicmaker.R;
@@ -12,28 +11,19 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
-import android.hardware.Camera.PreviewCallback;
 import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
-//import android.view.MotionEvent.PointerCoords;
 import android.widget.EditText;
-import android.widget.PopupWindow;
 import android.text.format.Time;
-import android.util.Log;
 
 
 public class ComicEditor extends View {
@@ -56,7 +46,6 @@ public class ComicEditor extends View {
 	    	for (TextObject io : os.mTextDrawables) {
 	    		mTextDrawables.add(new TextObject(io));
 	    	}
-//	    	mLinePoints = new LinkedList<LinkedList<Point>>(os.mLinePoints);
 	    	linePoints = new Vector<float[]>();
 	    	for (int i = 0; i < os.linePoints.size(); ++i) {
 	    		float tmp[] = new float[os.linePoints.get(i).length];
@@ -66,7 +55,6 @@ public class ComicEditor extends View {
 	    		
 	    	mLinePaints = new LinkedList<Paint>(os.mLinePaints);
 	    	mTextDrawables = new Vector<TextObject>(os.mTextDrawables);
-//	    	mCurrentLinePoints = new LinkedList<Point>(os.mCurrentLinePoints);
 	    	if (os.currentLinePoints != null) {
 	    		float src[] = os.currentLinePoints;
 	    		currentLinePoints = new float[os.currentLinePoints.length];
@@ -80,10 +68,8 @@ public class ComicEditor extends View {
 		}
 	    public Vector<ImageObject> mDrawables = new Vector<ImageObject>();
 	    public Vector<TextObject> mTextDrawables = new Vector<TextObject>();
-//	    public LinkedList<LinkedList<Point>> mLinePoints = new LinkedList<LinkedList<Point>>();
 	    public Vector<float[]> linePoints = new Vector<float[]>();
 	    public LinkedList<Paint> mLinePaints = new LinkedList<Paint>();
-//	    public LinkedList<Point> mCurrentLinePoints = new LinkedList<Point>();
 	    public float[] currentLinePoints = null;
 	    public TextObject mCurrentText = null;
 	    public int mPanelCount = 4;
@@ -295,7 +281,6 @@ public class ComicEditor extends View {
     }
 
     public void pureAddLine (float[] points, Paint paint){
-//		currentState.mLinePoints.add(points);
 		linesLayer = null;
     	currentState.linePoints.add (points);
 		currentState.mLinePaints.add(paint);
@@ -326,12 +311,10 @@ public class ComicEditor extends View {
 			currentState.mTextDrawables.add(new TextObject (currentState.mCurrentText));
 		}
 		currentState.mCurrentText = new TextObject(x, y, textSize, color, ft, text, bold, italic);
-//    	currentState.mTextDrawables.add(new TextObject(x, y, textSize, color, ft, text, bold, italic));
     }
 
     public void pureAddTextObject (TextObject to) {
 		currentState.mTextDrawables.add(to);
-//		currentState.mCurrentText = to;
     }
 
     private void drawGridLines (Canvas canvas) {
@@ -366,7 +349,6 @@ public class ComicEditor extends View {
 
     private void drawLines (Canvas canvas) {
     	if (linesLayer == null) {
-//    		linesLayer = Bitmap.createBitmap(canvas.getWidth() + 20, canvas.getHeight() + 20, Bitmap.Config.ARGB_8888);
     		linesLayer = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
     		Canvas canv = new Canvas (linesLayer);
     		canv.drawARGB(0, 0, 0, 0);
@@ -396,7 +378,6 @@ public class ComicEditor extends View {
 		for (TextObject to : currentState.mTextDrawables) {
 			if (to != null) {
 				to.draw(canvas);
-				Log.d ("RAGE", "Drawing " + to.getText());
 			}
 		}
 		if (currentState.mCurrentText != null)
@@ -470,8 +451,6 @@ public class ComicEditor extends View {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		Log.d("RAGE", event.toString ());
-		Log.d("RAGE", String.valueOf (event.getPointerCount()));
 		if (event.getPointerCount() == 1) {
 			mStartDistance = 0.0f;
 			if (event.getX() > getWidth() - mModeIconSize
@@ -519,11 +498,8 @@ public class ComicEditor extends View {
 		float diff = (float)Math.sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
 		float a = (x1 - x2);
 		float b =  (y1 - y2);
-/*		if (y1 > y2)
-			b = (y2 - y1);*/
 		float q = a / b;
 		float rot = (float)Math.toDegrees(Math.atan (q));
-		Log.d("RAGE", "Diff " + String.valueOf(diff) + " Rot " + String.valueOf(rot));
 		if (mStartDistance < 0.1f) {
 			mStartDistance = diff;
 			boolean found = false;
@@ -543,7 +519,6 @@ public class ComicEditor extends View {
 		}
 		else {
 			float scale = diff / mStartDistance;
-			Log.d("RAGE", "Scale " + String.valueOf(scale) + " Start Scale " + String.valueOf(mStartScale));
 			boolean found = false;
 	        for (ImageObject io : currentState.mDrawables) {
 	        	float newscale = mStartScale * scale;
@@ -553,7 +528,6 @@ public class ComicEditor extends View {
 	        		io.setScale(newscale);
 	        		float newrot = Math.round((mStartRot - rotdiff) / 1.0f);
 	        		io.setRotation(newrot);
-//	        		io.setRotation(mStartRot - rotdiff);
 	        		found = true;
 	        		break;
 	        	}
@@ -579,11 +553,6 @@ public class ComicEditor extends View {
 		float y1 = event.getY(0);
 		float y2 = event.getY(1);
 		float diff = (float)Math.sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
-		float a = (x1 - x2);
-		float b =  (y1 - y2);
-		float q = a / b;
-		float rot = (float)Math.toDegrees(Math.atan (q));
-		Log.d("RAGE", "Diff " + String.valueOf(diff) + " Rot " + String.valueOf(rot));
 		if (mStartDistance < 0.1f) {
 			mStartDistance = diff;
 			mStartScale = 0.0f;
@@ -695,7 +664,6 @@ public class ComicEditor extends View {
 			currentState.currentLinePoints = null;
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP) {
-//			currentState.mLinePaints.add (new Paint (p));
 			
 			if (currentState.currentLinePoints != null) {
 				Paint p = new Paint ();
@@ -799,7 +767,6 @@ public class ComicEditor extends View {
 		if (mModeMenu) {
 			MenuInflater inflater = new MenuInflater(getContext());
 			inflater.inflate(R.menu.mode_menu, menu);
-			Log.d ("RAGE", "Mode menu");
 			mModeMenu = false;
 			cancelLongPress();
 		}

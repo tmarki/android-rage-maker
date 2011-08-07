@@ -1,5 +1,4 @@
 package com.tmarki.comicmaker;
-import java.util.Currency;
 
 import com.tmarki.comicmaker.R;
 
@@ -25,14 +24,12 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 
 	public ComicSettings(Context context, int startPanelCount, boolean startDrawGrid, View.OnClickListener oklistener) {
 		super(context);
-		// TODO Auto-generated constructor stub
 		curPanelCount = startPanelCount - 1;
 		curDrawGrid = startDrawGrid;
 		okListener = oklistener;
 	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		setTitle("Comic Settings");
         setContentView(R.layout.settings);
@@ -64,11 +61,9 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
         setPCLabel(progress);
 	}
 	public void onStartTrackingTouch(SeekBar seekBar) {
-		// TODO Auto-generated method stub
 		
 	}
 	public void onStopTrackingTouch(SeekBar seekBar) {
-		// TODO Auto-generated method stub
 		
 	}
 

@@ -3,7 +3,6 @@ package com.tmarki.comicmaker;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StreamCorruptedException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,11 +11,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import com.tmarki.comicmaker.R;
 
-import android.app.AlertDialog;
 import android.content.res.AssetManager;
-import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Environment;

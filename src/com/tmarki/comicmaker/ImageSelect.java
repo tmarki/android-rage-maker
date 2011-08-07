@@ -11,14 +11,9 @@ import com.tmarki.comicmaker.R;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,7 +50,6 @@ public class ImageSelect extends Dialog {
 	    private final class QueueItem {
 			public String filename;
 			public ImageLoadedListener listener;
-//			public ImageView view;
 		}	    
 	    public interface ImageLoadedListener {
 			public void imageLoaded(String filename, SoftReference<BitmapDrawable> imageBitmap );
@@ -145,13 +139,6 @@ public class ImageSelect extends Dialog {
 					thread.start();
 				}	        
 			}
-//			item.view = holder.image;
-//	        fetchDrawableOnThread(fn, holder.image);
-/*	        BitmapDrawable dr = PackHandler.getPackDrawable(packName, folderName, fn);
-	        holder.image.setImageDrawable(dr);
-	        holder.image.setAdjustViewBounds(true);
-	        holder.image.setMaxHeight(ThumbHeight);
-	        holder.image.setMaxWidth(ThumbHeight);*/
 	        return vi;
 	    }
 	    private class QueueRunner implements Runnable {
@@ -171,10 +158,6 @@ public class ImageSelect extends Dialog {
 										//     Ideally we would re-run the network load or something.
 										SoftReference<BitmapDrawable> ref = drawableMap.get(item.filename.toString());
 										if( ref != null ) {
-/*											item.view.setImageDrawable(ref);
-							                item.view.setAdjustViewBounds(true);
-							                item.view.setMaxHeight(ThumbHeight);
-							                item.view.setMaxWidth(ThumbHeight);*/
 											item.listener.imageLoaded(item.filename, ref);
 										}
 									}
@@ -189,10 +172,6 @@ public class ImageSelect extends Dialog {
 								handler.post(new Runnable() {
 									public void run() {
 										if( item.listener != null) {
-/*											item.view.setImageDrawable(bmp);
-//							                item.view.setAdjustViewBounds(true);
-							                item.view.setMaxHeight(ThumbHeight);
-							                item.view.setMaxWidth(ThumbHeight);*/
 											item.listener.imageLoaded(item.filename, bmp);
 										}
 									}
@@ -205,33 +184,6 @@ public class ImageSelect extends Dialog {
 				}
 			}
 		}
-	    public void fetchDrawableOnThread(final String fileName, final ImageView imageView) {
-	        if (drawableMap.containsKey(fileName)) {
-	            imageView.setImageDrawable(drawableMap.get(fileName).get ());
-	            return;
-	        }
-
-	        final Handler handler = new Handler() {
-	            @Override
-	            public void handleMessage(Message message) {
-	                imageView.setImageDrawable((Drawable) message.obj);
-	            }
-	        };
-
-	        Thread thread = new Thread() {
-	            @Override
-	            public void run() {
-	                Drawable drawable = PackHandler.getPackDrawable(packName, folderName, fileName);
-	                if (drawable != null) {
-//	                	drawableMap.put(fileName, drawable);
-	                	Message message = handler.obtainMessage(1, drawable);
-	                	handler.sendMessage(message);
-	                }
-	            }
-	        };
-	        thread.setPriority(Thread.MIN_PRIORITY);
-	        thread.start();
-	    }
 	}
 	private String PackName = "";
 	private String FolderName = "";

@@ -16,8 +16,6 @@
 
 package com.tmarki.comicmaker;
 
-import java.util.Currency;
-
 import com.tmarki.comicmaker.R;
 
 import android.os.Bundle;
@@ -28,7 +26,6 @@ import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
-import android.view.WindowManager;
 
 public class ColorPickerDialog extends Dialog {
     public interface OnColorChangedListener {
@@ -67,7 +64,7 @@ public class ColorPickerDialog extends Dialog {
 	    private int button2Right = 200;
 	    private int button2Bottom = 250;
 
-		ColorPickerView(Context c, OnColorChangedListener l, int color, int defaultColor, int screenW, int screenH) {
+		ColorPickerView(Context c, OnColorChangedListener l, int color, int defaultColor) {
 			super(c);
 			mListener = l;
 			mDefaultColor = defaultColor;
@@ -120,9 +117,7 @@ public class ColorPickerDialog extends Dialog {
 			int y = ((rawy - mainFieldTop) * 255) / mfH;
 			if (y == 0)
 			{
-//				return Color.rgb(255-(255-Color.red((int)mCurrentHue))*x/255, 255-(255-Color.green((int)mCurrentHue))*x/255, 255-(255-Color.blue((int)mCurrentHue)))*x/255;
 				return Color.rgb(255 - (255-Color.red ((int)mCurrentHue))*x/255, 255-(255-Color.green((int)mCurrentHue))*x/255, 255-(255-Color.blue((int)mCurrentHue))*x/255);
-//				topColors[x] = mMainColors[index];
 			}
 			int tc = getMainColor(rawx, mainFieldTop); 
 			return Color.rgb((255-y)*Color.red(tc)/255, (255-y)*Color.green(tc)/255, (255-y)*Color.blue(tc)/255);
@@ -131,7 +126,6 @@ public class ColorPickerDialog extends Dialog {
 		@Override
 		protected void onDraw(Canvas canvas) {
 			// Display all the colors of the hue bar with lines
-//			canvas.drawColor(Color.BLACK);
 			hueBarRight = getWidth() - hueBarLeft * 2;
 			mainFieldRight = getWidth() - mainFieldLeft * 2;
 			int bh = button1Bottom - button1Top;
@@ -156,7 +150,7 @@ public class ColorPickerDialog extends Dialog {
 				else // else display a slightly larger black line
 				{
 					mPaint.setColor(Color.BLACK);
-//					mPaint.setStrokeWidth(3);
+					mPaint.setStrokeWidth(3);
 				}
 				canvas.drawLine(x, hueBarTop, x, hueBarBottom, mPaint);
 			}
@@ -168,7 +162,6 @@ public class ColorPickerDialog extends Dialog {
 				int[] colors = new int[2];
 				colors[0] = getMainColor(x, mainFieldTop);//mMainColors[x];
 				colors[1] = Color.BLACK;
-//				Shader shader = new LinearGradient(mainFieldLeft, mainFieldTop, mainFieldRight, mainFieldBottom, colors, null, Shader.TileMode.REPEAT);
 				Shader shader = new LinearGradient(x, mainFieldTop, x, mainFieldBottom, colors, null, Shader.TileMode.REPEAT);
 				mPaint.setShader(shader);
 				canvas.drawLine(x, mainFieldTop, x, mainFieldBottom, mPaint);
@@ -207,11 +200,6 @@ public class ColorPickerDialog extends Dialog {
 				mPaint.setColor(Color.BLACK);
 			canvas.drawText(getResources().getString(R.string.settings_default_color_confirm), button2Left + (button2Right - button2Left) / 2, button2Top + (button2Bottom - button2Top) / 2, mPaint);
 		}
-
-/*		@Override
-		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-			setMeasuredDimension(hueBarLeft + hueBarRight, button1Left + button1Bottom);
-		}*/
 
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
@@ -271,9 +259,8 @@ public class ColorPickerDialog extends Dialog {
         getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
         DisplayMetrics metrics = new DisplayMetrics();
         getWindow ().getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        ColorPickerView cpv = new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, metrics.widthPixels, metrics.heightPixels);
+        ColorPickerView cpv = new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor);
         setContentView(cpv);
-//        setContentView(new ColorPickerView(getContext(), l, mInitialColor, mDefaultColor, getCurrentFocus().getWidth(), getCurrentFocus().getHeight()));
         setTitle(R.string.settings_bg_color_dialog);
         
     }
