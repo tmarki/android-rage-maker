@@ -467,6 +467,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			alertDialog2.setMessage("Clear comic?");
 			alertDialog2.setButton("Yes", new OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
+					lastSaveName = "";
 					mainView.resetObjects();
 					mainView.invalidate();
 				}
@@ -526,6 +527,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	
 			// Set an EditText view to get user input 
 			final EditText sinput = new EditText(this);
+			sinput.setText(lastSaveName);
 			salert.setView(sinput);
 	
 			salert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
