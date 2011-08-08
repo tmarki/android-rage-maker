@@ -43,9 +43,9 @@ import com.tmarki.comicmaker.ColorPickerDialog;
 import com.tmarki.comicmaker.ComicEditor;
 import com.tmarki.comicmaker.R;
 import com.tmarki.comicmaker.ComicEditor.ComicState;
-import com.tmarki.comicmaker.Picker;
+import com.tmarki.comicmaker.WidthPicker;
 import com.tmarki.comicmaker.ComicEditor.TouchModes;
-import com.tmarki.comicmaker.Picker.OnWidthChangedListener;
+import com.tmarki.comicmaker.WidthPicker.OnWidthChangedListener;
 import com.tmarki.comicmaker.TextObject.FontType;
 import com.tmarki.comicmaker.ComicSettings;
 
@@ -347,15 +347,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		ImageObject io = mainView.getSelected();
-		if (item.getItemId() == R.id.mode_hand)
-			mainView.setmTouchMode(TouchModes.HAND);
-		else if (item.getItemId() == R.id.mode_pencil)
-			mainView.setmTouchMode(TouchModes.PENCIL);
-		else if (item.getItemId() == R.id.mode_text)
-			mainView.setmTouchMode(TouchModes.TEXT);
-		else if (item.getItemId() == R.id.mode_line)
-			mainView.setmTouchMode(TouchModes.LINE);
-		else if (item.getItemId() == R.id.toback && io != null)
+		if (item.getItemId() == R.id.toback && io != null)
 			io.setInBack(true);
 		else if (item.getItemId() == R.id.tofront && io != null)
 			io.setInBack(false);
@@ -406,7 +398,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			cpd.show();
 			break;
 		case (R.id.pen_width):
-			Picker np = new Picker (mainView.getContext(), this, mainView.getCurrentStrokeWidth());
+			WidthPicker np = new WidthPicker (mainView.getContext(), this, mainView.getCurrentStrokeWidth());
 			np.show();
 			break;
 		case (R.id.clear):

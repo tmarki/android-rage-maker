@@ -22,7 +22,6 @@ public class PackHandler {
 	
 	static private final String DEFAULT_COMIC_PACK = "default rage pack";
 	static private AssetManager assetMan = null;
-//	static private Map<CharSequence, Map<CharSequence, Map<CharSequence, ZipEntry>>> zipEntryCache = new HashMap<CharSequence, Map<CharSequence, Map<CharSequence, ZipEntry>>>();
 	
 	static public void setAssetManager (AssetManager am) {
 		assetMan = am;

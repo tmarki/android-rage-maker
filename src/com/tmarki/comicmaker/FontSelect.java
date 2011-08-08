@@ -1,27 +1,21 @@
 package com.tmarki.comicmaker;
 
-import java.util.Vector;
-
 import com.tmarki.comicmaker.R;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ListView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class FontSelect extends Dialog {
 	private PackAdapter adapter = null;
@@ -100,11 +94,7 @@ public class FontSelect extends Dialog {
 	private int fontSize = 20;
 	private boolean Bold = false;
 	private boolean Italic = false;
-	private int minFontSize = 10;
 	private int maxFontSize = 70;
-/*	public int getFontSize () {
-		return fontSize;
-	}*/
 	private OnCheckedChangeListener boldClicked = new OnCheckedChangeListener() {
 		
 		public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -125,25 +115,6 @@ public class FontSelect extends Dialog {
 	        list.setAdapter(adapter);
 		}
 	};
-/*	private OnSeekBarChangeListener fontsizeChange = new OnSeekBarChangeListener() {
-		
-		public void onStopTrackingTouch(SeekBar seekBar) {
-			
-		}
-		
-		public void onStartTrackingTouch(SeekBar seekBar) {
-			
-		}
-		
-		public void onProgressChanged(SeekBar seekBar, int progress,
-				boolean fromUser) {
-			fontSize = progress + minFontSize;
-	        ListView list = (ListView)findViewById(R.id.imageList);
-	        adapter = new PackAdapter(activity, fontSize, maxFontSize, Bold, Italic);
-			adapter.setFontSize(progress + minFontSize);
-	        list.setAdapter(adapter);
-		}
-	};*/
 	public FontSelect (Activity ac, OnItemClickListener listnr, int fontS, boolean b, boolean i) {
 		super (ac);
 		activity = ac;
@@ -168,10 +139,6 @@ public class FontSelect extends Dialog {
         CheckBox italic = (CheckBox)findViewById(R.id.italic);
         italic.setOnCheckedChangeListener(italicClicked);
         italic.setChecked(Italic);
-/*        SeekBar fontsize = (SeekBar)findViewById(R.id.fontsize);
-        fontsize.setMax (maxFontSize - minFontSize);
-        fontsize.setOnSeekBarChangeListener(fontsizeChange);
-        fontsize.setProgress(fontSize);*/
         super.setTitle(R.string.select_font);
     }
 	public boolean isBold() {

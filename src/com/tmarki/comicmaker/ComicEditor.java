@@ -18,17 +18,23 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
-import android.view.ContextMenu;
-import android.view.MenuInflater;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.TextView;
 import android.text.format.Time;
 
 
 public class ComicEditor extends View {
 	
 	public enum TouchModes { HAND, LINE, PENCIL, TEXT };
+	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode" }; 
 	
 	private TouchModes mTouchMode = TouchModes.HAND;
 	
@@ -75,7 +81,56 @@ public class ComicEditor extends View {
 	    public int mPanelCount = 4;
 	    public int currentColor = Color.BLACK;
 	};
-	
+	 
+	ListAdapter adapter = new ArrayAdapter<String>(
+	                getContext(), R.layout.mode_select_row, TMNames) {
+	               
+	        ViewHolder holder;
+	 
+	        class ViewHolder {
+	                ImageView icon;
+	                TextView title;
+	        }
+	 
+	        public View getView(int position, View convertView,
+	                        ViewGroup parent) {
+	                final LayoutInflater inflater = (LayoutInflater) getContext()
+	                                .getSystemService(
+	                                                Context.LAYOUT_INFLATER_SERVICE);
+	 
+	                if (convertView == null) {
+	                        convertView = inflater.inflate(
+	                                        R.layout.mode_select_row, null);
+	 
+	                        holder = new ViewHolder();
+	                        holder.icon = (ImageView) convertView
+	                                        .findViewById(R.id.icon);
+	                        holder.title = (TextView) convertView
+	                                        .findViewById(R.id.title);
+	                        convertView.setTag(holder);
+	                } else {
+	                        // view already defined, retrieve view holder
+	                        holder = (ViewHolder) convertView.getTag();
+	                }              
+	 
+	                Drawable tile = null; //this is an image from the drawables folder
+
+	                if (position == 0)
+	                	tile = getResources().getDrawable(R.drawable.hand);
+	                else if (position == 1)
+	                	tile = getResources().getDrawable(R.drawable.line);
+	                else if (position == 2)
+	                	tile = getResources().getDrawable(R.drawable.pencil);
+	                else if (position == 3)
+	                	tile = getResources().getDrawable(R.drawable.text);
+	               
+	                holder.title.setText(TMNames[position]);
+	                if (tile != null)
+	                	holder.icon.setImageDrawable(tile);
+	 
+	                return convertView;
+	        }
+	};	
 	private ComicState currentState = new ComicState ();
 	
 	private Vector<ComicState> previousStates = new Vector<ComicState>();
@@ -92,7 +147,6 @@ public class ComicEditor extends View {
     private int mStartTextSize = 0;
     private float mPrevRot = 0.0f;
     private boolean mMovedSinceDown = false;
-    private boolean mModeMenu = false;
     private FontType defaultFontType = FontType.values()[0];
     private boolean defaultBold = false;
     private boolean defaultItalic = false;
@@ -209,6 +263,7 @@ public class ComicEditor extends View {
 		currentState.mLinePaints.clear();
 		currentState.linePoints.clear ();
 		currentState.currentLinePoints = null;
+		linesLayer = null;
 		currentState.mTextDrawables.clear ();
 		currentState.mCurrentText = null;
 	}
@@ -448,6 +503,32 @@ public class ComicEditor extends View {
 		super.onSizeChanged(w, h, oldw, oldh);
 
 	}
+	
+	private void showModeSelect () {
+	    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(getResources().getString(R.string.mode_select_title));
+        builder.setAdapter(adapter,
+                        new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                int item) {
+//                                        Toast.makeText(getContext(), "You selected: " + item,Toast.LENGTH_LONG).show();
+                                	if (item == 0)
+                                		mTouchMode = TouchModes.HAND;
+                                	else if (item == 1)
+                                		mTouchMode = TouchModes.LINE;
+                                	else if (item == 2)
+                                		mTouchMode = TouchModes.PENCIL;
+                                	else if (item == 3)
+                                		mTouchMode = TouchModes.TEXT;
+                                    dialog.dismiss();
+                                    invalidate();
+                                }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+
+	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
@@ -458,8 +539,7 @@ public class ComicEditor extends View {
 					 && event.getY() > getHeight() - mModeIconSize
 					 && event.getY() < getHeight()) {
 				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					mModeMenu = true;
-					showContextMenu();
+					showModeSelect();
 				}
 			}
 			else {
@@ -488,17 +568,17 @@ public class ComicEditor extends View {
 		super.onTouchEvent(event);
 		return true;
 	}
-	
+	private float mStarta = 0;
 	private void handleMultiTouchManipulateEvent (MotionEvent event) {
 		wasMultiTouch = true;
 		float x1 = event.getX(0);
 		float x2 = event.getX(1);
 		float y1 = event.getY(0);
 		float y2 = event.getY(1);
-		float diff = (float)Math.sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
-		float a = (x1 - x2);
-		float b =  (y1 - y2);
-		float q = a / b;
+		float a = (x2 - x1);
+		float b =  (y2 - y1);
+		float diff = (float)Math.sqrt((a * a + b * b));
+		float q = (b / a);
 		float rot = (float)Math.toDegrees(Math.atan (q));
 		if (mStartDistance < 0.1f) {
 			mStartDistance = diff;
@@ -509,7 +589,9 @@ public class ComicEditor extends View {
 	        		mStartScale = io.getScale();
 	        		mStartRot = io.getRotation();
 	        		mPrevRot = rot;
+	        		mStarta = a;
 	        		found = true;
+	        		Log.d ("RAGE", "START MULTITOUCH");
 	        		break;
 	        	}
 	        }
@@ -525,9 +607,13 @@ public class ComicEditor extends View {
 	        	float rotdiff = rot - mPrevRot;
 	        	if (io.isSelected() && newscale < 10.0f && newscale > 0.1f)
 	        	{
-	        		io.setScale(newscale);
-	        		float newrot = Math.round((mStartRot - rotdiff) / 1.0f);
-	        		io.setRotation(newrot);
+	        		float newrot = Math.round((mStartRot + rotdiff) / 1.0f);
+	        		if (((a < 0 && mStarta > 0) || (a > 0 && mStarta < 0)) && Math.abs(io.getRotation() - newrot) > 10)
+	        			newrot += 180;
+	        		if (Math.abs ((newscale - io.getScale()) * 10.0) > Math.abs(newrot - io.getRotation()))
+	    	        	io.setScale(newscale);
+	        		else
+	        			io.setRotation(newrot % 360);
 	        		found = true;
 	        		break;
 	        	}
@@ -613,29 +699,30 @@ public class ComicEditor extends View {
 			if (!resizeObjectMode) {
 				int diffX = (int)((event.getX() - mPreviousPos.x) / mCanvasScale);
 				int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
+				if (diffX > 2 || diffY > 2)
 					mMovedSinceDown = true;
-					boolean found = false;
-			        for (ImageObject ad : currentState.mDrawables) {
-			        	if (ad.isSelected()) {
-			        		found = true;
-			        		Point p = ad.getPosition();
-			        		if (p.x + diffX >= mCanvasLimits.left
-			        				&& p.x + diffX <= mCanvasLimits.right
-			        				&& p.y + diffY >= mCanvasLimits.top
-			        				&& p.y + diffY <= mCanvasLimits.bottom
-			        				)
-			        		ad.moveBy((int)(diffX), (int)(diffY));
-			        	}
-			        }
-			        if (!found)  {
-			        	linesLayer = null;
-			        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
-			        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
-			        		mCanvasOffset.x += diffX;
-			        	if (((mCanvasOffset.y + diffY) < mCanvasLimits.top && diffY > 0)
-				        		|| (-(mCanvasOffset.y + diffY) + getHeight () / mCanvasScale <= mCanvasLimits.bottom) && diffY < 0)
-			        		mCanvasOffset.y += diffY;
-			        	} 
+				boolean found = false;
+		        for (ImageObject ad : currentState.mDrawables) {
+		        	if (ad.isSelected()) {
+		        		found = true;
+		        		Point p = ad.getPosition();
+		        		if (p.x + diffX >= mCanvasLimits.left
+		        				&& p.x + diffX <= mCanvasLimits.right
+		        				&& p.y + diffY >= mCanvasLimits.top
+		        				&& p.y + diffY <= mCanvasLimits.bottom
+		        				)
+		        		ad.moveBy((int)(diffX), (int)(diffY));
+		        	}
+		        }
+		        if (!found)  {
+		        	linesLayer = null;
+		        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
+		        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
+		        		mCanvasOffset.x += diffX;
+		        	if (((mCanvasOffset.y + diffY) < mCanvasLimits.top && diffY > 0)
+			        		|| (-(mCanvasOffset.y + diffY) + getHeight () / mCanvasScale <= mCanvasLimits.bottom) && diffY < 0)
+		        		mCanvasOffset.y += diffY;
+		        	} 
 				cancelLongPress();
 			}
 			else {
@@ -718,7 +805,6 @@ public class ComicEditor extends View {
 
 			alert.setTitle("Enter the text");
 
-			// Set an EditText view to get user input 
 			final EditText input = new EditText(getContext());
 			alert.setView(input);
 
@@ -762,15 +848,6 @@ public class ComicEditor extends View {
 		mPreviousPos.y = (int)event.getY();
 	}
 
-	@Override
-	protected void onCreateContextMenu(ContextMenu menu) {
-		if (mModeMenu) {
-			MenuInflater inflater = new MenuInflater(getContext());
-			inflater.inflate(R.menu.mode_menu, menu);
-			mModeMenu = false;
-			cancelLongPress();
-		}
-	}
 
 	public TouchModes getmTouchMode() {
 		return mTouchMode;
