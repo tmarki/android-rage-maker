@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
@@ -73,6 +74,11 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	
 	void readExternalFiles(){
 		externalImages = PackHandler.getBundles(getAssets ());
+		for (CharSequence p : externalImages.keySet()) {
+			for (CharSequence f : externalImages.get (p).keySet()) {
+				Collections.sort(externalImages.get (p).get (f));
+			}
+		}
 	}
 	
 	

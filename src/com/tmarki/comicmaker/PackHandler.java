@@ -31,11 +31,11 @@ public class PackHandler {
 		Map<CharSequence, Map<CharSequence, Vector<String>>> ret = new HashMap<CharSequence, Map<CharSequence, Vector<String>>>();
 	    String state = Environment.getExternalStorageState();
 	    if (Environment.MEDIA_MOUNTED.equals(state)) {
-	    	Log.d ("RAGE", "Media mounted");
+//	    	Log.d ("RAGE", "Media mounted");
 	    } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-	    	Log.d ("RAGE", "Media Read only");
+//	    	Log.d ("RAGE", "Media Read only");
 	    } else {
-	    	Log.d ("RAGE", "Media unavailable");
+//	    	Log.d ("RAGE", "Media unavailable");
 	    }
 	    File dir = new File (Environment.getExternalStorageDirectory() + "/ComicMaker");
 	    File[] files = dir.listFiles();
@@ -78,7 +78,6 @@ public class PackHandler {
 					  imgs.put(folder, new Vector<String>());
 				  }
 				  imgs.get(folder).add(file);
-				  Log.d ("RAGE", "Folder: " + folder + ", file: " + file);
 			  }
 	    }
 		return imgs;
@@ -89,7 +88,6 @@ public class PackHandler {
 		try {
 			zf = new ZipFile(fname);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (zf == null) return imgs;
@@ -109,7 +107,6 @@ public class PackHandler {
 					  imgs.put(folder, new Vector<String>());
 				  }
 				  imgs.get(folder).add(file);
-				  Log.d ("RAGE", "Folder: " + folder + ", file: " + file);
 			  }
 	    }
 		return imgs;
@@ -122,7 +119,6 @@ public class PackHandler {
 			return getDefaultPackDrawable(folder, file, fixedHeight);
 		ZipFile zf;
 		try {
-			Log.d ("RAGE", "Trying to return " + filename + "/" + folder + "/" + file);
 			zf = new ZipFile(Environment.getExternalStorageDirectory() + "/ComicMaker/" + filename);
 			Enumeration entries = zf.entries();
 			while (entries.hasMoreElements()) {
@@ -138,7 +134,6 @@ public class PackHandler {
 							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getIntrinsicWidth()) / bd.getIntrinsicHeight());
 						  else
 							  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());
-						  Log.d ("RAGE", "Returning " + bd.toString());
 						  return bd;
 					  }
 				  }
@@ -169,7 +164,6 @@ public class PackHandler {
 							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getIntrinsicWidth()) / bd.getIntrinsicHeight());
 						  else
 							  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());
-						  Log.d ("RAGE", "Returning " + bd.toString());
 						  return bd;
 					  }
 				  }

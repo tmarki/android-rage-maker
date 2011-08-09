@@ -4,6 +4,7 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 
@@ -129,8 +130,14 @@ public class ImageSelect {
 		
 		            Drawable tile = null;
 		            
-		            if (drawableMap.containsKey(fn))
+		            if (drawableMap.containsKey(fn)) {
 		            	tile = drawableMap.get(fn).get ();
+		            	if (tile == null) {
+		            		drawableMap.remove(fn);
+		            	}
+		            }
+		            
+		            Set<String> keys = drawableMap.keySet();
 	            
 		            holder.title.setText(fn);
 		            if (tile != null)
