@@ -6,224 +6,197 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import com.tmarki.comicmaker.R;
 
-import android.app.Activity;
-import android.app.Dialog;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnKeyListener;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.Bundle;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.ListAdapter;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
 
-
-
-
-public class ImageSelect extends Dialog {
-	private PackAdapter adapter = null;
-    private boolean backPressed = false;
-    public interface ImageLoadedListenerOuter {
-		public void imageLoaded();
-	}
+public class ImageSelect {
+	private ListAdapter packImageSelectAdapter = null;
+	private Context context = null;
+	private CharSequence packSelected = "";
+	private CharSequence folderSelected = "";
+	Map<CharSequence, Map<CharSequence, Vector<String>>> externalImages = null;
+    private Thread thread = new Thread ();
+    private BackPressedListener backListener = null;
     public interface BackPressedListener { 
     	public void backPressed ();
     }
-	static public class PackAdapter extends BaseAdapter {
-	    
-		private int ThumbHeight = 50;
-	    private static LayoutInflater inflater=null;
-	    private final Map<String, SoftReference<BitmapDrawable>> drawableMap = new HashMap<String, SoftReference<BitmapDrawable>> ();
-	    private final Map<String, ViewHolder> viewMap = new HashMap<String, ViewHolder> ();
-	    private Thread thread = new Thread ();
-	    private ImageLoadedListenerOuter loadnotify = null;
-	    Activity activity = null;
-	    Vector<CharSequence> files = new Vector<CharSequence>();
-	    String packName = "";
-	    String folderName = "";
-	    private final class QueueItem {
-			public String filename;
-			public ImageLoadedListener listener;
-		}	    
-	    public interface ImageLoadedListener {
-			public void imageLoaded(String filename, SoftReference<BitmapDrawable> imageBitmap );
-		}
-	    Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> mExternalImages = null;
-	    private final ArrayList<QueueItem> Queue = new ArrayList<QueueItem>();
-	    private QueueRunner runner = new QueueRunner();
-
-		private final Handler handler = new Handler();	// Assumes that this is started from the main (UI) thread
-	    public PackAdapter(Activity ac, String PackName, String FolderName, int screenH, Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> externalImages, ImageLoadedListenerOuter imagel) {
-	    	loadnotify = imagel;
-	    	activity = ac;
-	    	packName = PackName;
-	    	folderName = FolderName;
-	    	files = externalImages.get(PackName).get(FolderName);
-	        inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	        ThumbHeight = screenH / 4;
-	    }
-
-	    public int getCount() {
-	        return files.size();
-	    }
-
-	    public Object getItem(int position) {
-	        return position;
-	    }
-
-	    public long getItemId(int position) {
-	        return position;
-	    }
-	    
-	    public static class ViewHolder{
-	        public TextView text;
-	        public ImageView image;
-	    }
-
-	    public View getView(int position, View convertView, ViewGroup parent) {
-	        String fn = files.get(position).toString();
-	        View vi=convertView;
-	        ViewHolder holder;
-	        if(convertView==null)
-	        {
-	            vi = inflater.inflate(R.layout.row, null);
-	            holder=new ViewHolder();
-	            holder.text=(TextView)vi.findViewById(R.id.rowText);;
-	            holder.image=(ImageView)vi.findViewById(R.id.rowImage);
-	            vi.setTag(holder);
-	            viewMap.remove(fn);
-	        }
-	        else
-	            holder=(ViewHolder)vi.getTag();
-	        if (fn.lastIndexOf('.') > 0)
-	        	holder.text.setText(fn.substring(0, fn.lastIndexOf('.')));
-	        else
-	        	holder.text.setText(fn);
-	        if (drawableMap.containsKey(fn))
-	        	holder.image.setImageDrawable(drawableMap.get (fn).get ());
-	        else
-	        	holder.image.setImageResource(R.drawable.loading);
-			holder.image.setAdjustViewBounds(true);
-			holder.image.setMaxHeight(ThumbHeight);
-			holder.image.setMaxWidth(ThumbHeight);
-			if (!viewMap.containsKey(fn)) {
-		        viewMap.put(fn, holder);
-		        QueueItem item = new QueueItem();
-				item.filename =fn;
-				item.listener = new ImageLoadedListener() {
-					public void imageLoaded(String fn, SoftReference<BitmapDrawable> imageBitmap) {
-						if (imageBitmap.get() != null) {
-							ViewHolder h = viewMap.get(fn);
-							h.image.setImageDrawable(imageBitmap.get());
-							h.image.setAdjustViewBounds(true);
-							h.image.setMaxHeight(ThumbHeight);
-							h.image.setMaxWidth(ThumbHeight);
-							if (loadnotify != null)
-								loadnotify.imageLoaded();
-						}
-						
-					}
 	
-				};
-				Queue.add(item);
-				if( thread.getState() == Thread.State.NEW) {
-					thread.start();
-				} else if( thread.getState() == Thread.State.TERMINATED) {
-					thread = new Thread(runner);
-					thread.start();
-				}	        
-			}
-	        return vi;
-	    }
-	    private class QueueRunner implements Runnable {
-			public void run() {
-				synchronized(this) {
-					while(Queue.size() > 0) {
-						final QueueItem item = Queue.remove(0);
+	public ImageSelect(Context c, CharSequence pack, CharSequence folder, Map<CharSequence, Map<CharSequence, Vector<String>>> externals, BackPressedListener bpl) {
+		context = c;
+		packSelected = pack;
+		folderSelected = folder;
+		externalImages = externals;
+		backListener = bpl;
+	}
+	
+    class QueueItem {
+		public String filename;
+		public ImageLoadedListener listener;
+	}	    
+    public interface ImageLoadedListener {
+		public void imageLoaded(String filename, SoftReference<BitmapDrawable> imageBitmap );
+	}
+    Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> mExternalImages = null;
+    private final ArrayList<QueueItem> Queue = new ArrayList<QueueItem>();
+    private QueueRunner runner = new QueueRunner();
+    private Map<String, SoftReference<BitmapDrawable>> drawableMap = new HashMap<String, SoftReference<BitmapDrawable>> ();
+	private final Handler handler = new Handler();	// Assumes that this is started from the main (UI) thread
+	private Vector<ViewHolder> holders = new Vector<ViewHolder>();
 
-						// If in the cache, return that copy and be done
-						if( drawableMap.containsKey(item.filename.toString()) && drawableMap.get(item.filename.toString()) != null) {
-							// Use a handler to get back onto the UI thread for the update
+    class QueueRunner implements Runnable {
+		public void run() {
+			synchronized(this) {
+				while(Queue.size() > 0) {
+					final QueueItem item = Queue.remove(0);
+
+					if( drawableMap.containsKey(item.filename.toString()) && drawableMap.get(item.filename.toString()) != null) {
+						handler.post(new Runnable() {
+							public void run() {
+								if( item.listener != null ) {
+									SoftReference<BitmapDrawable> ref = drawableMap.get(item.filename.toString());
+									if( ref != null ) {
+										item.listener.imageLoaded(item.filename, ref);
+									}
+								}
+							}
+						});
+					} else {
+						final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), item.filename));
+						if( bmp != null ) {
 							handler.post(new Runnable() {
 								public void run() {
-									if( item.listener != null ) {
-										// NB: There's a potential race condition here where the cache item could get
-										//     garbage collected between when we post the runnable and it's executed.
-										//     Ideally we would re-run the network load or something.
-										SoftReference<BitmapDrawable> ref = drawableMap.get(item.filename.toString());
-										if( ref != null ) {
-											item.listener.imageLoaded(item.filename, ref);
-										}
+									if( item.listener != null) {
+										item.listener.imageLoaded(item.filename, bmp);
 									}
 								}
 							});
-						} else {
-							final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(PackHandler.getPackDrawable(packName, folderName, item.filename));
-							if( bmp != null ) {
-								drawableMap.put(item.filename.toString(), bmp);
-
-								// Use a handler to get back onto the UI thread for the update
-								handler.post(new Runnable() {
-									public void run() {
-										if( item.listener != null) {
-											item.listener.imageLoaded(item.filename, bmp);
-										}
-									}
-								});
-							}
-
 						}
 
 					}
+
 				}
 			}
 		}
 	}
-	private String PackName = "";
-	private String FolderName = "";
-	private Activity activity = null;
-	private OnItemClickListener listener = null;
-	private int screenHeight = 320;
-	private Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> mExternalImages = null;
-	private BackPressedListener backListener = null;
-	public ImageSelect (Activity ac, Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> externalImages, String pn, String fn, OnItemClickListener listnr, int scrnHeight, BackPressedListener bpl) {
-		super (ac);
-		activity = ac;
-		PackName = pn;
-		FolderName = fn;
-		listener = listnr;
-		screenHeight = scrnHeight;
-		mExternalImages = externalImages;
-		backListener = bpl;
+    class ViewHolder {
+        ImageView icon;
+        TextView title;
+}
+
+	private void makeImageSelectAdapter (final String[] imageNames) {
+
+		packImageSelectAdapter = new ArrayAdapter<String>(
+				context, R.layout.image_select_row, imageNames) {
+           
+		    ViewHolder holder;
+		
+		    public View getView(int position, View convertView,
+		                    ViewGroup parent) {
+		    		String fn = imageNames[position];
+		            final LayoutInflater inflater = (LayoutInflater) getContext()
+		                            .getSystemService(
+		                                            Context.LAYOUT_INFLATER_SERVICE);
+		
+		            if (convertView == null) {
+		                    convertView = inflater.inflate(
+		                                    R.layout.image_select_row, null);
+		
+		                    holder = new ViewHolder();
+		                    holder.icon = (ImageView) convertView
+		                                    .findViewById(R.id.icon);
+		                    holder.title = (TextView) convertView
+		                                    .findViewById(R.id.title);
+		                    convertView.setTag(holder);
+		    	            holder.icon.setTag(R.id.filename, fn);
+		            } else {
+		                    holder = (ViewHolder) convertView.getTag();
+		    	            holder.icon.setTag(R.id.filename, fn);
+		            }              
+		
+		            Drawable tile = null;
+		            
+		            if (drawableMap.containsKey(fn))
+		            	tile = drawableMap.get(fn).get ();
+	            
+		            holder.title.setText(fn);
+		            if (tile != null)
+		            	holder.icon.setImageDrawable(tile);
+		            else
+		            	holder.icon.setImageResource(R.drawable.loading);
+					if (!holders.contains(holder) || !drawableMap.containsKey(fn)) {
+						if (!holders.contains(holder))
+							holders.add(holder);
+				        QueueItem item = new QueueItem();
+						item.filename =fn;
+						item.listener = new ImageLoadedListener() {
+							public void imageLoaded(String ffn, SoftReference<BitmapDrawable> imageBitmap) {
+								if (imageBitmap.get() != null) {
+									drawableMap.put(ffn, imageBitmap);
+									ViewHolder h = null;
+									for (int i = 0; i < holders.size(); ++i) {
+										if ((String)holders.get (i).icon.getTag (R.id.filename) == ffn) {
+											h = holders.get (i);
+											break;
+										}
+									}
+									if (h != null) {
+										h.icon.setImageDrawable(imageBitmap.get());
+										h.icon.setAdjustViewBounds(true);
+									}
+								}
+								
+							}
+			
+						};
+						Queue.add(item);
+						if( thread.getState() == Thread.State.NEW) {
+							thread.start();
+						} else if( thread.getState() == Thread.State.TERMINATED) {
+							thread = new Thread(runner);
+							thread.start();
+						}	        
+					}
+		
+		            return convertView;
+		    }
+		};	
 	}
-    @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.imageselect);
-        final ListView list = (ListView)findViewById(R.id.imageList);
-        adapter = new PackAdapter(activity, PackName, FolderName, screenHeight, mExternalImages, new ImageLoadedListenerOuter() {
-			public void imageLoaded() {
+
+	public void showImageSelect (DialogInterface.OnClickListener ocl) {
+		Vector<String> sv = externalImages.get (packSelected).get(folderSelected);
+		String[] s = new String[sv.size()];
+		sv.toArray(s);
+		makeImageSelectAdapter(s);
+	    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(context.getResources().getString(R.string.image_select_title));
+        builder.setAdapter(packImageSelectAdapter, ocl);
+        builder.setOnKeyListener(new OnKeyListener() {
+			
+			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+				if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP && backListener != null) {
+					backListener.backPressed();
+				}
+				return false;
 			}
 		});
-        list.setAdapter(adapter);
-        list.setOnItemClickListener(listener);
-        super.setTitle(R.string.select_image);
-    }
-	@Override
-	public void onBackPressed() {
-		backPressed = true;
-		if (backListener != null)
-			backListener.backPressed();
-		super.onBackPressed();
+        AlertDialog alert = builder.create();
+        alert.show();
+
+
 	}
-	public boolean wasBackPressed () {
-		return backPressed;
-	}
+
 }

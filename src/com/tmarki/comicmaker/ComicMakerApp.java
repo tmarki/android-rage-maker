@@ -13,6 +13,7 @@ import java.util.Vector;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -28,14 +29,20 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -54,15 +61,15 @@ import com.tmarki.comicmaker.ComicSettings;
 
 public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener {
 	private ComicEditor mainView;
-	private Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> externalImages = new HashMap<CharSequence, Map<CharSequence, Vector<CharSequence>>>();
+	private Map<CharSequence, Map<CharSequence, Vector<String>>> externalImages = new HashMap<CharSequence, Map<CharSequence, Vector<String>>>();
 	private CharSequence packSelected;
 	private CharSequence folderSelected;
-	private ImageSelect imgsel = null;
 	private FontSelect fontselect = null;
 	private ComicSettings settings = null;
 	private MenuItem menuitem_OtherSource = null;
 	private String lastSaveName = "";
 	private Map<MenuItem, CharSequence> menuitems_Packs = new HashMap<MenuItem, CharSequence> ();
+	private ImageSelect imageSelector = null;
 	
 	void readExternalFiles(){
 		externalImages = PackHandler.getBundles(getAssets ());
@@ -172,8 +179,8 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         		outState.putCharSequence(String.format ("folder%s-%s", i, j), folder);
             	outState.putInt(String.format ("fileCount%s-%s", i, j), externalImages.get (pack).get (folder).size ());
             	int k = 0;
-            	for (CharSequence file : externalImages.get (pack).get (folder)) {
-            		outState.putCharSequence(String.format ("file%s-%s-%s", i, j, k++), file);
+            	for (String file : externalImages.get (pack).get (folder)) {
+            		outState.putString(String.format ("file%s-%s-%s", i, j, k++), file);
             	}
             	j++;
         	}
@@ -227,14 +234,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
     	int pc = savedInstanceState.getInt("packCount");
     	for (int i = 0; i < pc; ++i) {
     		CharSequence pack = savedInstanceState.getCharSequence(String.format ("pack%s", i));
-    		Map<CharSequence, Vector<CharSequence>> folders = new HashMap<CharSequence, Vector<CharSequence>> ();
+    		Map<CharSequence, Vector<String>> folders = new HashMap<CharSequence, Vector<String>> ();
     		int foc = savedInstanceState.getInt(String.format ("folderCount%s", i));
     		for (int j = 0; j < foc; ++j) {
-    			Vector<CharSequence> files = new Vector<CharSequence> ();
+    			Vector<String> files = new Vector<String> ();
     			CharSequence folder = savedInstanceState.getCharSequence(String.format ("folder%s-%s", i, j));
     			int fic = savedInstanceState.getInt(String.format ("fileCount%s-%s", i, j));
     			for (int k = 0; k < fic; ++k) {
-    				files.add(savedInstanceState.getCharSequence(String.format ("file%s-%s-%s", i, j, k)));
+    				files.add(savedInstanceState.getString(String.format ("file%s-%s-%s", i, j, k)));
     			}
     			folders.put(folder, files);
     		}
@@ -558,7 +565,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 
 		return cursor.getString(column_index);
 	}
-
 	private void doComicPackFolderSelect () {
 		CharSequence[] ccs = (CharSequence[]) externalImages.get (packSelected).keySet().toArray(new CharSequence[externalImages.get (packSelected).keySet().size()]);
 		Arrays.sort(ccs);
@@ -590,22 +596,23 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		}
     };
 
-	private OnItemClickListener addFromPackListener = new OnItemClickListener(){
-		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-				long arg3) {
-			imgsel.dismiss();
-			String fname = externalImages.get (packSelected).get(folderSelected).get (arg2).toString();
-			BitmapDrawable id = PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname); 
-			mainView.addImageObject(id, -mainView.getmCanvasOffset().x + id.getIntrinsicWidth(), -mainView.getmCanvasOffset().y + id.getIntrinsicWidth(), 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
-		}
-    };
 	private void doComicPackImageSelect () {
-		imgsel = new ImageSelect(this, externalImages, packSelected.toString(), folderSelected.toString(), addFromPackListener, mainView.getWidth() > mainView.getHeight () ? mainView.getWidth () : mainView.getHeight (), new ImageSelect.BackPressedListener() {
+		imageSelector = new ImageSelect(getWindow().getContext(), packSelected, folderSelected, externalImages, new ImageSelect.BackPressedListener() {
+			
 			public void backPressed() {
 				doComicPackFolderSelect();
 			}
 		});
-		imgsel.show();
+		imageSelector.showImageSelect(new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                int item) {
+//                                        Toast.makeText(getContext(), "You selected: " + item,Toast.LENGTH_LONG).show();
+                                    dialog.dismiss();
+                        			String fname = externalImages.get (packSelected).get(folderSelected).get (item).toString();
+                        			BitmapDrawable id = PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname); 
+                        			mainView.addImageObject(id, -mainView.getmCanvasOffset().x + id.getIntrinsicWidth() / 2, -mainView.getmCanvasOffset().y + id.getIntrinsicWidth() / 2, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
+                                }
+                        });
 	}
 	
 

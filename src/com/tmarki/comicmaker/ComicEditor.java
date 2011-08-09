@@ -82,7 +82,7 @@ public class ComicEditor extends View {
 	    public int currentColor = Color.BLACK;
 	};
 	 
-	ListAdapter adapter = new ArrayAdapter<String>(
+	ListAdapter modeAdapter = new ArrayAdapter<String>(
 	                getContext(), R.layout.mode_select_row, TMNames) {
 	               
 	        ViewHolder holder;
@@ -507,7 +507,7 @@ public class ComicEditor extends View {
 	private void showModeSelect () {
 	    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle(getResources().getString(R.string.mode_select_title));
-        builder.setAdapter(adapter,
+        builder.setAdapter(modeAdapter,
                         new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog,
                                                 int item) {

@@ -27,8 +27,8 @@ public class PackHandler {
 		assetMan = am;
 	}
 	
-	static public Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> getBundles (AssetManager am) {
-		Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> ret = new HashMap<CharSequence, Map<CharSequence, Vector<CharSequence>>>();
+	static public Map<CharSequence, Map<CharSequence, Vector<String>>> getBundles (AssetManager am) {
+		Map<CharSequence, Map<CharSequence, Vector<String>>> ret = new HashMap<CharSequence, Map<CharSequence, Vector<String>>>();
 	    String state = Environment.getExternalStorageState();
 	    if (Environment.MEDIA_MOUNTED.equals(state)) {
 	    	Log.d ("RAGE", "Media mounted");
@@ -40,7 +40,7 @@ public class PackHandler {
 	    File dir = new File (Environment.getExternalStorageDirectory() + "/ComicMaker");
 	    File[] files = dir.listFiles();
 		try {
-		    Map<CharSequence, Vector<CharSequence>> imgs = getZipEntries(am.open(DEFAULT_COMIC_PACK));
+		    Map<CharSequence, Vector<String>> imgs = getZipEntries(am.open(DEFAULT_COMIC_PACK));
 			ret.put(DEFAULT_COMIC_PACK, imgs);
 			assetMan = am;
 		} catch (IOException e) {
@@ -53,15 +53,15 @@ public class PackHandler {
 	    	if (!f.getName().toLowerCase().endsWith(".zip")) {
 	    		continue;
 	    	}
-	    	Map<CharSequence, Vector<CharSequence>> imgs2 = getZipEntries(f.getAbsolutePath()); 
+	    	Map<CharSequence, Vector<String>> imgs2 = getZipEntries(f.getAbsolutePath()); 
 			ret.put(f.getName().substring(f.getName().lastIndexOf("/") + 1), imgs2);
 			
 	    }
 		
 		return ret;
 	}
-	static private Map<CharSequence, Vector<CharSequence>> getZipEntries (InputStream is) throws IOException {
-    	Map<CharSequence, Vector<CharSequence>> imgs = new HashMap<CharSequence,Vector<CharSequence>>(); 
+	static private Map<CharSequence, Vector<String>> getZipEntries (InputStream is) throws IOException {
+    	Map<CharSequence, Vector<String>> imgs = new HashMap<CharSequence,Vector<String>>(); 
 		ZipInputStream zf = new ZipInputStream(is);
 		while (true) {
 			  ZipEntry ze = zf.getNextEntry();
@@ -75,7 +75,7 @@ public class PackHandler {
 				  if (file.startsWith(".") || folder.startsWith("."))
 					  continue;
 				  if (!imgs.containsKey(folder)) {
-					  imgs.put(folder, new Vector<CharSequence>());
+					  imgs.put(folder, new Vector<String>());
 				  }
 				  imgs.get(folder).add(file);
 				  Log.d ("RAGE", "Folder: " + folder + ", file: " + file);
@@ -83,8 +83,8 @@ public class PackHandler {
 	    }
 		return imgs;
 	}
-	static private Map<CharSequence, Vector<CharSequence>> getZipEntries (String fname) {
-    	Map<CharSequence, Vector<CharSequence>> imgs = new HashMap<CharSequence,Vector<CharSequence>>(); 
+	static private Map<CharSequence, Vector<String>> getZipEntries (String fname) {
+    	Map<CharSequence, Vector<String>> imgs = new HashMap<CharSequence,Vector<String>>(); 
 		ZipFile zf = null;
 		try {
 			zf = new ZipFile(fname);
@@ -106,7 +106,7 @@ public class PackHandler {
 				  if (file.startsWith(".") || folder.startsWith("."))
 					  continue;
 				  if (!imgs.containsKey(folder)) {
-					  imgs.put(folder, new Vector<CharSequence>());
+					  imgs.put(folder, new Vector<String>());
 				  }
 				  imgs.get(folder).add(file);
 				  Log.d ("RAGE", "Folder: " + folder + ", file: " + file);

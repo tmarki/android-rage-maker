@@ -19,6 +19,7 @@
     <string name="mode_text">Type mode</string>
     <string name="mode_line">Line mode</string>
     <string name="mode_select_title">Select interaction mode</string>
+    <string name="image_select_title">Select image to add</string>
     <string name="toback">Send to back</string>
     <string name="tofront">Bring to front</string>
     <string name="pen_color">Pen color</string>
