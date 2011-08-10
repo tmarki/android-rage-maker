@@ -269,16 +269,23 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	String folder = savedInstanceState.getString(String.format(tag + "ImageObject%dfolder", i));
         	String file = savedInstanceState.getString(String.format(tag + "ImageObject%dfile", i));
         	ImageObject io = null;
-        	if (rid > 0) {
-        		Drawable dr = getResources().getDrawable(rid);
-        		io = new ImageObject(dr, params[0], params[1], rot, sc, rid, pack, folder, file);
+        	Drawable dr = null;
+        	try {
+	        	if (rid > 0) {
+	        		dr = getResources().getDrawable(rid);
+	        	}
+	        	else if (pack.length() > 0) {
+	        		dr = PackHandler.getPackDrawable(pack, folder, file);
+	        	}
+	        	else if (file.length() > 0) {
+					dr = new BitmapDrawable(file);
+	        	}
+				if (dr != null) {
+					io = new ImageObject(dr, params[0], params[1], rot, sc, rid, pack, folder, file);
+				}
         	}
-        	else if (pack.length() > 0) { 
-        		io = new ImageObject(PackHandler.getPackDrawable(pack, folder, file), params[0], params[1], rot, sc, rid, pack, folder, file);
-        	}
-        	else if (file.length() > 0) {
-				BitmapDrawable bdr = new BitmapDrawable(file);
-        		io = new ImageObject(bdr, params[0], params[1], rot, sc, rid, pack, folder, file);
+        	catch (Exception e) {
+				Toast.makeText(getWindow ().getContext(), "Comic Maker internal problem in restoring state!",Toast.LENGTH_SHORT).show();
         	}
         	if (io != null) {
         		io.setFlipHorizontal(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfh", i)));
@@ -544,20 +551,36 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	}
 
 	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) { 
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		boolean success = false;
 
 		if (resultCode == RESULT_OK) {
 
 			if (requestCode == 1) {
-				String fname = getRealPathFromURI (data.getData());
-				BitmapDrawable bdr = new BitmapDrawable(fname);
-				mainView.addImageObject(bdr, -mainView.getmCanvasOffset().x + bdr.getIntrinsicWidth(), -mainView.getmCanvasOffset().y + bdr.getIntrinsicWidth(), 0.0f, 1.0f, 0, "", "", fname);
+				String fname = data.getData ().toString();
+				if (fname.startsWith("content://"))
+					fname = getRealPathFromURI (data.getData ());
+				if (fname.startsWith("file://"))
+					fname = fname.replace("file://", "");
+				if (fname != "") {
+					BitmapDrawable bdr = new BitmapDrawable(fname);
+					if (bdr != null) {
+						mainView.addImageObject(bdr, -mainView.getmCanvasOffset().x + bdr.getIntrinsicWidth(), -mainView.getmCanvasOffset().y + bdr.getIntrinsicWidth(), 0.0f, 1.0f, 0, "", "", fname);
+						success = true;
+					}
+				}
+			}
+			if (!success) {
+				Toast.makeText(getWindow ().getContext(), "There was an error adding the image!",Toast.LENGTH_LONG).show();
+				
 			}
 		}
 	}
 
 	// And to convert the image URI to the direct file system path of the image file
 	public String getRealPathFromURI(Uri contentUri) {
+		if (contentUri == null)
+			return "";
 
 		// can post image
 		String [] proj={MediaStore.Images.Media.DATA};
@@ -566,6 +589,8 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				null,       // WHERE clause; which rows to return (all rows)
 				null,       // WHERE clause selection arguments (none)
 				null); // Order-by clause (ascending by name)
+		if (cursor == null)
+			return "";
 		int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
 		cursor.moveToFirst();
 
@@ -615,8 +640,13 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 //                                        Toast.makeText(getContext(), "You selected: " + item,Toast.LENGTH_LONG).show();
                                     dialog.dismiss();
                         			String fname = externalImages.get (packSelected).get(folderSelected).get (item).toString();
-                        			BitmapDrawable id = PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname); 
-                        			mainView.addImageObject(id, -mainView.getmCanvasOffset().x + id.getIntrinsicWidth() / 2, -mainView.getmCanvasOffset().y + id.getIntrinsicWidth() / 2, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
+                        			BitmapDrawable id = PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), fname);
+                        			if (id != null) {
+                        				mainView.addImageObject(id, -mainView.getmCanvasOffset().x + id.getIntrinsicWidth() / 2, -mainView.getmCanvasOffset().y + id.getIntrinsicWidth() / 2, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
+                        			}
+                        			else {
+                        				Toast.makeText(getApplicationContext(), "Failed to add image!", Toast.LENGTH_LONG);
+                        			}
                                 }
                         });
 	}

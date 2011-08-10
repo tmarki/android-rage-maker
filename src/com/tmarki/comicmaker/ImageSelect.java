@@ -63,6 +63,8 @@ public class ImageSelect {
 			synchronized(this) {
 				while(Queue.size() > 0) {
 					final QueueItem item = Queue.remove(0);
+					if (item == null)
+						break;
 
 					if( drawableMap.containsKey(item.filename.toString()) && drawableMap.get(item.filename.toString()) != null) {
 						handler.post(new Runnable() {
@@ -137,7 +139,6 @@ public class ImageSelect {
 		            	}
 		            }
 		            
-		            Set<String> keys = drawableMap.keySet();
 	            
 		            holder.title.setText(fn);
 		            if (tile != null)

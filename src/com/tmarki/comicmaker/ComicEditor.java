@@ -404,9 +404,15 @@ public class ComicEditor extends View {
 
     private void drawLines (Canvas canvas) {
     	if (linesLayer == null) {
-    		linesLayer = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
-    		Canvas canv = new Canvas (linesLayer);
-    		canv.drawARGB(0, 0, 0, 0);
+    		Canvas canv = canvas;
+    		try {
+    			linesLayer = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
+    			canv = new Canvas (linesLayer);
+        		canv.drawARGB(0, 0, 0, 0);
+    		}
+    		catch (Exception e) {
+    			
+    		}
 	    	for (int i = 0; i < currentState.linePoints.size(); ++i) {
 	    		float[] lp = currentState.linePoints.get (i);
 	    		Paint p = currentState.mLinePaints.get (i);
@@ -633,6 +639,8 @@ public class ComicEditor extends View {
 	}
 
 	private void handleMultiTouchTextEvent (MotionEvent event) {
+		if (currentState.mCurrentText == null)
+			return;
 		wasMultiTouch = true;
 		float x1 = event.getX(0);
 		float x2 = event.getX(1);
