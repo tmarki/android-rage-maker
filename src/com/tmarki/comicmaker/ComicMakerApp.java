@@ -13,7 +13,12 @@ import java.util.Vector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.DialogInterface.OnClickListener;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -392,7 +397,15 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			AlertDialog alertDialog;
 			alertDialog = new AlertDialog.Builder(this).create();
 			alertDialog.setTitle("About Rage Comic Maker");
-			alertDialog.setMessage("Rage Comic Maker v1.0\nfor Android\n\n(c) 2011 Tamas Marki\nThis is open source software. Use it at your own risk.\nThe source code is available at the home page.");
+			String versionname = "?";
+			try {
+				PackageInfo manager=getPackageManager().getPackageInfo(getPackageName(), 0);
+				versionname = manager.versionName;
+			}
+			catch (NameNotFoundException nof) {
+				
+			}
+		    alertDialog.setMessage("Rage Comic Maker v"+versionname+"\nfor Android\n\n(c) 2011 Tamas Marki\nThis is open source software. Use it at your own risk.\nThe source code is available at the home page.");
 			alertDialog.setButton("Home Page", new OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					String url = "http://code.google.com/p/android-rage-maker/";
@@ -501,6 +514,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			});
 	
 			salert.show();
+			break;
+		case (R.id.exit):
+			finish ();
 			break;
 		default:
 			if (menuitem_OtherSource == item) {
@@ -702,5 +718,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		
 		mainView.setCurrentColor(color);
 	}
+
+
 
 }

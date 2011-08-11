@@ -25,6 +25,8 @@
           android:title="@string/share" />
     <item android:id="@+id/clear"
           android:title="@string/clear" />
+    <item android:id="@+id/exit"
+          android:title="@string/exit" />
     <item android:id="@+id/about"
           android:title="@string/about" />
 </menu>

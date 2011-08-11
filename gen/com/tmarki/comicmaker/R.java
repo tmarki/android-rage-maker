@@ -39,10 +39,11 @@ public final class R {
         public static final int trollface=0x7f020019;
     }
     public static final class id {
-        public static final int about=0x7f040021;
+        public static final int about=0x7f040022;
         public static final int bold=0x7f040003;
         public static final int clear=0x7f040020;
         public static final int drawGrid=0x7f040012;
+        public static final int exit=0x7f040021;
         public static final int filename=0x7f040000;
         public static final int flipH=0x7f040017;
         public static final int flipV=0x7f040016;
@@ -90,40 +91,41 @@ public final class R {
         public static final int main_menu=0x7f060001;
     }
     public static final class string {
-        public static final int about=0x7f05000a;
+        public static final int about=0x7f05000b;
         public static final int add=0x7f050002;
         public static final int add_other=0x7f050004;
         public static final int add_pack=0x7f050003;
         public static final int app_name=0x7f050001;
-        public static final int bold=0x7f05001c;
+        public static final int bold=0x7f05001d;
         public static final int clear=0x7f050006;
-        public static final int flipH=0x7f05001f;
-        public static final int flipV=0x7f05001e;
+        public static final int exit=0x7f050007;
+        public static final int flipH=0x7f050020;
+        public static final int flipV=0x7f05001f;
         public static final int hello=0x7f050000;
-        public static final int image_select_title=0x7f050013;
-        public static final int italic=0x7f05001d;
-        public static final int load=0x7f050008;
-        public static final int mode_hand=0x7f05000e;
-        public static final int mode_line=0x7f050011;
-        public static final int mode_pencil=0x7f05000f;
-        public static final int mode_select_title=0x7f050012;
-        public static final int mode_text=0x7f050010;
-        public static final int pen_color=0x7f050016;
-        public static final int pen_width=0x7f050017;
-        public static final int remove=0x7f05000c;
-        public static final int save=0x7f050007;
+        public static final int image_select_title=0x7f050014;
+        public static final int italic=0x7f05001e;
+        public static final int load=0x7f050009;
+        public static final int mode_hand=0x7f05000f;
+        public static final int mode_line=0x7f050012;
+        public static final int mode_pencil=0x7f050010;
+        public static final int mode_select_title=0x7f050013;
+        public static final int mode_text=0x7f050011;
+        public static final int pen_color=0x7f050017;
+        public static final int pen_width=0x7f050018;
+        public static final int remove=0x7f05000d;
+        public static final int save=0x7f050008;
         public static final int scale=0x7f050005;
-        public static final int select_font=0x7f05001b;
-        public static final int select_image=0x7f05001a;
-        public static final int settings=0x7f050009;
-        public static final int settings_bg_color_confirm=0x7f050020;
-        public static final int settings_bg_color_dialog=0x7f050022;
-        public static final int settings_default_color_confirm=0x7f050021;
-        public static final int share=0x7f05000d;
-        public static final int text_color=0x7f050018;
-        public static final int text_type=0x7f050019;
-        public static final int toback=0x7f050014;
-        public static final int tofront=0x7f050015;
-        public static final int zoom=0x7f05000b;
+        public static final int select_font=0x7f05001c;
+        public static final int select_image=0x7f05001b;
+        public static final int settings=0x7f05000a;
+        public static final int settings_bg_color_confirm=0x7f050021;
+        public static final int settings_bg_color_dialog=0x7f050023;
+        public static final int settings_default_color_confirm=0x7f050022;
+        public static final int share=0x7f05000e;
+        public static final int text_color=0x7f050019;
+        public static final int text_type=0x7f05001a;
+        public static final int toback=0x7f050015;
+        public static final int tofront=0x7f050016;
+        public static final int zoom=0x7f05000c;
     }
 }
