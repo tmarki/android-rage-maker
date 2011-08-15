@@ -56,6 +56,7 @@ public class TextObject extends ImageObject {
     	p.setColor(color);
 		p.setStyle(Paint.Style.FILL);
 		String lines[] = text.split("\n");
+		textWidth = 0;
 		for (String s : lines) {
 			int tmp = (int)p.measureText(s);
 			if (tmp > textWidth)

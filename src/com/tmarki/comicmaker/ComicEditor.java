@@ -46,9 +46,10 @@ public class ComicEditor extends View {
 	    public ComicState() {
 		}
 	    public ComicState(ComicState os) {
-	    	for (ImageObject io : os.mDrawables) {
+	    	mDrawables = (Vector<ImageObject>)os.mDrawables.clone();
+/*	    	for (ImageObject io : os.mDrawables) {
 	    		mDrawables.add(new ImageObject(io));
-	    	}
+	    	}*/
 	    	linePoints = new Vector<float[]>();
 	    	for (int i = 0; i < os.linePoints.size(); ++i) {
 	    		float tmp[] = new float[os.linePoints.get(i).length];
