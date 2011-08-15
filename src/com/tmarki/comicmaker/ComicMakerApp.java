@@ -1,5 +1,6 @@
 package com.tmarki.comicmaker;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Arrays;
@@ -540,12 +541,20 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	private void doSave (String fname, boolean doShare) {
 		String value = fname;
 		Bitmap b = mainView.getSaveBitmap();
-		CharSequence text = "Comic saved successfully!";
+		CharSequence text = "Comic saved as ";
 		try {
-			java.io.File f = new java.io.File (Environment.getExternalStorageDirectory() + "/Pictures");
+			String folder = Environment.getExternalStorageDirectory().toString() + "/Pictures";
+			try {
+				folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+			}
+			catch (Exception e) {
+				
+			}
+			java.io.File f = new java.io.File (folder);
 			if (!f.exists())
 				f.mkdirs();
 			b.compress(CompressFormat.JPEG, 95, new FileOutputStream(Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+			text = text + value + ".jpg" + " in the Pictures folder on the SD card. It should appear in the gallery shortly.";
 			lastSaveName = value;
 			setDetailTitle ();
 			if (doShare) {
@@ -559,9 +568,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			text = "There was an error while saving the comic.";
+			text = "There was an error while saving the comic: " + e.toString();
 		}
-		int duration = Toast.LENGTH_SHORT;
+		int duration = Toast.LENGTH_LONG;
 		Toast toast = Toast.makeText(getApplicationContext(), text, duration);
 		toast.show();
 	}
