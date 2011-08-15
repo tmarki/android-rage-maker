@@ -2,28 +2,31 @@ package com.tmarki.comicmaker;
 
 
 
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Paint.Style;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
 import android.util.Log;
 
-public class ImageObject extends ProxyDrawable {
+public class ImageObject {
 	
 	public String pack = "";
 	public String folder = "";
 	public String filename = "";
-    private Point mPosition = new Point ();
-    private float mRotation = 0.0f;
-    private float mScale = 0.0f;
-    private boolean mSelected = false;
-    private boolean InBack = true;
-    private boolean flipVertical = false;
-    private boolean flipHorizontal = false;
-    private final int resizeBoxSize = 32;
+    protected Point mPosition = new Point ();
+    protected float mRotation = 0.0f;
+    protected float mScale = 1.0f;
+    protected boolean mSelected = false;
+    protected boolean InBack = true;
+    protected boolean flipVertical = false;
+    protected boolean flipHorizontal = false;
+    protected final int resizeBoxSize = 32;
     static boolean resizeMode = false; // admittedly this is not the nicest way to do it
+    protected Bitmap content = null; 
     static void setResizeMode (boolean rm) {
     	resizeMode = rm;
     }
@@ -41,26 +44,29 @@ public class ImageObject extends ProxyDrawable {
 	
 	private int mDrawableId = -1;
 
-    public ImageObject(Drawable target) {
-        super(target);
+    public ImageObject(BitmapDrawable target) {
+    	content = target.getBitmap();
     }
     
-    public ImageObject(ImageObject other) {
-    	super (other);
-    	setProxy(other.getProxy());
-        mPosition = new Point (other.mPosition);
-        mRotation = other.mRotation;
-        mScale = other.mScale;
-        mSelected = other.mSelected;
-        InBack = other.InBack;
-        filename = other.filename;
-        pack = other.pack;
-        folder = other.folder;
+    protected ImageObject () {
     	
     }
+    public ImageObject(ImageObject other) {
+    	if (other != null) {
+    		content = other.content;
+	        mPosition = new Point (other.mPosition);
+	        mRotation = other.mRotation;
+	        mScale = other.mScale;
+	        mSelected = other.mSelected;
+	        InBack = other.InBack;
+	        filename = other.filename;
+	        pack = other.pack;
+	        folder = other.folder;
+    	}
+    }
     
-    public ImageObject (Drawable target, int posX, int posY, float rot, float scale, int drawableId, String pac, String foldr, String fil) {
-        super(target);
+    public ImageObject (BitmapDrawable target, int posX, int posY, float rot, float scale, int drawableId, String pac, String foldr, String fil) {
+        content = target.getBitmap();
         mPosition.x = posX;
         mPosition.y = posY;
         mRotation = rot;
@@ -73,56 +79,69 @@ public class ImageObject extends ProxyDrawable {
         Log.d ("RAGE", "Initialized ImageObject at" + mPosition.toString());
     }
     
+    public int getWidth () {
+    	if (content != null)
+    		return content.getWidth();
+    	else
+    		return 0;
+    }
+    
+    public int getHeight () {
+    	if (content != null)
+    		return content.getHeight();
+    	else
+    		return 0;
+    }
+    
       
     public void moveBy (int x, int y) {
     	mPosition.x += x;
     	mPosition.y += y;
     }
     
-    @Override
     public void draw(Canvas canvas) {
-        Drawable dr = getProxy();
-        if (dr != null) {
-        	int sc = canvas.save();
-        	canvas.translate(mPosition.x, mPosition.y);
-        	canvas.scale( (float)mScale, (float)mScale);
-        	int sc2 = canvas.save();
-        	canvas.rotate((float)mRotation);
-        	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
-            dr.draw(canvas);
-            canvas.restoreToCount(sc2);
-            if (mSelected && interactiveMode)
-            {
-            	Paint paint = new Paint ();
-            	paint.setARGB(128, 128, 128, 128);
-            	Rect imgrect = dr.getBounds(); 
-            	canvas.drawRect(imgrect, paint);
-            	Rect resizerect = new Rect ();
-            	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
-            	paint.setARGB(255, 0, 0, 0);
-            	if (!resizeMode)
-            		paint.setStyle(Style.STROKE);
-            	paint.setStrokeWidth(2.0f);
-            	canvas.drawRect(resizerect, paint);
-            }
-            canvas.restoreToCount(sc);
+    	int sc = canvas.save();
+    	canvas.translate(mPosition.x, mPosition.y);
+    	canvas.scale( (float)mScale, (float)mScale);
+    	int sc2 = canvas.save();
+    	canvas.rotate((float)mRotation);
+    	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
+//            dr.draw(canvas);
+    	canvas.drawBitmap(content, 0, 0, new Paint ());
+        canvas.restoreToCount(sc2);
+        if (mSelected && interactiveMode)
+        {
+        	Paint paint = new Paint ();
+        	paint.setARGB(128, 128, 128, 128);
+        	Rect imgrect = new Rect(0, 0, getWidth(), getHeight());
+        	canvas.drawRect(imgrect, paint);
+        	Rect resizerect = new Rect ();
+        	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
+        	paint.setARGB(255, 0, 0, 0);
+        	if (!resizeMode)
+        		paint.setStyle(Style.STROKE);
+        	paint.setStrokeWidth(2.0f);
+        	canvas.drawRect(resizerect, paint);
         }
+        canvas.restoreToCount(sc);
     }
     
     public boolean pointIn(int x, int y){
-        Drawable dr = getProxy();
-        int wp2 = (int)(((float)dr.getBounds().width() / 2.0) * mScale);
-        int hp2 = (int)((dr.getBounds().height() / 2.0) * mScale);
+        return (x >= mPosition.x) && (x <= mPosition.x + getWidth() * mScale) &&
+        	(y >= mPosition.y) && (y <= mPosition.y + getHeight() * mScale); 
+/*        int wp2 = (int)(((float)getWidth() / 2.0) * mScale);
+        int hp2 = (int)((getHeight() / 2.0) * mScale);
         return (x >= mPosition.x - wp2) && (x <= mPosition.x + wp2) &&
-        	(y >= mPosition.y - hp2) && (y <= mPosition.y + hp2); 
+        	(y >= mPosition.y - hp2) && (y <= mPosition.y + hp2);*/ 
     }
 
     public boolean pointInResize(int x, int y){
-        Drawable dr = getProxy();
-        int wp2 = (int)(((float)dr.getBounds().width() / 2.0) * mScale);
-        int hp2 = (int)((dr.getBounds().height() / 2.0) * mScale);
+        return (x >= mPosition.x + getWidth() * mScale - resizeBoxSize) && (x <= mPosition.x + getWidth() * mScale) &&
+            	(y >= mPosition.y + getHeight() * mScale - resizeBoxSize) && (y <= mPosition.y + getHeight() * mScale); 
+/*        int wp2 = (int)(((float)getWidth() / 2.0) * mScale);
+        int hp2 = (int)((getHeight() / 2.0) * mScale);
         return (x >= mPosition.x + wp2 - resizeBoxSize) && (x <= mPosition.x + wp2) &&
-        	(y >= mPosition.y + hp2 - resizeBoxSize) && (y <= mPosition.y + hp2); 
+        	(y >= mPosition.y + hp2 - resizeBoxSize) && (y <= mPosition.y + hp2);*/ 
     }
 
 	public Point getPosition() {
@@ -146,9 +165,7 @@ public class ImageObject extends ProxyDrawable {
 	}
 
 	public void setScale(float Scale) {
-        Drawable dr = getProxy();
-        Rect r = dr.getBounds();
-		if (r.width() * Scale >= resizeBoxSize && r.height() * Scale >= resizeBoxSize)
+		if (getWidth() * Scale >= resizeBoxSize && getHeight() * Scale >= resizeBoxSize)
 			this.mScale = Scale;
 	}
 

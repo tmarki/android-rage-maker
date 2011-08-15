@@ -25,6 +25,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Bitmap.CompressFormat;
@@ -60,7 +61,6 @@ import com.tmarki.comicmaker.ComicEditor.ComicState;
 import com.tmarki.comicmaker.WidthPicker;
 import com.tmarki.comicmaker.ComicEditor.TouchModes;
 import com.tmarki.comicmaker.WidthPicker.OnWidthChangedListener;
-import com.tmarki.comicmaker.TextObject.FontType;
 import com.tmarki.comicmaker.ComicSettings;
 
 
@@ -102,13 +102,11 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		outState.putString ("lastSaveName", lastSaveName);
 		saveExternalSources(outState);
 		saveImagesToBundle(outState, mainView.getImageObjects(), "");
-		saveTextObjectsToBundle (outState, mainView.getTextObjects(), "");
 		saveLinesToBundle (outState, mainView.getPoints(), mainView.getPaints(), "");
 		Vector<ComicEditor.ComicState> history = mainView.getHistory();
 		outState.putInt("historySize", history.size ());
 		for (int i = 0; i < history.size (); ++i) {
 			saveImagesToBundle(outState, history.get (i).mDrawables, String.format("h%s", i));
-			saveTextObjectsToBundle (outState, history.get (i).mTextDrawables, String.format("h%s", i));
 			saveLinesToBundle (outState, history.get (i).linePoints, history.get (i).mLinePaints, String.format("h%s", i));
 			outState.putInt(String.format ("h%spanelCount", i), history.get (i).mPanelCount);
 		}
@@ -151,9 +149,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         for (ImageObject io : loadImagesFromBundle (savedInstanceState, "")) {
         	mainView.pureAddImageObject(io);
         }
-        for (TextObject to : loadTextsFromBundle (savedInstanceState, "")) {
-        	mainView.pureAddTextObject(to);
-        }
         Vector<float[]> points = loadPointsFromBundle (savedInstanceState, "");
         for (int i = 0; i < points.size (); ++i) {
         	float[] p = points.get(i);
@@ -168,7 +163,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         for (int i = 0; i < hs; ++i) {
         	ComicState cs = mainView.getStateCopy();
         	cs.mDrawables = loadImagesFromBundle(savedInstanceState, String.format("h%s", i));
-        	cs.mTextDrawables = loadTextsFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.linePoints = loadPointsFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.mLinePaints = new LinkedList<Paint> ();
         	cs.mPanelCount = savedInstanceState.getInt(String.format("h%spanelCount", i));
@@ -215,20 +209,20 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	outState.putString(String.format(tag + "ImageObject%dfile", i), ios.get (i).filename);
         	outState.putBoolean(String.format(tag + "ImageObject%dfv", i), ios.get(i).isFlipVertical());
         	outState.putBoolean(String.format(tag + "ImageObject%dfh", i), ios.get(i).isFlipHorizontal());
-        }
-    }
-    
-    private void saveTextObjectsToBundle (Bundle outState, Vector<TextObject> tobs, String tag) {
-		outState.putInt(tag + "textObjectCount", tobs.size ());
-        for (int i = 0; i < tobs.size (); ++i) {
-        	outState.putInt(String.format(tag + "TextObject%dx", i), tobs.get (i).getX());
-        	outState.putInt(String.format(tag + "TextObject%dy", i), tobs.get (i).getY());
-        	outState.putInt(String.format(tag + "TextObject%dsize", i), tobs.get (i).getTextSize());
-        	outState.putInt(String.format(tag + "TextObject%dcolor", i), tobs.get (i).getColor());
-        	outState.putSerializable(String.format(tag + "TextObject%dtypeface", i), tobs.get (i).getTypeface());
-        	outState.putString(String.format(tag + "TextObject%dtext", i), tobs.get (i).getText());
-        	outState.putBoolean(String.format(tag + "TextObject%dbold", i), tobs.get (i).isBold());
-        	outState.putBoolean(String.format(tag + "TextObject%ditalic", i), tobs.get (i).isItalic());
+        	try {
+        		TextObject to = (TextObject)ios.get(i);
+        		if (to != null) {
+        			outState.putInt(String.format(tag + "TextObject%dtextSize"), to.getTextSize());
+        			outState.putInt(String.format(tag + "TextObject%dcolor"), to.getColor());
+        			outState.putInt(String.format(tag + "TextObject%dtypeface"), to.getTypeface());
+        			outState.putString(String.format(tag + "TextObject%dtext"), to.getText());
+        			outState.putBoolean(String.format(tag + "TextObject%dbold"), to.isBold());
+        			outState.putBoolean(String.format(tag + "TextObject%ditalic"), to.isItalic());
+        		}
+        	}
+        	catch (Exception e) {
+        		
+        	}
         }
     }
     
@@ -270,15 +264,21 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	int[] params = savedInstanceState.getIntArray(String.format(tag + "ImageObject%dpos", i));
         	float rot = savedInstanceState.getFloat(String.format(tag + "ImageObject%drot", i));
         	float sc = savedInstanceState.getFloat(String.format(tag + "ImageObject%dscale", i));
-        	int rid = savedInstanceState.getInt(String.format(tag + "ImageObject%drid", i));
+        	String text = savedInstanceState.getString(String.format(tag + "ImageObject%dtext", ""));
         	String pack = savedInstanceState.getString(String.format(tag + "ImageObject%dpack", i));
         	String folder = savedInstanceState.getString(String.format(tag + "ImageObject%dfolder", i));
         	String file = savedInstanceState.getString(String.format(tag + "ImageObject%dfile", i));
         	ImageObject io = null;
-        	Drawable dr = null;
+        	BitmapDrawable dr = null;
         	try {
-	        	if (rid > 0) {
-	        		dr = getResources().getDrawable(rid);
+	        	if (text.length() > 0) {
+	            	int ts = savedInstanceState.getInt(String.format(tag + "TextObject%dtextSize", 20));
+	            	int col = savedInstanceState.getInt(String.format(tag + "TextObject%dcolor", Color.BLACK));
+	            	int tf = savedInstanceState.getInt(String.format(tag + "TextObject%dtypeface", 0));
+	            	String ss = savedInstanceState.getString(String.format(tag + "TextObject%dtext", ""));
+	            	boolean bld = savedInstanceState.getBoolean(String.format(tag + "TextObject%dbold"));
+	            	boolean itlic = savedInstanceState.getBoolean(String.format(tag + "TextObject%ditalic"));
+	        		io = new TextObject(params[0], params[1], ts, col, tf, ss, bld, itlic);
 	        	}
 	        	else if (pack.length() > 0) {
 	        		dr = PackHandler.getPackDrawable(pack, folder, file);
@@ -287,7 +287,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 					dr = new BitmapDrawable(file);
 	        	}
 				if (dr != null) {
-					io = new ImageObject(dr, params[0], params[1], rot, sc, rid, pack, folder, file);
+					io = new ImageObject(dr, params[0], params[1], rot, sc, 0, pack, folder, file);
 				}
         	}
         	catch (Exception e) {
@@ -301,25 +301,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         }
         return ret;
 
-    }
-
-    private Vector<TextObject> loadTextsFromBundle (Bundle savedInstanceState, String tag) {
-    	Vector<TextObject> ret = new Vector<TextObject> ();
-        int txCount = 0;
-        if (savedInstanceState != null)
-        	txCount = savedInstanceState.getInt(tag + "textObjectCount", 0);
-        for (int i = 0; i < txCount; ++i) {
-        	int x = savedInstanceState.getInt(String.format(tag + "TextObject%dx", i));
-        	int y = savedInstanceState.getInt(String.format(tag + "TextObject%dy", i));
-        	int s = savedInstanceState.getInt(String.format(tag + "TextObject%dsize", i));
-        	int c = savedInstanceState.getInt(String.format(tag + "TextObject%dcolor", i));
-        	TextObject.FontType ft = (FontType) savedInstanceState.getSerializable(String.format(tag + "TextObject%dtypeface", i));
-        	String text = savedInstanceState.getString(String.format(tag + "TextObject%dtext", i));
-        	Boolean bold = savedInstanceState.getBoolean(String.format(tag + "TextObject%dbold", i));
-        	Boolean italic = savedInstanceState.getBoolean(String.format(tag + "TextObject%ditalic", i));
-        	ret.add (new TextObject (x, y, s, c, ft, text, bold, italic));
-        }
-    	return ret;
     }
 
     private Vector<float[]> loadPointsFromBundle (Bundle savedInstanceState, String tag) {
@@ -570,9 +551,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			e.printStackTrace();
 			text = "There was an error while saving the comic: " + e.toString();
 		}
-		int duration = Toast.LENGTH_LONG;
-		Toast toast = Toast.makeText(getApplicationContext(), text, duration);
-		toast.show();
+		Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
 	}
 
 	@Override
@@ -645,7 +624,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
 				long arg3) {
 			fontselect.dismiss();
-			mainView.setCurrentFont(TextObject.FontType.values()[arg2]);
+			mainView.setCurrentFont(arg2);
 			mainView.setDefaultBold(fontselect.isBold());
 			mainView.setDefaultItalic(fontselect.isItalic());
 			mainView.invalidate();

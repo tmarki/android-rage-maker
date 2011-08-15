@@ -37,7 +37,7 @@ public class FontSelect extends Dialog {
 	    }
 
 	    public int getCount() {
-	        return TextObject.FontType.values().length;
+	        return 3;
 	    }
 
 	    public Object getItem(int position) {
@@ -59,10 +59,10 @@ public class FontSelect extends Dialog {
 	            vi = inflater.inflate(R.layout.fontselectrow, null);
 	            holder=new ViewHolder();
 	            holder.text=(TextView)vi.findViewById(R.id.rowText);
-	            holder.text.setTypeface(TextObject.getTypefaceObj(TextObject.FontType.values()[position], Bold, Italic));
+	            holder.text.setTypeface(TextObject.getTypefaceObj(position, Bold, Italic));
 	            holder.text.setTextSize(SampleHeight);
 	            holder.text.setMinHeight(maxFontHeight);
-	            holder.text.setText(TextObject.FontType.values()[position].toString());
+	            holder.text.setText(TextObject.getTypefaceNames ()[position]);
 	        }
 	        else
 	            holder=(ViewHolder)vi.getTag();
