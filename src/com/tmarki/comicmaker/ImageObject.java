@@ -107,13 +107,13 @@ public class ImageObject {
     	canvas.rotate((float)mRotation);
     	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
 //            dr.draw(canvas);
-    	canvas.drawBitmap(content, 0, 0, new Paint ());
+    	canvas.drawBitmap(content, -getWidth() / 2, -getHeight() / 2, new Paint ());
         canvas.restoreToCount(sc2);
         if (mSelected && interactiveMode)
         {
         	Paint paint = new Paint ();
         	paint.setARGB(128, 128, 128, 128);
-        	Rect imgrect = new Rect(0, 0, getWidth(), getHeight());
+        	Rect imgrect = new Rect(-getWidth() / 2, -getHeight() / 2, getWidth() / 2, getHeight() / 2);
         	canvas.drawRect(imgrect, paint);
         	Rect resizerect = new Rect ();
         	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
@@ -127,21 +127,17 @@ public class ImageObject {
     }
     
     public boolean pointIn(int x, int y){
-        return (x >= mPosition.x) && (x <= mPosition.x + getWidth() * mScale) &&
-        	(y >= mPosition.y) && (y <= mPosition.y + getHeight() * mScale); 
-/*        int wp2 = (int)(((float)getWidth() / 2.0) * mScale);
+        int wp2 = (int)(((float)getWidth() / 2.0) * mScale);
         int hp2 = (int)((getHeight() / 2.0) * mScale);
         return (x >= mPosition.x - wp2) && (x <= mPosition.x + wp2) &&
-        	(y >= mPosition.y - hp2) && (y <= mPosition.y + hp2);*/ 
+        	(y >= mPosition.y - hp2) && (y <= mPosition.y + hp2); 
     }
 
     public boolean pointInResize(int x, int y){
-        return (x >= mPosition.x + getWidth() * mScale - resizeBoxSize) && (x <= mPosition.x + getWidth() * mScale) &&
-            	(y >= mPosition.y + getHeight() * mScale - resizeBoxSize) && (y <= mPosition.y + getHeight() * mScale); 
-/*        int wp2 = (int)(((float)getWidth() / 2.0) * mScale);
+        int wp2 = (int)(((float)getWidth() / 2.0) * mScale);
         int hp2 = (int)((getHeight() / 2.0) * mScale);
         return (x >= mPosition.x + wp2 - resizeBoxSize) && (x <= mPosition.x + wp2) &&
-        	(y >= mPosition.y + hp2 - resizeBoxSize) && (y <= mPosition.y + hp2);*/ 
+        	(y >= mPosition.y + hp2 - resizeBoxSize) && (y <= mPosition.y + hp2);
     }
 
 	public Point getPosition() {

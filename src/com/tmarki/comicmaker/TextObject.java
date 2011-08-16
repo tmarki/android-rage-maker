@@ -3,9 +3,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.graphics.Paint.Style;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
@@ -80,7 +78,7 @@ public class TextObject extends ImageObject {
 	}
 	public void setTextSize(int textSize) {
 		this.textSize = textSize;
-		regenerateBitmap();
+		content = null;
 	}
 	public int getColor() {
 		return color;
@@ -93,20 +91,21 @@ public class TextObject extends ImageObject {
 	}
 	public void setTypeface(int typeface) {
 		this.typeface = typeface;
-		regenerateBitmap();
+		content = null;
 	}
 	public boolean isBold() {
 		return bold;
 	}
 	public void setBold(boolean bold) {
 		this.bold = bold;
+		content = null;
 	}
 	public boolean isItalic() {
 		return italic;
 	}
 	public void setItalic(boolean italic) {
 		this.italic = italic;
-		regenerateBitmap();
+		content = null;
 	}
 	public int getX() {
 		return mPosition.x;
@@ -125,7 +124,7 @@ public class TextObject extends ImageObject {
 	}
 	public void setText(String text) {
 		this.text = text;
-		regenerateBitmap();
+		content = null;
 	}
 	public Typeface getTypefaceObj () {
 		Typeface tmptf = Typeface.DEFAULT;
@@ -166,7 +165,7 @@ public class TextObject extends ImageObject {
 			textSize -= 1;
 		else if((mScale - Scale) < 0 && textSize < 500) 
 			textSize += 1;
-		regenerateBitmap();
+		content = null;
 	}
 
 	public static String[] getTypefaceNames () {
@@ -177,36 +176,11 @@ public class TextObject extends ImageObject {
 		return tmp;
 	}
 	
-/*	@Override
-	public void draw (Canvas canvas) {
-    	int sc = canvas.save();
-    	canvas.translate(mPosition.x, mPosition.y);
-    	canvas.scale( (float)mScale, (float)mScale);
-    	int sc2 = canvas.save();
-    	canvas.rotate((float)mRotation);
-    	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
-		Paint p = new Paint();
-    	p.setColor(color);
-		p.setStyle(Paint.Style.FILL);
-		p.setAntiAlias(true);
-    	canvas.drawBitmap(content, 0, 0, p);
-    	canvas.restoreToCount(sc2);
-        if (mSelected && interactiveMode)
-        {
-        	Paint paint = new Paint ();
-        	paint.setARGB(128, 128, 128, 128);
-        	Rect imgrect = new Rect (0, 0, textWidth, textSize * (text.split("\n").length + 1)); 
-        	canvas.drawRect(imgrect, paint);
-        	Rect resizerect = new Rect ();
-        	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
-        	paint.setARGB(255, 0, 0, 0);
-        	if (!resizeMode)
-        		paint.setStyle(Style.STROKE);
-        	paint.setStrokeWidth(2.0f);
-        	canvas.drawRect(resizerect, paint);
-        }
-    	canvas.restoreToCount(sc);
-
-	}*/
+	@Override
+	public void draw (Canvas c) {
+		if (content == null)
+			regenerateBitmap();
+		super.draw(c);
+	}
 }
 
