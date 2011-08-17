@@ -39,6 +39,9 @@ public class ImageObject {
 		return InBack;
 	}
 
+    public Bitmap getContentBitmap () {
+    	return content;
+    }
 	public void setInBack(boolean inBack) {
 		InBack = inBack;
 	}

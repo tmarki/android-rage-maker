@@ -12,7 +12,8 @@
     <string name="load">Load</string>
     <string name="settings">Settings</string>
     <string name="about">About</string>
-    <string name="zoom">Zoom</string>
+    <string name="zoom">Set zoom</string>
+    <string name="redo">Redo</string>
     <string name="remove">Remove</string>
     <string name="share">Share</string>
     <string name="mode_hand">Manipulate mode</string>

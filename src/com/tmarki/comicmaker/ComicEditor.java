@@ -15,7 +15,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
 import android.util.Log;
@@ -33,23 +32,12 @@ import android.text.format.Time;
 
 public class ComicEditor extends View {
 	
-	public enum TouchModes { HAND, LINE, PENCIL, TEXT };
-	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode" }; 
-	
-	private TouchModes mTouchMode = TouchModes.HAND;
-	
-	public interface ZoomChangeListener {
-		public void ZoomChanged (float newScale);
-	}
-	
 	public class ComicState {
 	    public ComicState() {
 		}
-	    public ComicState(ComicState os) {
+	    @SuppressWarnings("unchecked")
+		public ComicState(ComicState os) {
 	    	mDrawables = (Vector<ImageObject>)os.mDrawables.clone();
-/*	    	for (ImageObject io : os.mDrawables) {
-	    		mDrawables.add(new ImageObject(io));
-	    	}*/
 	    	linePoints = new Vector<float[]>();
 	    	for (int i = 0; i < os.linePoints.size(); ++i) {
 	    		float tmp[] = new float[os.linePoints.get(i).length];
@@ -73,7 +61,10 @@ public class ComicEditor extends View {
 	    public int mPanelCount = 4;
 	    public int currentColor = Color.BLACK;
 	};
-	 
+	
+	public enum TouchModes { HAND, LINE, PENCIL, TEXT };
+	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode" }; 
+
 	ListAdapter modeAdapter = new ArrayAdapter<String>(
 	                getContext(), R.layout.mode_select_row, TMNames) {
 	               
@@ -123,9 +114,17 @@ public class ComicEditor extends View {
 	                return convertView;
 	        }
 	};	
+	
+	public interface ZoomChangeListener {
+		public void ZoomChanged (float newScale);
+	}
+
+	
 	private ComicState currentState = new ComicState ();
 	
 	private Vector<ComicState> previousStates = new Vector<ComicState>();
+	
+	private Vector<ComicState> poppedStates = new Vector<ComicState>();
 	
     private Point mCanvasOffset = new Point (0, 0);
     private Rect mCanvasLimits = new Rect (0, 0, 640, 500);
@@ -136,18 +135,23 @@ public class ComicEditor extends View {
     private float mStartDistance = 0.0f;
     private float mStartScale = 0.0f;
     private float mStartRot = 0.0f;
-    private int mStartTextSize = 0;
     private float mPrevRot = 0.0f;
     private boolean mMovedSinceDown = false;
     private int defaultFontType = 0;
     private boolean defaultBold = false;
     private boolean defaultItalic = false;
-    private int defaultFontSize = 20;
+    private int defaultFontSize = 24;
     private boolean drawGrid = true;
     private boolean wasMultiTouch = false;
 	private Time lastInvalidate = new Time ();
 	private Bitmap linesLayer = null;
 	private ZoomChangeListener zoomChangeListener = null;
+	static public final double ROTATION_STEP = 2.0;
+	static public final  double ZOOM_STEP = 0.01;
+	static public final float CANVAS_SCALE_MIN = 0.25f;
+	static public final float CANVAS_SCALE_MAX = 3.0f;
+	
+	private TouchModes mTouchMode = TouchModes.HAND;
 	
 	public ComicEditor(Context context, ZoomChangeListener zcl) {
         super(context);
@@ -206,8 +210,6 @@ public class ComicEditor extends View {
 
 	public void setDefaultBold(boolean defaultBold) {
 		this.defaultBold = defaultBold;
-/*		if (currentState.mCurrentText != null)
-			currentState.mCurrentText.setBold(defaultBold);*/
 	}
 
 	public boolean isDefaultItalic() {
@@ -216,8 +218,6 @@ public class ComicEditor extends View {
 
 	public void setDefaultItalic(boolean defaultItalic) {
 		this.defaultItalic = defaultItalic;
-/*		if (currentState.mCurrentText != null)
-			currentState.mCurrentText.setItalic(defaultItalic);*/
 	}
 
 	public Point getmCanvasOffset() {
@@ -237,16 +237,10 @@ public class ComicEditor extends View {
 
 	public void setCurrentColor(int currentColor) {
 		this.currentState.currentColor = currentColor;
-/*		if (this.currentState.mCurrentText != null) {
-			this.currentState.mCurrentText.setColor(currentColor);
-			invalidate();
-		}*/
 	}
 	
 	public void setCurrentFont (int ft) {
 		defaultFontType = ft;
-/*		if (currentState.mCurrentText != null)
-			currentState.mCurrentText.setTypeface(ft);*/
 	}
 	
 	public void resetObjects () {
@@ -272,8 +266,6 @@ public class ComicEditor extends View {
 
 	public void setDefaultFontSize(int defaultFontSize) {
 		this.defaultFontSize = defaultFontSize;
-/*		if (currentState.mCurrentText != null)
-			currentState.mCurrentText.setTextSize(defaultFontSize);*/
 	}
 
     
@@ -335,6 +327,10 @@ public class ComicEditor extends View {
 		pushState ();
 		ImageObject io = new ImageObject(dr, x, y, rot, scale, drawableId, pack, folder, file);
 		io.setPosition(new Point (x + io.getWidth() / 2, y + io.getHeight() / 2));
+		for (ImageObject ioo : currentState.mDrawables) {
+			ioo.setSelected(false);
+		}
+		io.setSelected(true);
     	currentState.mDrawables.add(io);
     	invalidate ();
     }
@@ -520,10 +516,7 @@ public class ComicEditor extends View {
 			}
 		}
 		else {
-			if (mTouchMode == TouchModes.HAND)
-				handleMultiTouchManipulateEvent(event);
-			else if (mTouchMode == TouchModes.TEXT)
-				handleMultiTouchTextEvent(event);
+			handleMultiTouchManipulateEvent(event);
 		}
 		Time t = new Time ();
 		t.setToNow();
@@ -574,9 +567,9 @@ public class ComicEditor extends View {
 	        	if (io.isSelected() && newscale < 10.0f && newscale > 0.1f)
 	        	{
 	        		float newrot = Math.round((mStartRot + rotdiff) / 1.0f);
-	        		if (((a < 0 && mStarta > 0) || (a > 0 && mStarta < 0)) && Math.abs(io.getRotation() - newrot) > 10)
+	        		if (((a < 0 && mStarta > 0) || (a > 0 && mStarta < 0)) && Math.abs(io.getRotation() - newrot) > ROTATION_STEP)
 	        			newrot += 180;
-	        		if (Math.abs ((newscale - io.getScale()) * 10.0) > Math.abs(newrot - io.getRotation()))
+	        		if (Math.abs ((newscale - io.getScale()) * ROTATION_STEP) > Math.abs(newrot - io.getRotation()))
 	    	        	io.setScale(newscale);
 	        		else
 	        			io.setRotation(newrot % 360);
@@ -586,7 +579,7 @@ public class ComicEditor extends View {
 	        }
 	        if (!found) {
 	        	float newscale = mStartScale * scale;
-	        	if (newscale < 5.0f && newscale > 0.2f) {
+	        	if (newscale < CANVAS_SCALE_MAX && newscale > CANVAS_SCALE_MIN) {
 	        		mCanvasScale = newscale;
 		        	linesLayer = null;
 		        	if (zoomChangeListener != null)
@@ -598,34 +591,15 @@ public class ComicEditor extends View {
 		
 	}
 
-	private void handleMultiTouchTextEvent (MotionEvent event) {
-/*		if (currentState.mCurrentText == null)
-			return;*/
-		wasMultiTouch = true;
-		float x1 = event.getX(0);
-		float x2 = event.getX(1);
-		float y1 = event.getY(0);
-		float y2 = event.getY(1);
-		float diff = (float)Math.sqrt(((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)));
-		if (mStartDistance < 0.1f) {
-			mStartDistance = diff;
-			mStartScale = 0.0f;
-//			mStartTextSize = currentState.mCurrentText.getTextSize();
-		}
-		else {
-			float scale = diff / mStartDistance;
-//			currentState.mCurrentText.setTextSize((int)(mStartTextSize * (scale - mStartScale)));
-		}
-		super.cancelLongPress();
-		
-	}
-
+	
 	private void handleSingleTouchManipulateEvent (MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			pushState ();
 			mMovedSinceDown = false;
 			resizeObjectMode = false;
 			ImageObject io = getSelected();
+			if (io != null) {
+				pushState ();
+			}
 			if (io != null && io.pointInResize ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
 				resizeObjectMode = true;
 			}
@@ -783,17 +757,11 @@ public class ComicEditor extends View {
 					TextObject to = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
 							defaultFontSize, currentState.currentColor, defaultFontType, value, defaultBold, defaultItalic);
 					for (ImageObject io : currentState.mDrawables) {
-						to.setSelected(false);
+						io.setSelected(false);
 					}
 					to.setSelected(true);
 					currentState.mDrawables.add(to);
 					mTouchMode = TouchModes.HAND;
-/*					if (currentState.mCurrentText != null)
-					{
-						currentState.mTextDrawables.add(new TextObject (currentState.mCurrentText));
-					}
-					currentState.mCurrentText = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
-							defaultFontSize, currentState.currentColor, defaultFontType, value, defaultBold, defaultItalic);*/
 					invalidate();
 			  }
 			});
@@ -810,10 +778,6 @@ public class ComicEditor extends View {
 			int diffY = (int)((event.getY() - mPreviousPos.y) / mCanvasScale);
 			if (Math.abs(diffX) > 2 / mCanvasScale || Math.abs(diffY) > 2 / mCanvasScale) {
 				mMovedSinceDown = true;
-/*				if (currentState.mCurrentText != null) {
-					currentState.mCurrentText.setX(currentState.mCurrentText.getX() + diffX);
-					currentState.mCurrentText.setY(currentState.mCurrentText.getY() + diffY);
-				}*/
 			}
 		}
 		if (event.getAction() == MotionEvent.ACTION_UP) {
@@ -836,12 +800,16 @@ public class ComicEditor extends View {
 	
 	public void pushState () {
 		previousStates.add (new ComicState(currentState));
+		poppedStates.clear();
+		Log.d ("RAGE", "pushState");
 	}
 	
 	public boolean popState () {
 		int pos = previousStates.size () - 1;
+		Log.d ("RAGE", "popState");
 		linesLayer = null;
 		if (pos >= 0) {
+			poppedStates.add(new ComicState (currentState));
 			currentState = new ComicState(previousStates.get(pos));
 			previousStates.removeElementAt(pos);
 			invalidate();
@@ -851,6 +819,20 @@ public class ComicEditor extends View {
 			resetObjects();
 		}
 		invalidate();
+		return false;
+	}
+	
+	public boolean unpopState () {
+		int pos = poppedStates.size () - 1;
+		Log.d ("RAGE", "unpopState");
+		if (pos >= 0) {
+			previousStates.add (new ComicState(currentState));
+			currentState = new ComicState(poppedStates.get(pos));
+			poppedStates.removeElementAt(pos);
+			linesLayer = null;
+			invalidate();
+			return true;
+		}
 		return false;
 	}
 
@@ -863,5 +845,57 @@ public class ComicEditor extends View {
 	public void setDrawGrid(boolean drawGrid) {
 		this.drawGrid = drawGrid;
 	}
-    
+	
+	public void moveEvent (int diffX, int diffY) {
+		ImageObject io = getSelected();
+		if (io != null) {
+			Point p = io.getPosition();
+			p.x += diffX;
+			p.y += diffY;
+			io.setPosition(p);
+		}
+		else {
+        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
+        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
+        		mCanvasOffset.x += diffX;
+        	if (((mCanvasOffset.y + diffY) < mCanvasLimits.top && diffY > 0)
+	        		|| (-(mCanvasOffset.y + diffY) + getHeight () / mCanvasScale <= mCanvasLimits.bottom) && diffY < 0)
+        		mCanvasOffset.y += diffY;
+		}
+		invalidate();
+	}
+	
+	public void rotateEvent (float rot) {
+		ImageObject io = getSelected();
+		if (io != null) {
+			float r = io.getRotation();
+			io.setRotation(rot + r);
+			invalidate();
+		}
+		
+	}
+	
+	public void scaleEvent (float diff) {
+		ImageObject io = getSelected();
+		if (io != null) {
+			float s = io.getScale();
+			io.setScale(diff + s);
+		}
+		else {
+        	float newscale = mCanvasScale + diff;
+        	if (newscale < 5.0f && newscale > 0.2f) {
+        		mCanvasScale = newscale;
+	        	linesLayer = null;
+	        	if (zoomChangeListener != null)
+	        		zoomChangeListener.ZoomChanged(newscale);
+        	}
+		}
+		invalidate();
+		
+	}
+   
+	public boolean isRedoAvailable () {
+		return poppedStates.size () > 0;
+	}
+
 }

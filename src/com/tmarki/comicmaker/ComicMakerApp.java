@@ -50,11 +50,12 @@ import com.tmarki.comicmaker.WidthPicker;
 import com.tmarki.comicmaker.ComicEditor.TouchModes;
 import com.tmarki.comicmaker.WidthPicker.OnWidthChangedListener;
 import com.tmarki.comicmaker.ComicSettings;
+import com.tmarki.comicmaker.ZoomPicker.OnZoomChangedListener;
 
 
 
 
-public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener {
+public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener, OnZoomChangedListener {
 	private ComicEditor mainView;
 	private Map<CharSequence, Map<CharSequence, Vector<String>>> externalImages = new HashMap<CharSequence, Map<CharSequence, Vector<String>>>();
 	private CharSequence packSelected;
@@ -192,13 +193,13 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	outState.putIntArray(String.format(tag + "ImageObject%dpos", i), params);
         	outState.putFloat(String.format(tag + "ImageObject%drot", i), ios.get(i).getRotation());
         	outState.putFloat(String.format(tag + "ImageObject%dscale", i), ios.get (i).getScale ());
-        	outState.putInt(String.format(tag + "ImageObject%drid", i), ios.get (i).getDrawableId());
         	outState.putString(String.format(tag + "ImageObject%dpack", i), ios.get (i).pack);
         	outState.putString(String.format(tag + "ImageObject%dfolder", i), ios.get (i).folder);
         	outState.putString(String.format(tag + "ImageObject%dfile", i), ios.get (i).filename);
         	outState.putBoolean(String.format(tag + "ImageObject%dfv", i), ios.get(i).isFlipVertical());
         	outState.putBoolean(String.format(tag + "ImageObject%dfh", i), ios.get(i).isFlipHorizontal());
         	outState.putBoolean(String.format(tag + "ImageObject%dselected", i), ios.get(i).isSelected());
+        	outState.putBoolean(String.format(tag + "ImageObject%sback", i), ios.get(i).isInBack());
         	try {
         		TextObject to = (TextObject)ios.get(i);
         		if (to != null) {
@@ -258,6 +259,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	String pack = savedInstanceState.getString(String.format(tag + "ImageObject%dpack", i));
         	String folder = savedInstanceState.getString(String.format(tag + "ImageObject%dfolder", i));
         	String file = savedInstanceState.getString(String.format(tag + "ImageObject%dfile", i));
+
         	ImageObject io = null;
         	Bitmap dr = null;
         	try {
@@ -286,6 +288,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         		io.setSelected(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dselected", i)));
         		io.setFlipHorizontal(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfh", i)));
         		io.setFlipVertical(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfv", i)));
+        		io.setInBack(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dback", i)));
         		ret.add (io);
         	}
         }
@@ -406,6 +409,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			WidthPicker np = new WidthPicker (mainView.getContext(), this, mainView.getCurrentStrokeWidth());
 			np.show();
 			break;
+		case (R.id.zoom):
+			ZoomPicker zp = new ZoomPicker (mainView.getContext(), this, mainView.getCanvasScale());
+			zp.show();
+			break;
 		case (R.id.clear):
 			AlertDialog alertDialog2;
 			alertDialog2 = new AlertDialog.Builder(this).create();
@@ -490,6 +497,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		case (R.id.exit):
 			finish ();
 			break;
+		case (R.id.redo):
+			mainView.unpopState();
+			break;
 		default:
 			if (menuitem_OtherSource == item) {
 				
@@ -560,6 +570,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 					if (b != null) {
 						mainView.addImageObject(b, -mainView.getmCanvasOffset().x, -mainView.getmCanvasOffset().y, 0.0f, 1.0f, 0, "", "", fname);
 						success = true;
+						mainView.setmTouchMode(ComicEditor.TouchModes.HAND);
 					}
 				}
 			}
@@ -636,6 +647,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
                         			Bitmap id = PackHandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), fname);
                         			if (id != null) {
                         				mainView.addImageObject(id, -mainView.getmCanvasOffset().x, -mainView.getmCanvasOffset().y, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
+                						mainView.setmTouchMode(ComicEditor.TouchModes.HAND);
                         			}
                         			else {
                         				Toast.makeText(getApplicationContext(), "Failed to add image!", Toast.LENGTH_LONG);
@@ -674,6 +686,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		}
 		return super.onKeyUp(keyCode, event);
 	}
+	
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
@@ -681,6 +694,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		menu.findItem(R.id.pen_width).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL || mainView.getmTouchMode() == TouchModes.LINE);
 		menu.findItem(R.id.text_color).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
 		menu.findItem(R.id.text_type).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
+		menu.findItem(R.id.redo).setVisible(mainView.isRedoAvailable());
 
 		return super.onPrepareOptionsMenu(menu);
 	}
@@ -696,6 +710,71 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		mainView.setCurrentColor(color);
 	}
 
+	private boolean handleKeyEvent (KeyEvent event) {
+		if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
+			mainView.moveEvent(-1, 0);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
+			mainView.moveEvent(1, 0);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+			mainView.moveEvent(0, -1);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+			mainView.moveEvent(0, 1);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_A) {
+			mainView.rotateEvent((float)ComicEditor.ROTATION_STEP);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_D) {
+			mainView.rotateEvent(-(float)ComicEditor.ROTATION_STEP);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_W) {
+			mainView.scaleEvent((float)ComicEditor.ZOOM_STEP);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_S) {
+			mainView.scaleEvent(-(float)ComicEditor.ZOOM_STEP);
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_R) {
+			mainView.unpopState();
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_SPACE) {
+			ImageObject io = mainView.getSelected();
+			if (io != null)
+				io.setInBack(!io.isInBack());
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (handleKeyEvent(event))
+			return true;
+		return super.onKeyDown(keyCode, event);
+	}
 
+
+	@Override
+	public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
+		if (handleKeyEvent(event))
+			return true;
+		return super.onKeyMultiple(keyCode, repeatCount, event);
+	}
+
+
+	public void zoomChanged(float zoom) {
+		mainView.setCanvasScale(zoom);
+		mainView.invalidate();
+		setDetailTitle();
+	}
 
 }
