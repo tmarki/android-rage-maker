@@ -8,8 +8,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Paint.Style;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.graphics.Point;
 import android.util.Log;
 
@@ -47,8 +45,8 @@ public class ImageObject {
 	
 	private int mDrawableId = -1;
 
-    public ImageObject(BitmapDrawable target) {
-    	content = target.getBitmap();
+    public ImageObject(Bitmap target) {
+    	content = target;
         imageSizeCheck();
     }
     
@@ -70,8 +68,8 @@ public class ImageObject {
     	}
     }
     
-    public ImageObject (BitmapDrawable target, int posX, int posY, float rot, float scale, int drawableId, String pac, String foldr, String fil) {
-        content = target.getBitmap();
+    public ImageObject (Bitmap target, int posX, int posY, float rot, float scale, int drawableId, String pac, String foldr, String fil) {
+        content = target;
         imageSizeCheck();
         mPosition.x = posX;
         mPosition.y = posY;
@@ -81,7 +79,6 @@ public class ImageObject {
         filename = fil;
         pack = pac;
         folder = foldr;
-        target.setBounds(-target.getIntrinsicWidth() / 2, -target.getIntrinsicHeight() / 2, target.getIntrinsicWidth() / 2, target.getIntrinsicHeight() / 2);
         Log.d ("RAGE", "Initialized ImageObject at" + mPosition.toString());
     }
     
@@ -93,7 +90,8 @@ public class ImageObject {
             float scaleHeight = ((float) newHeight) / content.getHeight();
         	Matrix matrix = new Matrix();
             matrix.postScale(scaleWidth, scaleHeight);
-            content = Bitmap.createBitmap(content, 0, 0, content.getWidth(), content.getHeight(), matrix, true);         	
+//            content = Bitmap.createBitmap(content, 0, 0, content.getWidth(), content.getHeight(), matrix, true);
+            content = Bitmap.createScaledBitmap(content, newWidth, newHeight, true);
         }
         if (content.getHeight() > maxImageHeight) {
         	int newHeight = maxImageHeight;
@@ -102,7 +100,8 @@ public class ImageObject {
             float scaleHeight = ((float) newHeight) / content.getHeight();
         	Matrix matrix = new Matrix();
             matrix.postScale(scaleWidth, scaleHeight);
-            content = Bitmap.createBitmap(content, 0, 0, content.getWidth(), content.getHeight(), matrix, true);         	
+//            content = Bitmap.createBitmap(content, 0, 0, content.getWidth(), content.getHeight(), matrix, true);         	
+            content = Bitmap.createScaledBitmap(content, newWidth, newHeight, true);
         }
     }
     

@@ -78,7 +78,7 @@ public class ImageSelect {
 							}
 						});
 					} else {
-						final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(PackHandler.getPackDrawable(packSelected.toString(), folderSelected.toString(), item.filename));
+						final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(new BitmapDrawable (PackHandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename)));
 						if( bmp != null ) {
 							handler.post(new Runnable() {
 								public void run() {

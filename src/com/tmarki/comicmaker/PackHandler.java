@@ -13,6 +13,7 @@ import java.util.zip.ZipInputStream;
 
 
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Environment;
@@ -111,10 +112,10 @@ public class PackHandler {
 	    }
 		return imgs;
 	}
-	static public BitmapDrawable getPackDrawable (String filename, String folder, String file) {
-		return getPackDrawable(filename, folder, file, 0);
+	static public Bitmap getPackBitmap (String filename, String folder, String file) {
+		return getPackBitmap(filename, folder, file, 0);
 	}
-	static public BitmapDrawable getPackDrawable (String filename, String folder, String file, int fixedHeight) {
+	static public Bitmap getPackBitmap (String filename, String folder, String file, int fixedHeight) {
 		if (filename == DEFAULT_COMIC_PACK)
 			return getDefaultPackDrawable(folder, file, fixedHeight);
 		ZipFile zf;
@@ -129,12 +130,11 @@ public class PackHandler {
 					  String sfolder = ze.getName().substring(0, ze.getName().lastIndexOf("/"));
 					  String sfile = ze.getName().substring(ze.getName().lastIndexOf("/") + 1);
 					  if (sfile.equals(file) && sfolder.equals(folder)) {
-						  BitmapDrawable bd = new BitmapDrawable(BitmapFactory.decodeStream(zf.getInputStream(ze)));
-						  if (fixedHeight > 0)
+/*						  if (fixedHeight > 0)
 							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getIntrinsicWidth()) / bd.getIntrinsicHeight());
 						  else
-							  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());
-						  return bd;
+							  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());*/
+						  return BitmapFactory.decodeStream(zf.getInputStream(ze));
 					  }
 				  }
 			}
@@ -144,7 +144,7 @@ public class PackHandler {
 		return null;
 	}
 
-	static public BitmapDrawable getDefaultPackDrawable (String folder, String file, int fixedHeight) {
+	static public Bitmap getDefaultPackDrawable (String folder, String file, int fixedHeight) {
 		if (assetMan == null)
 			return null;
 		try {
@@ -159,12 +159,11 @@ public class PackHandler {
 					  if (!sfolder.equals(folder)) continue;
 					  String sfile = ze.getName().substring(ze.getName().lastIndexOf("/") + 1);
 					  if (sfile.equals(file)) {
-						  BitmapDrawable bd = new BitmapDrawable(BitmapFactory.decodeStream(zf));
-						  if (fixedHeight > 0)
-							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getIntrinsicWidth()) / bd.getIntrinsicHeight());
+/*						  if (fixedHeight > 0)
+							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getWidth()) / bd.getHeight());
 						  else
-							  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());
-						  return bd;
+							  bd.setBounds(0, 0, bd.getHeight(), bd.getWidth());*/
+						  return BitmapFactory.decodeStream(zf);
 					  }
 				  }
 			}

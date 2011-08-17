@@ -327,13 +327,15 @@ public class ComicEditor extends View {
     	previousStates.clear();
     }
 
-    public void addImageObject (BitmapDrawable dr, int x, int y, float rot, float scale, int drawableId) {
+    public void addImageObject (Bitmap dr, int x, int y, float rot, float scale, int drawableId) {
     	addImageObject(dr, x, y, rot, scale, drawableId, "", "", "");
     }
 
-    public void addImageObject (BitmapDrawable dr, int x, int y, float rot, float scale, int drawableId, String pack, String folder, String file) {
+    public void addImageObject (Bitmap dr, int x, int y, float rot, float scale, int drawableId, String pack, String folder, String file) {
 		pushState ();
-    	currentState.mDrawables.add(new ImageObject(dr, x, y, rot, scale, drawableId, pack, folder, file));
+		ImageObject io = new ImageObject(dr, x, y, rot, scale, drawableId, pack, folder, file);
+		io.setPosition(new Point (x + io.getWidth() / 2, y + io.getHeight() / 2));
+    	currentState.mDrawables.add(io);
     	invalidate ();
     }
     
@@ -341,14 +343,6 @@ public class ComicEditor extends View {
     	currentState.mDrawables.add(io);
     }
 
-    public void addTextObject (int x, int y, int textSize, int color, int ft, String text, boolean bold, boolean italic) {
-		pushState ();
-/*		if (currentState.mCurrentText != null)
-		{
-			currentState.mDrawables.add(new TextObject (currentState.mCurrentText));
-		}*/
-//		currentState.mCurrentText = new TextObject(x, y, textSize, color, ft, text, bold, italic);
-    }
 
     private void drawGridLines (Canvas canvas) {
     	if (currentState.mPanelCount < 2)
