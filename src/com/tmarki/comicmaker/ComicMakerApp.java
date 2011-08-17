@@ -77,6 +77,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	private String lastSaveName = "";
 	private Map<MenuItem, CharSequence> menuitems_Packs = new HashMap<MenuItem, CharSequence> ();
 	private ImageSelect imageSelector = null;
+	private Intent intent = new Intent();
 	
 	void readExternalFiles(){
 		externalImages = PackHandler.getBundles(getAssets ());
@@ -222,7 +223,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         		}
         	}
         	catch (Exception e) {
-    			outState.putString(String.format(tag + "ImageObject%dtext"), "");
+    			outState.putString(String.format(tag + "ImageObject%dtext", i), "");
         	}
         }
     }
@@ -505,7 +506,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			if (menuitem_OtherSource == item) {
 				
 			// To open up a gallery browser
-				Intent intent = new Intent();
 				intent.setType("image/*");
 				intent.setAction(Intent.ACTION_GET_CONTENT);
 				startActivityForResult(Intent.createChooser(intent, "Select Picture"),1);
@@ -514,7 +514,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				packSelected = menuitems_Packs.get(item);
 				doComicPackFolderSelect();
 			}
-			break;
+			return true;
 		}
 			
 		return super.onOptionsItemSelected(item);
