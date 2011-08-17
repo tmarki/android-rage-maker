@@ -4,6 +4,7 @@ package com.tmarki.comicmaker;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Paint.Style;
@@ -25,6 +26,8 @@ public class ImageObject {
     protected boolean flipVertical = false;
     protected boolean flipHorizontal = false;
     protected final int resizeBoxSize = 32;
+    protected final int maxImageWidth = 640;
+    protected final int maxImageHeight = 500;
     static boolean resizeMode = false; // admittedly this is not the nicest way to do it
     protected Bitmap content = null; 
     static void setResizeMode (boolean rm) {
@@ -46,6 +49,7 @@ public class ImageObject {
 
     public ImageObject(BitmapDrawable target) {
     	content = target.getBitmap();
+        imageSizeCheck();
     }
     
     protected ImageObject () {
@@ -54,6 +58,7 @@ public class ImageObject {
     public ImageObject(ImageObject other) {
     	if (other != null) {
     		content = other.content;
+            imageSizeCheck();
 	        mPosition = new Point (other.mPosition);
 	        mRotation = other.mRotation;
 	        mScale = other.mScale;
@@ -67,6 +72,7 @@ public class ImageObject {
     
     public ImageObject (BitmapDrawable target, int posX, int posY, float rot, float scale, int drawableId, String pac, String foldr, String fil) {
         content = target.getBitmap();
+        imageSizeCheck();
         mPosition.x = posX;
         mPosition.y = posY;
         mRotation = rot;
@@ -77,6 +83,27 @@ public class ImageObject {
         folder = foldr;
         target.setBounds(-target.getIntrinsicWidth() / 2, -target.getIntrinsicHeight() / 2, target.getIntrinsicWidth() / 2, target.getIntrinsicHeight() / 2);
         Log.d ("RAGE", "Initialized ImageObject at" + mPosition.toString());
+    }
+    
+    private void imageSizeCheck () {
+        if (content.getWidth() > maxImageWidth) {
+        	int newWidth = maxImageWidth;
+        	int newHeight = (content.getHeight() * newWidth) / content.getWidth();
+            float scaleWidth = ((float) newWidth) / content.getWidth();
+            float scaleHeight = ((float) newHeight) / content.getHeight();
+        	Matrix matrix = new Matrix();
+            matrix.postScale(scaleWidth, scaleHeight);
+            content = Bitmap.createBitmap(content, 0, 0, content.getWidth(), content.getHeight(), matrix, true);         	
+        }
+        if (content.getHeight() > maxImageHeight) {
+        	int newHeight = maxImageHeight;
+        	int newWidth = (content.getWidth() * newHeight) / content.getHeight();
+            float scaleWidth = ((float) newWidth) / content.getWidth();
+            float scaleHeight = ((float) newHeight) / content.getHeight();
+        	Matrix matrix = new Matrix();
+            matrix.postScale(scaleWidth, scaleHeight);
+            content = Bitmap.createBitmap(content, 0, 0, content.getWidth(), content.getHeight(), matrix, true);         	
+        }
     }
     
     public int getWidth () {
