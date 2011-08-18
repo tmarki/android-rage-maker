@@ -753,16 +753,18 @@ public class ComicEditor extends View {
 			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					String value = input.getText().toString();
-					pushState ();
-					TextObject to = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
-							defaultFontSize, currentState.currentColor, defaultFontType, value, defaultBold, defaultItalic);
-					for (ImageObject io : currentState.mDrawables) {
-						io.setSelected(false);
+					if (value.length() > 0) {
+						pushState ();
+						TextObject to = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
+								defaultFontSize, currentState.currentColor, defaultFontType, value, defaultBold, defaultItalic);
+						for (ImageObject io : currentState.mDrawables) {
+							io.setSelected(false);
+						}
+						to.setSelected(true);
+						currentState.mDrawables.add(to);
+						mTouchMode = TouchModes.HAND;
+						invalidate();
 					}
-					to.setSelected(true);
-					currentState.mDrawables.add(to);
-					mTouchMode = TouchModes.HAND;
-					invalidate();
 			  }
 			});
 
