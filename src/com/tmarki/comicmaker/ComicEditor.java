@@ -150,6 +150,7 @@ public class ComicEditor extends View {
 	static public final  double ZOOM_STEP = 0.01;
 	static public final float CANVAS_SCALE_MIN = 0.25f;
 	static public final float CANVAS_SCALE_MAX = 3.0f;
+	static public final int UNDO_STACK_SIZE = 10;
 	
 	private TouchModes mTouchMode = TouchModes.HAND;
 	
@@ -753,7 +754,7 @@ public class ComicEditor extends View {
 			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					String value = input.getText().toString();
-					if (value.length() > 0) {
+					if (value.length() > 0 && value.replace("\n", "").replace(" ", "").length() > 0) {
 						pushState ();
 						TextObject to = new TextObject((int)(mPreviousPos.x / mCanvasScale - mCanvasOffset.x), (int)(mPreviousPos.y / mCanvasScale - mCanvasOffset.y),
 								defaultFontSize, currentState.currentColor, defaultFontType, value, defaultBold, defaultItalic);
@@ -803,6 +804,8 @@ public class ComicEditor extends View {
 	public void pushState () {
 		previousStates.add (new ComicState(currentState));
 		poppedStates.clear();
+		if (previousStates.size() > UNDO_STACK_SIZE)
+			previousStates.removeElementAt(0);
 		Log.d ("RAGE", "pushState");
 	}
 	
@@ -814,11 +817,13 @@ public class ComicEditor extends View {
 			poppedStates.add(new ComicState (currentState));
 			currentState = new ComicState(previousStates.get(pos));
 			previousStates.removeElementAt(pos);
+			if (poppedStates.size() > UNDO_STACK_SIZE)
+				poppedStates.removeElementAt(0);
 			invalidate();
 			return true;
 		}
 		else {
-			resetObjects();
+//			resetObjects();
 		}
 		invalidate();
 		return false;

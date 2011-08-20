@@ -1,5 +1,6 @@
 package com.tmarki.comicmaker;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Arrays;
@@ -161,6 +162,19 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	}
         	mainView.pushHistory(cs);
         }
+        /*
+        // add some test objects
+        if (mainView.getImageObjects().size() == 0) {
+        	for (int i = 0; i < externalImages.get ("default rage pack").get("Happy").size(); ++i) {
+        		Bitmap b = PackHandler.getDefaultPackDrawable("Happy", externalImages.get ("default rage pack").get("Happy").get(i), 0);
+        		mainView.addImageObject(b, 10 * i, 10 * i, 0.0f, 1.0f, 0, "default rage pack", "Happy", externalImages.get ("default rage pack").get("Happy").get(i));
+        	}
+        	for (int i = 0; i < externalImages.get ("default rage pack").get("Troll").size(); ++i) {
+        		Bitmap b = PackHandler.getDefaultPackDrawable("Troll", externalImages.get ("default rage pack").get("Troll").get(i), 0);
+        		mainView.addImageObject(b, 20 * i, 20 * i, 0.0f, 1.0f, 0, "default rage pack", "Troll", externalImages.get ("default rage pack").get("Troll").get(i));
+        	}
+        }
+        */
         mainView.invalidate();
     }
     
@@ -275,7 +289,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	        		dr = PackHandler.getPackBitmap(pack, folder, file);
 	        	}
 	        	else if (file.length() > 0) {
-					dr = BitmapFactory.decodeFile(file);
+//					BitmapFactory.Options options=new BitmapFactory.Options();
+//					options.inSampleSize = 8;
+//					dr = BitmapFactory.decodeFile(file, options);
+	        		dr = PackHandler.decodeFile(new File (file));
 	        	}
 				if (dr != null) {
 					io = new ImageObject(dr, params[0], params[1], rot, sc, 0, pack, folder, file);
@@ -566,7 +583,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				if (fname.startsWith("file://"))
 					fname = fname.replace("file://", "");
 				if (fname != "") {
-					Bitmap b = BitmapFactory.decodeFile(fname);
+					BitmapFactory.Options options=new BitmapFactory.Options();
+					options.inSampleSize = 8;
+//					Bitmap b = BitmapFactory.decodeFile(fname, options);
+					Bitmap b = PackHandler.decodeFile(new File (fname));
 					if (b != null) {
 						mainView.addImageObject(b, -mainView.getmCanvasOffset().x, -mainView.getmCanvasOffset().y, 0.0f, 1.0f, 0, "", "", fname);
 						success = true;
@@ -750,6 +770,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			ImageObject io = mainView.getSelected();
 			if (io != null)
 				io.setInBack(!io.isInBack());
+			return true;
+		}
+		else if (event.getKeyCode() == KeyEvent.KEYCODE_DEL) {
+			ImageObject io = mainView.getSelected();
+			if (io != null) {
+				mainView.removeImageObject(io);
+				mainView.invalidate();
+			}
 			return true;
 		}
 		return false;

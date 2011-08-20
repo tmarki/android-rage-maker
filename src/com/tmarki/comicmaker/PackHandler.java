@@ -1,6 +1,7 @@
 package com.tmarki.comicmaker;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -10,12 +11,9 @@ import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-
-
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Environment;
 import android.util.Log;
 
@@ -23,6 +21,7 @@ public class PackHandler {
 	
 	static private final String DEFAULT_COMIC_PACK = "default rage pack";
 	static private AssetManager assetMan = null;
+	static private Map<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>> bitmapCache = new HashMap<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>>();
 	
 	static public void setAssetManager (AssetManager am) {
 		assetMan = am;
@@ -83,6 +82,7 @@ public class PackHandler {
 	    }
 		return imgs;
 	}
+	@SuppressWarnings("rawtypes")
 	static private Map<CharSequence, Vector<String>> getZipEntries (String fname) {
     	Map<CharSequence, Vector<String>> imgs = new HashMap<CharSequence,Vector<String>>(); 
 		ZipFile zf = null;
@@ -115,7 +115,12 @@ public class PackHandler {
 	static public Bitmap getPackBitmap (String filename, String folder, String file) {
 		return getPackBitmap(filename, folder, file, 0);
 	}
+	@SuppressWarnings("rawtypes")
 	static public Bitmap getPackBitmap (String filename, String folder, String file, int fixedHeight) {
+		if (bitmapCache.containsKey(filename) && bitmapCache.get(filename).containsKey(folder) 
+				&& bitmapCache.get(filename).get(folder).containsKey(file) && bitmapCache.get(filename).get(folder).get(file) != null) {
+			return bitmapCache.get(filename).get(folder).get(file);
+		}
 		if (filename == DEFAULT_COMIC_PACK)
 			return getDefaultPackDrawable(folder, file, fixedHeight);
 		ZipFile zf;
@@ -130,11 +135,9 @@ public class PackHandler {
 					  String sfolder = ze.getName().substring(0, ze.getName().lastIndexOf("/"));
 					  String sfile = ze.getName().substring(ze.getName().lastIndexOf("/") + 1);
 					  if (sfile.equals(file) && sfolder.equals(folder)) {
-/*						  if (fixedHeight > 0)
-							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getIntrinsicWidth()) / bd.getIntrinsicHeight());
-						  else
-							  bd.setBounds(0, 0, bd.getIntrinsicHeight(), bd.getIntrinsicWidth());*/
-						  return BitmapFactory.decodeStream(zf.getInputStream(ze));
+						  Bitmap b = decodeStream (zf.getInputStream(ze), (int)ze.getSize ());
+						  saveBitmapCache (filename, folder, file, b);
+						  return b;
 					  }
 				  }
 			}
@@ -159,11 +162,9 @@ public class PackHandler {
 					  if (!sfolder.equals(folder)) continue;
 					  String sfile = ze.getName().substring(ze.getName().lastIndexOf("/") + 1);
 					  if (sfile.equals(file)) {
-/*						  if (fixedHeight > 0)
-							  bd.setBounds(0, 0, fixedHeight, (fixedHeight * bd.getWidth()) / bd.getHeight());
-						  else
-							  bd.setBounds(0, 0, bd.getHeight(), bd.getWidth());*/
-						  return BitmapFactory.decodeStream(zf);
+						  Bitmap b = decodeStream (zf, (int)ze.getSize());
+						  saveBitmapCache (DEFAULT_COMIC_PACK, folder, file, b);
+						  return b;
 					  }
 				  }
 			}
@@ -172,5 +173,50 @@ public class PackHandler {
 		}
 		return null;
 	}
+	
+	static private void saveBitmapCache (String filename, String folder, String file, Bitmap b) {
+		if (!bitmapCache.containsKey(filename)) {
+			bitmapCache.put(filename, new HashMap<CharSequence, Map<CharSequence,Bitmap>>());
+		}
+		if (!bitmapCache.get(filename).containsKey(folder)) {
+			bitmapCache.get(filename).put(folder, new HashMap<CharSequence, Bitmap> ());
+		}
+		bitmapCache.get(filename).get(folder).put (file, b);
+	}
+	static public Bitmap decodeFile(File f){
+	    Bitmap b = null;
+	    try {
+	        //Decode image size
+	        BitmapFactory.Options o = new BitmapFactory.Options();
+	        o.inJustDecodeBounds = true;
 
+	        FileInputStream fis = new FileInputStream(f);
+	        BitmapFactory.decodeStream(fis, null, o);
+	        fis.close();
+
+	        int scale = 1;
+	        if (o.outHeight > ImageObject.maxImageHeight || o.outWidth > ImageObject.maxImageWidth) {
+	            scale = (int)Math.pow(2, (int) Math.round(Math.log(ImageObject.maxImageHeight / (double) Math.max(o.outHeight, o.outWidth)) / Math.log(0.5)));
+	        }
+
+	        //Decode with inSampleSize
+	        BitmapFactory.Options o2 = new BitmapFactory.Options();
+	        o2.inSampleSize = scale;
+	        fis = new FileInputStream(f);
+	        b = BitmapFactory.decodeStream(fis, null, o2);
+	        fis.close();
+	    } catch (Exception e) {
+	    }
+	    return b;
+	}
+
+	static public Bitmap decodeStream(InputStream f, int size){
+	    Bitmap b = null;
+	    try {
+	        b = BitmapFactory.decodeStream(f);
+	    } catch (Exception e) {
+	    	Log.d ("RAGE", e.toString ());
+	    }
+	    return b;
+	}
 }

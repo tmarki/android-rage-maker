@@ -24,8 +24,8 @@ public class ImageObject {
     protected boolean flipVertical = false;
     protected boolean flipHorizontal = false;
     protected final int resizeBoxSize = 32;
-    protected final int maxImageWidth = 640;
-    protected final int maxImageHeight = 500;
+    static public final int maxImageWidth = 640;
+    static public final int maxImageHeight = 500;
     static boolean resizeMode = false; // admittedly this is not the nicest way to do it
     protected Bitmap content = null; 
     static void setResizeMode (boolean rm) {
@@ -130,28 +130,33 @@ public class ImageObject {
     
     public void draw(Canvas canvas) {
     	int sc = canvas.save();
-    	canvas.translate(mPosition.x, mPosition.y);
-    	canvas.scale( (float)mScale, (float)mScale);
-    	int sc2 = canvas.save();
-    	canvas.rotate((float)mRotation);
-    	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
-//            dr.draw(canvas);
-    	canvas.drawBitmap(content, -getWidth() / 2, -getHeight() / 2, new Paint ());
-        canvas.restoreToCount(sc2);
-        if (mSelected && interactiveMode)
-        {
-        	Paint paint = new Paint ();
-        	paint.setARGB(128, 128, 128, 128);
-        	Rect imgrect = new Rect(-getWidth() / 2, -getHeight() / 2, getWidth() / 2, getHeight() / 2);
-        	canvas.drawRect(imgrect, paint);
-        	Rect resizerect = new Rect ();
-        	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
-        	paint.setARGB(255, 0, 0, 0);
-        	if (!resizeMode)
-        		paint.setStyle(Style.STROKE);
-        	paint.setStrokeWidth(2.0f);
-        	canvas.drawRect(resizerect, paint);
-        }
+    	try {
+	    	canvas.translate(mPosition.x, mPosition.y);
+	    	canvas.scale( (float)mScale, (float)mScale);
+	    	int sc2 = canvas.save();
+	    	canvas.rotate((float)mRotation);
+	    	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
+	//            dr.draw(canvas);
+	    	canvas.drawBitmap(content, -getWidth() / 2, -getHeight() / 2, new Paint ());
+	        canvas.restoreToCount(sc2);
+	        if (mSelected && interactiveMode)
+	        {
+	        	Paint paint = new Paint ();
+	        	paint.setARGB(128, 128, 128, 128);
+	        	Rect imgrect = new Rect(-getWidth() / 2, -getHeight() / 2, getWidth() / 2, getHeight() / 2);
+	        	canvas.drawRect(imgrect, paint);
+	        	Rect resizerect = new Rect ();
+	        	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
+	        	paint.setARGB(255, 0, 0, 0);
+	        	if (!resizeMode)
+	        		paint.setStyle(Style.STROKE);
+	        	paint.setStrokeWidth(2.0f);
+	        	canvas.drawRect(resizerect, paint);
+	        }
+    	}
+    	catch (Exception e) {
+    		Log.d ("RAGE", e.toString());
+    	}
         canvas.restoreToCount(sc);
     }
     

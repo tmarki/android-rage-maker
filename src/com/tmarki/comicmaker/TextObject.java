@@ -60,6 +60,8 @@ public class TextObject extends ImageObject {
 			if (tmp > textWidth)
 				textWidth = tmp;
 		}
+		if (textWidth < 1)
+			textWidth = 1;
 		content = Bitmap.createBitmap(textWidth, textSize * (lines.length + 1), Bitmap.Config.ARGB_8888);
 		Canvas c = new Canvas (content);
 		c.drawARGB(0, 0, 0, 0);
