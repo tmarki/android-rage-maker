@@ -3,6 +3,7 @@ package com.tmarki.comicmaker;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 import java.util.Collections;
@@ -18,6 +19,7 @@ import android.app.Application;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,6 +31,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.GradientDrawable.Orientation;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -619,7 +622,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			java.io.File f = new java.io.File (folder);
 			if (!f.exists())
 				f.mkdirs();
-			b.compress(CompressFormat.JPEG, 95, new FileOutputStream(Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+			String fullname = Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg";
+			File f2 = new File (fullname);//openFileOutput(fname, Context.MODE_PRIVATE);//new FileOutputStream(fullname);
+			FileOutputStream fos = new FileOutputStream(f2);
+			b.compress(CompressFormat.JPEG, 95, fos);
+			fos.close ();
+			String[] str = new String[1];
+			str[0] = fullname;
+			MediaScannerConnection.scanFile(this, str, null, null);
 			text = text + value + ".jpg" + " in the Pictures folder on the SD card. It should appear in the gallery shortly.";
 			lastSaveName = value;
 			setDetailTitle ();
@@ -633,6 +643,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	            startActivity(Intent.createChooser(share, "Share Comic"));
 			}
 		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			text = "There was an error while saving the comic: " + e.toString();
+		} catch (IOException e) {
 			e.printStackTrace();
 			text = "There was an error while saving the comic: " + e.toString();
 		}

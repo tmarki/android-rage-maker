@@ -14,6 +14,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -347,8 +348,11 @@ public class ComicEditor extends View {
 		    	z.setInBack(true);
 			}
 		});
-//		alertDialog.setIcon(R.drawable.icon);
-		alertDialog.setIcon(new BitmapDrawable (dr));
+		int newH = (int)(48.0 * ((double)dr.getHeight() / (double)dr.getWidth()));
+		if (newH == 0)
+			newH = 1;
+		BitmapDrawable bd = new BitmapDrawable (Bitmap.createScaledBitmap(dr, 48, newH, true));
+		alertDialog.setIcon(bd);
 		alertDialog.show();
     	
     }
@@ -416,6 +420,9 @@ public class ComicEditor extends View {
     		catch (Exception e) {
     			
     		}
+    		catch (OutOfMemoryError e) {
+    			linesLayer = null;
+    		}
 	    	for (int i = 0; i < currentState.linePoints.size(); ++i) {
 	    		float[] lp = currentState.linePoints.get (i);
 	    		Paint p = currentState.mLinePaints.get (i);
@@ -429,7 +436,8 @@ public class ComicEditor extends View {
 		Paint p = new Paint ();
 		p.setColor(this.currentState.currentColor);
 		p.setStrokeWidth(currentStrokeWidth);
-    	canvas.drawBitmap(linesLayer, 0, 0, p);
+		if (linesLayer != null)
+			canvas.drawBitmap(linesLayer, 0, 0, p);
     	if (currentState.currentLinePoints == null)  return;
     	canvas.drawLines(currentState.currentLinePoints, p);
 		for (int j = 0; j < currentState.currentLinePoints.length; j += 4) {
