@@ -22,6 +22,7 @@ public class PackHandler {
 	static private final String DEFAULT_COMIC_PACK = "default rage pack";
 	static private AssetManager assetMan = null;
 	static private Map<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>> bitmapCache = new HashMap<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>>();
+	static private Map<CharSequence, Bitmap> realFileCache = new HashMap<CharSequence, Bitmap>();
 	
 	static public void setAssetManager (AssetManager am) {
 		assetMan = am;
@@ -184,6 +185,8 @@ public class PackHandler {
 		bitmapCache.get(filename).get(folder).put (file, b);
 	}
 	static public Bitmap decodeFile(File f){
+		if (realFileCache.containsKey(f.getAbsolutePath()) && realFileCache.get(f.getAbsolutePath()) != null)
+			return realFileCache.get(f.getAbsolutePath());
 	    Bitmap b = null;
 	    try {
 	        //Decode image size
@@ -204,6 +207,7 @@ public class PackHandler {
 	        o2.inSampleSize = scale;
 	        fis = new FileInputStream(f);
 	        b = BitmapFactory.decodeStream(fis, null, o2);
+	        realFileCache.put(f.getAbsolutePath(), b);
 	        fis.close();
 	    } catch (Exception e) {
 	    }

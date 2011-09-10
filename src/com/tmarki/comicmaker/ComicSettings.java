@@ -20,12 +20,14 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 	final int maxPanelCount = 20;
 	private int curPanelCount = 5;
 	private boolean curDrawGrid = true;
+	private boolean curShowAd = true;
 	private View.OnClickListener okListener = null;
 
-	public ComicSettings(Context context, int startPanelCount, boolean startDrawGrid, View.OnClickListener oklistener) {
+	public ComicSettings(Context context, int startPanelCount, boolean startDrawGrid, boolean startShowAd, View.OnClickListener oklistener) {
 		super(context);
 		curPanelCount = startPanelCount - 1;
 		curDrawGrid = startDrawGrid;
+		curShowAd = startShowAd;
 		okListener = oklistener;
 	}
 	@Override
@@ -40,6 +42,8 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
         setPCLabel(curPanelCount);
         CheckBox dg = (CheckBox)findViewById(R.id.drawGrid);
         dg.setChecked(curDrawGrid);
+        CheckBox dg2 = (CheckBox)findViewById(R.id.showAds);
+        dg2.setChecked(curShowAd);
         Button ok = (Button)findViewById(R.id.settingsOk);
         ok.setOnClickListener(okListener);
         getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
@@ -49,6 +53,10 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 	}
 	public boolean getDrawGrid () {
         CheckBox dg = (CheckBox)findViewById(R.id.drawGrid);
+		return dg.isChecked(); 
+	}
+	public boolean getShowAd () {
+        CheckBox dg = (CheckBox)findViewById(R.id.showAds);
 		return dg.isChecked(); 
 	}
 	private void setPCLabel (int val) {

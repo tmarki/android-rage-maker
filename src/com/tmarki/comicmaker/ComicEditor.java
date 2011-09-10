@@ -9,12 +9,17 @@ import com.tmarki.comicmaker.R;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
 import android.util.Log;
@@ -27,6 +32,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.net.Uri;
 import android.text.format.Time;
 
 
@@ -323,8 +329,31 @@ public class ComicEditor extends View {
     public void addImageObject (Bitmap dr, int x, int y, float rot, float scale, int drawableId) {
     	addImageObject(dr, x, y, rot, scale, drawableId, "", "", "");
     }
+    
+    private void addImageWithPrompt (final Bitmap dr, final int x, final int y, final float rot, final float scale, final int drawableId, final String pack, final String folder, final String file) {
+		AlertDialog alertDialog;
+		alertDialog = new AlertDialog.Builder(getContext()).create();
+		alertDialog.setTitle("Select layer");
+	    alertDialog.setMessage("Please select if you want to add the image in front or behind the draw canvas.\nNOTE: You can change this later by selecting the object and long tapping it to bring up the object manipulation menu.");
+		alertDialog.setButton("To Front", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+		    	ImageObject z = addImageObjectDirect(dr, x, y, rot, scale, drawableId, pack, folder, file);
+		    	z.setInBack(false);
+			}
+		});
+		alertDialog.setButton2("To Background", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+		    	ImageObject z = addImageObjectDirect(dr, x, y, rot, scale, drawableId, pack, folder, file);
+		    	z.setInBack(true);
+			}
+		});
+//		alertDialog.setIcon(R.drawable.icon);
+		alertDialog.setIcon(new BitmapDrawable (dr));
+		alertDialog.show();
+    	
+    }
 
-    public void addImageObject (Bitmap dr, int x, int y, float rot, float scale, int drawableId, String pack, String folder, String file) {
+    private ImageObject addImageObjectDirect (Bitmap dr, int x, int y, float rot, float scale, int drawableId, String pack, String folder, String file) {
 		pushState ();
 		ImageObject io = new ImageObject(dr, x, y, rot, scale, drawableId, pack, folder, file);
 		io.setPosition(new Point (x + io.getWidth() / 2, y + io.getHeight() / 2));
@@ -334,8 +363,13 @@ public class ComicEditor extends View {
 		io.setSelected(true);
     	currentState.mDrawables.add(io);
     	invalidate ();
+    	return io;
     }
-    
+
+    public void addImageObject (Bitmap dr, int x, int y, float rot, float scale, int drawableId, String pack, String folder, String file) {
+    	addImageWithPrompt (dr, x, y, rot, scale, drawableId, pack, folder, file);
+    }
+
     public void pureAddImageObject (ImageObject io) {
     	currentState.mDrawables.add(io);
     }

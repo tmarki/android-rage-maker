@@ -14,11 +14,13 @@ import java.util.Vector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -26,6 +28,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.drawable.GradientDrawable.Orientation;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -40,9 +43,13 @@ import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
 import com.tmarki.comicmaker.ColorPickerDialog;
 import com.tmarki.comicmaker.ComicEditor;
 import com.tmarki.comicmaker.R;
@@ -57,6 +64,7 @@ import com.tmarki.comicmaker.ZoomPicker.OnZoomChangedListener;
 
 
 public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener, OnZoomChangedListener {
+	private AdView adView = null;
 	private ComicEditor mainView;
 	private Map<CharSequence, Map<CharSequence, Vector<String>>> externalImages = new HashMap<CharSequence, Map<CharSequence, Vector<String>>>();
 	private CharSequence packSelected;
@@ -68,7 +76,8 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	private Map<MenuItem, CharSequence> menuitems_Packs = new HashMap<MenuItem, CharSequence> ();
 	private ImageSelect imageSelector = null;
 	private Intent intent = new Intent();
-	
+	private LinearLayout layout = null; 
+	private SharedPreferences mPrefs = null;	
 	void readExternalFiles(){
 		externalImages = PackHandler.getBundles(getAssets ());
 		for (CharSequence p : externalImages.keySet()) {
@@ -120,7 +129,42 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			}
 		});
         registerForContextMenu(mainView);
-        setContentView(mainView);
+        
+        layout = new LinearLayout(this);
+        layout.setOrientation (LinearLayout.VERTICAL);
+
+        // Create the adView
+
+        // Add the adView to it
+
+
+        mPrefs = getSharedPreferences("RageComicMaker", 0);
+        int showAd = mPrefs.getInt("ShowAd", -1);
+        if (showAd == -1) { // never been set
+        	AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        	alertDialog.setTitle("Information");
+        	alertDialog.setMessage("Rage Comic Maker is now ad supported.\nHowever, if you do not wish to support the developer, or you are offended by ads, you can turn them off in the Settings.");
+        	alertDialog.setButton("I Understand", new DialogInterface.OnClickListener () {
+				public void onClick(DialogInterface dialog, int which) {
+					
+				}  });
+        	alertDialog.show();
+        	showAd = 1;
+        	SharedPreferences.Editor ed = mPrefs.edit();
+        	ed.putInt("ShowAd", 1);
+        	ed.commit();
+        }
+        if (showAd == 1) {
+        // Initiate a generic request to load it with an ad
+        	makeAdView();
+        	layout.addView(adView);
+            layout.addView(mainView);
+        	adView.loadAd(new AdRequest());
+        }
+        else {
+            layout.addView(mainView);
+        }
+        setContentView(layout);
         if (savedInstanceState != null) {
         	if (savedInstanceState.getSerializable("touchMode") != null)
         		mainView.setmTouchMode((ComicEditor.TouchModes)savedInstanceState.getSerializable("touchMode"));
@@ -177,6 +221,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         */
         mainView.invalidate();
     }
+
+    @Override
+    public void onDestroy() {
+    	if (adView != null)
+    		adView.destroy();
+      super.onDestroy();
+    }
+
     
     private void saveExternalSources (Bundle outState) {
     	int i = 0;
@@ -380,6 +432,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		mainView.invalidate();
 		return super.onContextItemSelected(item);
 	}
+	
+	private void makeAdView () {
+        adView = new AdView(this, AdSize.BANNER, "a14e6b86ed7b452");
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -455,11 +511,24 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			fontselect.show();
 			break;
 		case (R.id.settings):
-			settings = new ComicSettings (this, mainView.getPanelCount(), mainView.isDrawGrid(), new View.OnClickListener() {
+			settings = new ComicSettings (this, mainView.getPanelCount(), mainView.isDrawGrid(), adView != null, new View.OnClickListener() {
 
 				public void onClick(View v) {
 					mainView.setPanelCount(settings.getPanelCount ());
 					mainView.setDrawGrid(settings.getDrawGrid());
+		        	SharedPreferences.Editor ed = mPrefs.edit();
+					if (settings.getShowAd() && adView == null) {
+						makeAdView();
+			        	layout.addView(adView, 0);
+			        	adView.loadAd(new AdRequest());
+			        	ed.putInt("ShowAd", 1);
+					}
+					else if (!settings.getShowAd() && adView != null) {
+						layout.removeView(adView);
+						adView = null;
+			        	ed.putInt("ShowAd", 0);
+					}
+		        	ed.commit();
 					settings.dismiss();
 					mainView.invalidate();
 				}

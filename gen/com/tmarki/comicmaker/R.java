@@ -39,14 +39,14 @@ public final class R {
         public static final int trollface=0x7f020019;
     }
     public static final class id {
-        public static final int about=0x7f040026;
+        public static final int about=0x7f040027;
         public static final int bold=0x7f040003;
-        public static final int clear=0x7f040023;
+        public static final int clear=0x7f040024;
         public static final int drawGrid=0x7f040012;
-        public static final int exit=0x7f040025;
+        public static final int exit=0x7f040026;
         public static final int filename=0x7f040000;
-        public static final int flipH=0x7f040019;
-        public static final int flipV=0x7f040018;
+        public static final int flipH=0x7f04001a;
+        public static final int flipV=0x7f040019;
         public static final int icon=0x7f040008;
         public static final int imageList=0x7f040005;
         public static final int imageRow=0x7f040006;
@@ -55,29 +55,30 @@ public final class R {
         public static final int linearLayout2=0x7f040002;
         public static final int panelCount=0x7f040011;
         public static final int panelCountLabel=0x7f040010;
-        public static final int pen_color=0x7f04001d;
-        public static final int pen_width=0x7f04001e;
-        public static final int redo=0x7f04001c;
-        public static final int remove=0x7f04001a;
+        public static final int pen_color=0x7f04001e;
+        public static final int pen_width=0x7f04001f;
+        public static final int redo=0x7f04001d;
+        public static final int remove=0x7f04001b;
         public static final int rowImage=0x7f04000e;
         public static final int rowText=0x7f040007;
-        public static final int save=0x7f04001b;
-        public static final int settings=0x7f040021;
-        public static final int settingsOk=0x7f040013;
-        public static final int share=0x7f040022;
+        public static final int save=0x7f04001c;
+        public static final int settings=0x7f040022;
+        public static final int settingsOk=0x7f040014;
+        public static final int share=0x7f040023;
+        public static final int showAds=0x7f040013;
         public static final int tableLayout1=0x7f04000f;
         public static final int textView1=0x7f04000a;
         public static final int textView2=0x7f04000b;
-        public static final int text_color=0x7f04001f;
-        public static final int text_type=0x7f040020;
+        public static final int text_color=0x7f040020;
+        public static final int text_type=0x7f040021;
         public static final int title=0x7f040009;
-        public static final int toback=0x7f040016;
-        public static final int tofront=0x7f040017;
+        public static final int toback=0x7f040017;
+        public static final int tofront=0x7f040018;
         public static final int width_bar=0x7f04000c;
         public static final int width_ok=0x7f04000d;
-        public static final int zoom=0x7f040024;
-        public static final int zoom_bar=0x7f040014;
-        public static final int zoom_ok=0x7f040015;
+        public static final int zoom=0x7f040025;
+        public static final int zoom_bar=0x7f040015;
+        public static final int zoom_ok=0x7f040016;
     }
     public static final class layout {
         public static final int fontselect=0x7f030000;
