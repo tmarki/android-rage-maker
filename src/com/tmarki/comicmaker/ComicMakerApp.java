@@ -36,6 +36,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Config;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -67,6 +69,7 @@ import com.tmarki.comicmaker.ZoomPicker.OnZoomChangedListener;
 
 
 public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener, OnZoomChangedListener {
+	private AdRequest adRequest = new AdRequest();
 	private AdView adView = null;
 	private ComicEditor mainView;
 	private Map<CharSequence, Map<CharSequence, Vector<String>>> externalImages = new HashMap<CharSequence, Map<CharSequence, Vector<String>>>();
@@ -79,10 +82,11 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	private Map<MenuItem, CharSequence> menuitems_Packs = new HashMap<MenuItem, CharSequence> ();
 	private ImageSelect imageSelector = null;
 	private Intent intent = new Intent();
-	private LinearLayout layout = null; 
-	private SharedPreferences mPrefs = null;	
+//	private LinearLayout layout = null; 
+	private SharedPreferences mPrefs = null;
+	private PackHandler packhandler = new PackHandler ();
 	void readExternalFiles(){
-		externalImages = PackHandler.getBundles(getAssets ());
+		externalImages = packhandler.getBundles(getAssets ());
 		for (CharSequence p : externalImages.keySet()) {
 			for (CharSequence f : externalImages.get (p).keySet()) {
 				Collections.sort(externalImages.get (p).get (f));
@@ -109,7 +113,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		Vector<ComicEditor.ComicState> history = mainView.getHistory();
 		outState.putInt("historySize", history.size ());
 		for (int i = 0; i < history.size (); ++i) {
-			saveImagesToBundle(outState, history.get (i).mDrawables, String.format("h%s", i));
+			//saveImagesToBundle(outState, history.get (i).mDrawables, String.format("h%s", i));
 			saveLinesToBundle (outState, history.get (i).linePoints, history.get (i).mLinePaints, String.format("h%s", i));
 			outState.putInt(String.format ("h%spanelCount", i), history.get (i).mPanelCount);
 		}
@@ -133,7 +137,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		});
         registerForContextMenu(mainView);
         
-        layout = new LinearLayout(this);
+        LinearLayout layout = new LinearLayout(getApplicationContext());
         layout.setOrientation (LinearLayout.VERTICAL);
 
         // Create the adView
@@ -162,7 +166,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	makeAdView();
         	layout.addView(adView);
             layout.addView(mainView);
-        	adView.loadAd(new AdRequest());
+        	adView.loadAd(adRequest);
         }
         else {
             layout.addView(mainView);
@@ -178,7 +182,6 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             mainView.setCanvasScale (savedInstanceState.getFloat("canvasScale"));
             mainView.setmCanvasOffset(new Point (savedInstanceState.getInt ("canvasX"), savedInstanceState.getInt ("canvasY")));
             lastSaveName = savedInstanceState.getString("lastSaveName");
-            PackHandler.setAssetManager(getAssets ());
             loadExternalSources(savedInstanceState);
             setDetailTitle ();
         }
@@ -200,7 +203,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	hs = savedInstanceState.getInt("historySize", 0);
         for (int i = 0; i < hs; ++i) {
         	ComicState cs = mainView.getStateCopy();
-        	cs.mDrawables = loadImagesFromBundle(savedInstanceState, String.format("h%s", i));
+//        	cs.mDrawables = //loadImagesFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.linePoints = loadPointsFromBundle(savedInstanceState, String.format("h%s", i));
         	cs.mLinePaints = new LinkedList<Paint> ();
         	cs.mPanelCount = savedInstanceState.getInt(String.format("h%spanelCount", i));
@@ -209,27 +212,54 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	}
         	mainView.pushHistory(cs);
         }
-        /*
+        
         // add some test objects
-        if (mainView.getImageObjects().size() == 0) {
-        	for (int i = 0; i < externalImages.get ("default rage pack").get("Happy").size(); ++i) {
-        		Bitmap b = PackHandler.getDefaultPackDrawable("Happy", externalImages.get ("default rage pack").get("Happy").get(i), 0);
+        if (false && mainView.getImageObjects().size() == 0) {
+//        	for (int i = 0; i < externalImages.get ("default rage pack").get("Happy").size(); ++i) {
+            for (int i = 0; i < 2; ++i) {
+        		Bitmap b = packhandler.getDefaultPackDrawable("Happy", externalImages.get ("default rage pack").get("Happy").get(i), 0, getAssets());
         		mainView.addImageObject(b, 10 * i, 10 * i, 0.0f, 1.0f, 0, "default rage pack", "Happy", externalImages.get ("default rage pack").get("Happy").get(i));
         	}
-        	for (int i = 0; i < externalImages.get ("default rage pack").get("Troll").size(); ++i) {
-        		Bitmap b = PackHandler.getDefaultPackDrawable("Troll", externalImages.get ("default rage pack").get("Troll").get(i), 0);
+//        	for (int i = 0; i < externalImages.get ("default rage pack").get("Troll").size(); ++i) {
+        	for (int i = 0; i < 2; ++i) {
+        		Bitmap b = packhandler.getDefaultPackDrawable("Troll", externalImages.get ("default rage pack").get("Troll").get(i), 0, getAssets());
         		mainView.addImageObject(b, 20 * i, 20 * i, 0.0f, 1.0f, 0, "default rage pack", "Troll", externalImages.get ("default rage pack").get("Troll").get(i));
         	}
+			TextObject to = new TextObject(100, 100,
+					50, Color.RED, 0, "Moo moo yeah", false, false);
+			to.setSelected(true);
+			to.setInBack(false);
+			mainView.pureAddImageObject(to);
+			
         }
-        */
+        
         mainView.invalidate();
     }
 
     @Override
     public void onDestroy() {
-    	if (adView != null)
+        if (adView != null) {
     		adView.destroy();
-      super.onDestroy();
+        }
+        for (ImageObject io : mainView.getImageObjects()) {
+        	io.recycle();
+        }
+        for (ComicEditor.ComicState cs : mainView.getHistory()) {
+            for (ImageObject io : cs.mDrawables) {
+            	try {
+            		io.recycle();
+            	}
+            	catch (Exception e) {
+            		
+            	}
+            }
+        }
+      mainView.resetHistory();
+      mainView.resetObjects();
+//    	packhandler.freeAllCache();
+        super.onDestroy();
+//        mainView = null;
+//        layout = null;
     }
 
     
@@ -281,8 +311,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         		}
         	}
         	catch (Exception e) {
+        		Log.w ("RAGE", e.toString());
     			outState.putString(String.format(tag + "ImageObject%dtext", i), "");
         	}
+//    		ios.get(i).recycle();
         }
     }
     
@@ -339,22 +371,27 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	            	boolean bld = savedInstanceState.getBoolean(String.format(tag + "TextObject%dbold", i));
 	            	boolean itlic = savedInstanceState.getBoolean(String.format(tag + "TextObject%ditalic", i));
 	        		io = new TextObject(params[0], params[1], ts, col, tf, text, bld, itlic);
+	        		io.setScale(sc);
+	        		io.setRotation(rot);
 	        	}
 	        	else if (pack.length() > 0) {
-	        		dr = PackHandler.getPackBitmap(pack, folder, file);
+	        		dr = packhandler.getPackBitmap(pack, folder, file, getAssets());
+	        		if (dr != null) {
+	        			dr = dr.copy(Bitmap.Config.ARGB_8888, false);
+	        		}
 	        	}
 	        	else if (file.length() > 0) {
 //					BitmapFactory.Options options=new BitmapFactory.Options();
 //					options.inSampleSize = 8;
 //					dr = BitmapFactory.decodeFile(file, options);
-	        		dr = PackHandler.decodeFile(new File (file));
+	        		dr = packhandler.decodeFile(new File (file));
 	        	}
 				if (dr != null) {
 					io = new ImageObject(dr, params[0], params[1], rot, sc, 0, pack, folder, file);
 				}
         	}
         	catch (Exception e) {
-				Toast.makeText(getWindow ().getContext(), "Comic Maker internal problem: " + e.toString(),Toast.LENGTH_SHORT).show();
+				Toast.makeText(this, "Comic Maker internal problem: " + e.toString(),Toast.LENGTH_SHORT).show();
         	}
         	if (io != null) {
         		io.setSelected(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dselected", i)));
@@ -364,6 +401,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         		ret.add (io);
         	}
         }
+//        packhandler.freeAllCache();
         return ret;
 
     }
@@ -437,7 +475,8 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	}
 	
 	private void makeAdView () {
-        adView = new AdView(this, AdSize.BANNER, "a14e6b86ed7b452");
+		if (adView == null)
+			adView = new AdView(this, AdSize.BANNER, "a14e6b86ed7b452");
 	}
 
 	@Override
@@ -478,15 +517,15 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			break;
 		case (R.id.pen_color):
 		case (R.id.text_color):
-			ColorPickerDialog cpd = new ColorPickerDialog(mainView.getContext(), this, "key", mainView.getCurrentColor(), mainView.getCurrentColor());
+			ColorPickerDialog cpd = new ColorPickerDialog(this, this, "key", mainView.getCurrentColor(), mainView.getCurrentColor());
 			cpd.show();
 			break;
 		case (R.id.pen_width):
-			WidthPicker np = new WidthPicker (mainView.getContext(), this, mainView.getCurrentStrokeWidth());
+			WidthPicker np = new WidthPicker (this, this, mainView.getCurrentStrokeWidth());
 			np.show();
 			break;
 		case (R.id.zoom):
-			ZoomPicker zp = new ZoomPicker (mainView.getContext(), this, mainView.getCanvasScale());
+			ZoomPicker zp = new ZoomPicker (this, this, mainView.getCanvasScale());
 			zp.show();
 			break;
 		case (R.id.clear):
@@ -513,6 +552,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			fontselect = new FontSelect (this, setFontTypeListener, mainView.getDefaultFontSize(), mainView.isDefaultBold(), mainView.isDefaultItalic());
 			fontselect.show();
 			break;
+		case (R.id.objmenu):
+			if (mainView.getSelected() == null) {
+				Toast.makeText(this, "Please select an image or text object first!", Toast.LENGTH_SHORT).show();
+			}
+			else {
+				mainView.showContextMenu();
+			}
+			break;
 		case (R.id.settings):
 			settings = new ComicSettings (this, mainView.getPanelCount(), mainView.isDrawGrid(), adView != null, new View.OnClickListener() {
 
@@ -521,14 +568,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 					mainView.setDrawGrid(settings.getDrawGrid());
 		        	SharedPreferences.Editor ed = mPrefs.edit();
 					if (settings.getShowAd() && adView == null) {
-						makeAdView();
-			        	layout.addView(adView, 0);
-			        	adView.loadAd(new AdRequest());
+//						makeAdView();
+//			        	layout.addView(adView, 0);
+//			        	adView.loadAd(adRequest);
 			        	ed.putInt("ShowAd", 1);
 					}
 					else if (!settings.getShowAd() && adView != null) {
-						layout.removeView(adView);
-						adView = null;
+//						layout.removeView(adView);
+//						adView = null;
 			        	ed.putInt("ShowAd", 0);
 					}
 		        	ed.commit();
@@ -610,6 +657,11 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	private void doSave (String fname, boolean doShare) {
 		String value = fname;
 		Bitmap b = mainView.getSaveBitmap();
+		if (b == null) {
+			CharSequence text = "Sorry, the comic could not be saved.";
+			Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+			return;
+		}
 		CharSequence text = "Comic saved as ";
 		try {
 			String folder = Environment.getExternalStorageDirectory().toString() + "/Pictures";
@@ -649,7 +701,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			e.printStackTrace();
 			text = "There was an error while saving the comic: " + e.toString();
 		}
-		Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 	}
 
 	@Override
@@ -668,7 +720,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 					BitmapFactory.Options options=new BitmapFactory.Options();
 					options.inSampleSize = 8;
 //					Bitmap b = BitmapFactory.decodeFile(fname, options);
-					Bitmap b = PackHandler.decodeFile(new File (fname));
+					Bitmap b = packhandler.decodeFile(new File (fname));
 					if (b != null) {
 						mainView.addImageObject(b, -mainView.getmCanvasOffset().x, -mainView.getmCanvasOffset().y, 0.0f, 1.0f, 0, "", "", fname);
 						success = true;
@@ -677,7 +729,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				}
 			}
 			if (!success) {
-				Toast.makeText(getWindow ().getContext(), "There was an error adding the image!",Toast.LENGTH_LONG).show();
+				Toast.makeText(this, "There was an error adding the image!",Toast.LENGTH_LONG).show();
 				
 			}
 		}
@@ -706,7 +758,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		CharSequence[] ccs = (CharSequence[]) externalImages.get (packSelected).keySet().toArray(new CharSequence[externalImages.get (packSelected).keySet().size()]);
 		Arrays.sort(ccs);
 		AlertDialog alertDialog;
-		alertDialog = new AlertDialog.Builder(mainView.getContext())
+		alertDialog = new AlertDialog.Builder(this)
         .setTitle("Select Folder")
         .setItems(ccs, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which2) {
@@ -734,26 +786,34 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
     };
 
 	private void doComicPackImageSelect () {
-		imageSelector = new ImageSelect(getWindow().getContext(), packSelected, folderSelected, externalImages, new ImageSelect.BackPressedListener() {
+		if (imageSelector != null)
+			imageSelector.cleanUp();
+		imageSelector = new ImageSelect(this, packSelected, folderSelected, externalImages, new ImageSelect.BackPressedListener() {
 			
 			public void backPressed() {
 				doComicPackFolderSelect();
+//				packhandler.freeCache(packSelected, folderSelected);
 			}
-		});
+		}, packhandler);
 		imageSelector.showImageSelect(new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog,
                                                 int item) {
 //                                        Toast.makeText(getContext(), "You selected: " + item,Toast.LENGTH_LONG).show();
                                     dialog.dismiss();
                         			String fname = externalImages.get (packSelected).get(folderSelected).get (item).toString();
-                        			Bitmap id = PackHandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), fname);
-                        			if (id != null) {
-                        				mainView.addImageObject(id, -mainView.getmCanvasOffset().x, -mainView.getmCanvasOffset().y, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
+                        			Bitmap id = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), fname, getAssets());
+                        			Bitmap.Config conf = id.getConfig(); 
+                        			boolean rec = id.isRecycled();
+                        			if (conf == null)
+                        				conf = Bitmap.Config.ARGB_8888;
+                        			if (id != null && conf != null && !rec) {
+                        				mainView.addImageObject(id.copy (conf, false), -mainView.getmCanvasOffset().x, -mainView.getmCanvasOffset().y, 0.0f, 1.0f, 0, packSelected.toString(), folderSelected.toString(), fname);
                 						mainView.setmTouchMode(ComicEditor.TouchModes.HAND);
                         			}
                         			else {
-                        				Toast.makeText(getApplicationContext(), "Failed to add image!", Toast.LENGTH_LONG);
+                        				Toast.makeText(getApplicationContext(), "Failed to add image!", Toast.LENGTH_LONG).show ();
                         			}
+//                        			imageSelector.cleanUp();
                                 }
                         });
 	}

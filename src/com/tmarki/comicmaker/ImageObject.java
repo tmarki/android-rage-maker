@@ -35,6 +35,11 @@ public class ImageObject {
     static void setInteractiveMode (boolean rm) {
     	interactiveMode = rm;
     }
+    public void recycle () {
+        Log.w ("RAGE", "RECYCLE ImageObject at" + mPosition.toString());
+        if (!content.isRecycled())
+        	content.recycle();
+    }
     public boolean isInBack() {
 		return InBack;
 	}
@@ -82,7 +87,7 @@ public class ImageObject {
         filename = fil;
         pack = pac;
         folder = foldr;
-        Log.d ("RAGE", "Initialized ImageObject at" + mPosition.toString());
+        Log.w ("RAGE", "Initialized ImageObject at" + mPosition.toString());
     }
     
     private void imageSizeCheck () {

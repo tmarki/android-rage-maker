@@ -9,7 +9,7 @@ import android.graphics.drawable.Drawable;
 
 
 public class TextObject extends ImageObject {
-	private int textSize = 20;
+	private int textSize = 40;
 	private int textWidth = 0;
 	private int color = Color.BLACK;
 	private int typeface = 0;
@@ -62,6 +62,8 @@ public class TextObject extends ImageObject {
 		}
 		if (textWidth < 1)
 			textWidth = 1;
+		if (content != null)
+			content.recycle();
 		content = Bitmap.createBitmap(textWidth, textSize * (lines.length + 1), Bitmap.Config.ARGB_8888);
 		Canvas c = new Canvas (content);
 		c.drawARGB(0, 0, 0, 0);
@@ -161,14 +163,14 @@ public class TextObject extends ImageObject {
 		return tmptf;
 	}
 	
-	@Override
+/*	@Override
 	public void setScale(float Scale) {
 		if ((mScale - Scale) > 0 && textSize > 10)
-			textSize -= 1;
+			textSize -= 2;
 		else if((mScale - Scale) < 0 && textSize < 500) 
-			textSize += 1;
+			textSize += 2;
 		content = null;
-	}
+	}*/
 
 	public static String[] getTypefaceNames () {
 		String[] tmp = new String[3];

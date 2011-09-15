@@ -11,6 +11,8 @@
     </item>-->
     <item android:id="@+id/save"
           android:title="@string/save" />
+    <item android:id="@+id/objmenu"
+          android:title="Object menu" />
     <item android:id="@+id/redo"
           android:title="@string/redo" />
     <item android:id="@+id/pen_color"

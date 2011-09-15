@@ -11,6 +11,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnKeyListener;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -28,6 +29,7 @@ public class ImageSelect {
 	private Context context = null;
 	private CharSequence packSelected = "";
 	private CharSequence folderSelected = "";
+	private PackHandler packhandler = null;
 	Map<CharSequence, Map<CharSequence, Vector<String>>> externalImages = null;
     private Thread thread = new Thread ();
     private BackPressedListener backListener = null;
@@ -35,15 +37,16 @@ public class ImageSelect {
     	public void backPressed ();
     }
 	
-	public ImageSelect(Context c, CharSequence pack, CharSequence folder, Map<CharSequence, Map<CharSequence, Vector<String>>> externals, BackPressedListener bpl) {
+	public ImageSelect(Context c, CharSequence pack, CharSequence folder, Map<CharSequence, Map<CharSequence, Vector<String>>> externals, BackPressedListener bpl, PackHandler ph) {
 		context = c;
 		packSelected = pack;
 		folderSelected = folder;
 		externalImages = externals;
 		backListener = bpl;
+		packhandler = ph;
 	}
 	
-    class QueueItem {
+    static class QueueItem {
 		public String filename;
 		public ImageLoadedListener listener;
 	}	    
@@ -51,9 +54,9 @@ public class ImageSelect {
 		public void imageLoaded(String filename, SoftReference<BitmapDrawable> imageBitmap );
 	}
     Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> mExternalImages = null;
-    private final ArrayList<QueueItem> Queue = new ArrayList<QueueItem>();
+    private  final ArrayList<QueueItem> Queue = new ArrayList<QueueItem>();
     private QueueRunner runner = new QueueRunner();
-    private Map<String, SoftReference<BitmapDrawable>> drawableMap = new HashMap<String, SoftReference<BitmapDrawable>> ();
+    public Map<String, SoftReference<BitmapDrawable>> drawableMap = new HashMap<String, SoftReference<BitmapDrawable>> ();
 	private final Handler handler = new Handler();	// Assumes that this is started from the main (UI) thread
 	private Vector<ViewHolder> holders = new Vector<ViewHolder>();
 
@@ -68,16 +71,19 @@ public class ImageSelect {
 					if( drawableMap.containsKey(item.filename.toString()) && drawableMap.get(item.filename.toString()) != null) {
 						handler.post(new Runnable() {
 							public void run() {
-								if( item.listener != null ) {
+								if( item.listener != null) {
 									SoftReference<BitmapDrawable> ref = drawableMap.get(item.filename.toString());
-									if( ref != null ) {
+									if( ref != null && ref.get () != null && ref.get ().getBitmap() != null && !ref.get().getBitmap().isRecycled()) {
 										item.listener.imageLoaded(item.filename, ref);
 									}
 								}
 							}
 						});
 					} else {
-						final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(new BitmapDrawable (PackHandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename)));
+						Bitmap b = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename, context.getAssets());
+						if (b.isRecycled())
+							continue;
+						final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(new BitmapDrawable (b));
 						if( bmp != null ) {
 							handler.post(new Runnable() {
 								public void run() {
@@ -94,7 +100,7 @@ public class ImageSelect {
 			}
 		}
 	}
-    class ViewHolder {
+    static class ViewHolder {
         ImageView icon;
         TextView title;
 }
@@ -129,7 +135,7 @@ public class ImageSelect {
 		    	            holder.icon.setTag(R.id.filename, fn);
 		            }              
 		
-		            Drawable tile = null;
+		            BitmapDrawable tile = null;
 		            
 		            if (drawableMap.containsKey(fn)) {
 		            	tile = drawableMap.get(fn).get ();
@@ -140,7 +146,7 @@ public class ImageSelect {
 		            
 	            
 		            holder.title.setText(fn);
-		            if (tile != null)
+		            if (tile != null && tile.getBitmap() != null && !tile.getBitmap().isRecycled())
 		            	holder.icon.setImageDrawable(tile);
 		            else
 		            	holder.icon.setImageResource(R.drawable.loading);
@@ -195,7 +201,9 @@ public class ImageSelect {
 			
 			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
 				if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP && backListener != null) {
+					dialog.dismiss();
 					backListener.backPressed();
+//					cleanUp();
 				}
 				return false;
 			}
@@ -204,6 +212,12 @@ public class ImageSelect {
         alert.show();
 
 
+	}
+	
+	public void cleanUp () {
+		packhandler.freeCache(packSelected, folderSelected);
+		drawableMap.clear();
+		
 	}
 
 }

@@ -33,6 +33,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.net.Uri;
 import android.text.format.Time;
 
@@ -147,7 +148,7 @@ public class ComicEditor extends View {
     private int defaultFontType = 0;
     private boolean defaultBold = false;
     private boolean defaultItalic = false;
-    private int defaultFontSize = 24;
+    private int defaultFontSize = 48;
     private boolean drawGrid = true;
     private boolean wasMultiTouch = false;
 	private Time lastInvalidate = new Time ();
@@ -252,12 +253,14 @@ public class ComicEditor extends View {
 	}
 	
 	public void resetObjects () {
+		if (linesLayer != null)
+			linesLayer.recycle ();
+		linesLayer = null;
 		pushState ();
 		currentState.mDrawables.clear ();
 		currentState.mLinePaints.clear();
 		currentState.linePoints.clear ();
 		currentState.currentLinePoints = null;
-		linesLayer = null;
 	}
 	
     public int getCurrentStrokeWidth() {
@@ -318,6 +321,8 @@ public class ComicEditor extends View {
     }
 
     public void pureAddLine (float[] points, Paint paint){
+		if (linesLayer != null)
+			linesLayer.recycle ();
 		linesLayer = null;
     	currentState.linePoints.add (points);
 		currentState.mLinePaints.add(paint);
@@ -335,7 +340,7 @@ public class ComicEditor extends View {
 		AlertDialog alertDialog;
 		alertDialog = new AlertDialog.Builder(getContext()).create();
 		alertDialog.setTitle("Select layer");
-	    alertDialog.setMessage("Please select if you want to add the image in front or behind the draw canvas.\nNOTE: You can change this later by selecting the object and long tapping it to bring up the object manipulation menu.");
+	    alertDialog.setMessage("Please select if you want to add the image in front or behind the draw canvas.\nNOTE: You can change this later by selecting the object and long tapping it to bring up the object menu (also available as a menu option).");
 		alertDialog.setButton("To Front", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 		    	ImageObject z = addImageObjectDirect(dr, x, y, rot, scale, drawableId, pack, folder, file);
@@ -410,18 +415,27 @@ public class ComicEditor extends View {
     }
 
     private void drawLines (Canvas canvas) {
+    	drawLines (canvas, true);
+    }
+
+    private void drawLines (Canvas canvas, boolean useLineLayer) {
     	if (linesLayer == null) {
     		Canvas canv = canvas;
-    		try {
-    			linesLayer = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
-    			canv = new Canvas (linesLayer);
-        		canv.drawARGB(0, 0, 0, 0);
-    		}
-    		catch (Exception e) {
-    			
-    		}
-    		catch (OutOfMemoryError e) {
-    			linesLayer = null;
+    		if (useLineLayer == true) {
+	    		try {
+	    			linesLayer = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
+	    			canv = new Canvas (linesLayer);
+	        		canv.drawARGB(0, 0, 0, 0);
+	    		}
+	    		catch (Exception e) {
+	    			
+	    		}
+	    		catch (OutOfMemoryError e) {
+	    			Toast.makeText(getContext(), "Out of memory error!",Toast.LENGTH_SHORT).show();
+		    		if (linesLayer != null)
+		    			linesLayer.recycle ();
+	    			linesLayer = null;
+	    		}
     		}
 	    	for (int i = 0; i < currentState.linePoints.size(); ++i) {
 	    		float[] lp = currentState.linePoints.get (i);
@@ -469,17 +483,28 @@ public class ComicEditor extends View {
     
     public Bitmap getSaveBitmap () {
     	ImageObject.setInteractiveMode(false);
-    	Bitmap bmp = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
-    	Canvas canvas = new Canvas (bmp);
-        canvas.drawColor(Color.WHITE);
-        if (drawGrid)
-        	drawGridLines (canvas);
-        drawImages (canvas, true);
-        linesLayer = null;
-        drawLines (canvas);
-        linesLayer = null;
-        drawImages (canvas, false);
-    	return bmp;
+    	try {
+    		Bitmap bmp = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
+    		Canvas canvas = new Canvas (bmp);
+    		canvas.drawColor(Color.WHITE);
+    		if (drawGrid)
+    			drawGridLines (canvas);
+    		drawImages (canvas, true);
+    		if (linesLayer != null)
+    			linesLayer.recycle();
+    		linesLayer = null;
+    		drawLines (canvas, false);
+    		linesLayer = null;
+    		drawImages (canvas, false);
+        	return bmp;
+    	}
+		catch (Exception e) {
+			return null;
+		}
+		catch (OutOfMemoryError e) {
+			Toast.makeText(getContext(), "Out of memory error!",Toast.LENGTH_SHORT).show();
+			return null;
+		}
     }
 
     @Override 
@@ -624,6 +649,8 @@ public class ComicEditor extends View {
 	        	float newscale = mStartScale * scale;
 	        	if (newscale < CANVAS_SCALE_MAX && newscale > CANVAS_SCALE_MIN) {
 	        		mCanvasScale = newscale;
+	        		if (linesLayer != null)
+	        			linesLayer.recycle ();
 		        	linesLayer = null;
 		        	if (zoomChangeListener != null)
 		        		zoomChangeListener.ZoomChanged(newscale);
@@ -700,6 +727,8 @@ public class ComicEditor extends View {
 		        	}
 		        }
 		        if (!found)  {
+		    		if (linesLayer != null)
+		    			linesLayer.recycle ();
 		        	linesLayer = null;
 		        	if (((mCanvasOffset.x + diffX) < mCanvasLimits.left && diffX > 0)
 		        			|| (-(mCanvasOffset.x + diffX) + getWidth () / mCanvasScale <= mCanvasLimits.right) && diffX < 0) 
@@ -747,6 +776,8 @@ public class ComicEditor extends View {
 				currentState.mLinePaints.add (p);
 				currentState.currentLinePoints = null;
 			}
+    		if (linesLayer != null)
+    			linesLayer.recycle ();
 			linesLayer = null;
 		}
 		else if (event.getAction() == MotionEvent.ACTION_MOVE){
@@ -804,6 +835,7 @@ public class ComicEditor extends View {
 							io.setSelected(false);
 						}
 						to.setSelected(true);
+						to.setInBack(false);
 						currentState.mDrawables.add(to);
 						mTouchMode = TouchModes.HAND;
 						invalidate();
@@ -854,6 +886,8 @@ public class ComicEditor extends View {
 	public boolean popState () {
 		int pos = previousStates.size () - 1;
 		Log.d ("RAGE", "popState");
+		if (linesLayer != null)
+			linesLayer.recycle ();
 		linesLayer = null;
 		if (pos >= 0) {
 			poppedStates.add(new ComicState (currentState));
@@ -878,6 +912,8 @@ public class ComicEditor extends View {
 			previousStates.add (new ComicState(currentState));
 			currentState = new ComicState(poppedStates.get(pos));
 			poppedStates.removeElementAt(pos);
+    		if (linesLayer != null)
+    			linesLayer.recycle ();
 			linesLayer = null;
 			invalidate();
 			return true;
@@ -934,6 +970,8 @@ public class ComicEditor extends View {
         	float newscale = mCanvasScale + diff;
         	if (newscale < 5.0f && newscale > 0.2f) {
         		mCanvasScale = newscale;
+	    		if (linesLayer != null)
+	    			linesLayer.recycle ();
 	        	linesLayer = null;
 	        	if (zoomChangeListener != null)
 	        		zoomChangeListener.ZoomChanged(newscale);

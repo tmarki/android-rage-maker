@@ -16,19 +16,20 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 public class PackHandler {
 	
-	static private final String DEFAULT_COMIC_PACK = "default rage pack";
-	static private AssetManager assetMan = null;
-	static private Map<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>> bitmapCache = new HashMap<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>>();
-	static private Map<CharSequence, Bitmap> realFileCache = new HashMap<CharSequence, Bitmap>();
+	private final String DEFAULT_COMIC_PACK = "default rage pack";
+//	static private AssetManager assetMan = null;
+	private Map<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>> bitmapCache = new HashMap<CharSequence, Map<CharSequence, Map<CharSequence, Bitmap>>>();
+	private Map<CharSequence, Bitmap> realFileCache = new HashMap<CharSequence, Bitmap>();
 	
-	static public void setAssetManager (AssetManager am) {
+/*	static public void setAssetManager (AssetManager am) {
 		assetMan = am;
-	}
+	}*/
 	
-	static public Map<CharSequence, Map<CharSequence, Vector<String>>> getBundles (AssetManager am) {
+	public Map<CharSequence, Map<CharSequence, Vector<String>>> getBundles (AssetManager am) {
 		Map<CharSequence, Map<CharSequence, Vector<String>>> ret = new HashMap<CharSequence, Map<CharSequence, Vector<String>>>();
 	    String state = Environment.getExternalStorageState();
 	    if (Environment.MEDIA_MOUNTED.equals(state)) {
@@ -43,7 +44,6 @@ public class PackHandler {
 		try {
 		    Map<CharSequence, Vector<String>> imgs = getZipEntries(am.open(DEFAULT_COMIC_PACK));
 			ret.put(DEFAULT_COMIC_PACK, imgs);
-			assetMan = am;
 		} catch (IOException e) {
 			Log.d ("RAGE", e.getMessage());
 			e.printStackTrace();
@@ -61,7 +61,7 @@ public class PackHandler {
 		
 		return ret;
 	}
-	static private Map<CharSequence, Vector<String>> getZipEntries (InputStream is) throws IOException {
+	private Map<CharSequence, Vector<String>> getZipEntries (InputStream is) throws IOException {
     	Map<CharSequence, Vector<String>> imgs = new HashMap<CharSequence,Vector<String>>(); 
 		ZipInputStream zf = new ZipInputStream(is);
 		while (true) {
@@ -84,7 +84,7 @@ public class PackHandler {
 		return imgs;
 	}
 	@SuppressWarnings("rawtypes")
-	static private Map<CharSequence, Vector<String>> getZipEntries (String fname) {
+	private Map<CharSequence, Vector<String>> getZipEntries (String fname) {
     	Map<CharSequence, Vector<String>> imgs = new HashMap<CharSequence,Vector<String>>(); 
 		ZipFile zf = null;
 		try {
@@ -113,17 +113,17 @@ public class PackHandler {
 	    }
 		return imgs;
 	}
-	static public Bitmap getPackBitmap (String filename, String folder, String file) {
-		return getPackBitmap(filename, folder, file, 0);
+	public Bitmap getPackBitmap (String filename, String folder, String file, AssetManager am) {
+		return getPackBitmap(filename, folder, file, 0, am);
 	}
 	@SuppressWarnings("rawtypes")
-	static public Bitmap getPackBitmap (String filename, String folder, String file, int fixedHeight) {
+	public Bitmap getPackBitmap (String filename, String folder, String file, int fixedHeight, AssetManager am) {
 		if (bitmapCache.containsKey(filename) && bitmapCache.get(filename).containsKey(folder) 
 				&& bitmapCache.get(filename).get(folder).containsKey(file) && bitmapCache.get(filename).get(folder).get(file) != null) {
 			return bitmapCache.get(filename).get(folder).get(file);
 		}
 		if (filename == DEFAULT_COMIC_PACK)
-			return getDefaultPackDrawable(folder, file, fixedHeight);
+			return getDefaultPackDrawable(folder, file, fixedHeight, am);
 		ZipFile zf;
 		try {
 			zf = new ZipFile(Environment.getExternalStorageDirectory() + "/ComicMaker/" + filename);
@@ -148,11 +148,11 @@ public class PackHandler {
 		return null;
 	}
 
-	static public Bitmap getDefaultPackDrawable (String folder, String file, int fixedHeight) {
-		if (assetMan == null)
+	public Bitmap getDefaultPackDrawable (String folder, String file, int fixedHeight, AssetManager am) {
+		if (am == null)
 			return null;
 		try {
-			ZipInputStream zf = new ZipInputStream(assetMan.open(DEFAULT_COMIC_PACK));
+			ZipInputStream zf = new ZipInputStream(am.open(DEFAULT_COMIC_PACK));
 			while (true) {
 				  ZipEntry ze = zf.getNextEntry();
 				  if (ze == null) break;
@@ -175,7 +175,7 @@ public class PackHandler {
 		return null;
 	}
 	
-	static private void saveBitmapCache (String filename, String folder, String file, Bitmap b) {
+	void saveBitmapCache (String filename, String folder, String file, Bitmap b) {
 		if (!bitmapCache.containsKey(filename)) {
 			bitmapCache.put(filename, new HashMap<CharSequence, Map<CharSequence,Bitmap>>());
 		}
@@ -184,7 +184,7 @@ public class PackHandler {
 		}
 		bitmapCache.get(filename).get(folder).put (file, b);
 	}
-	static public Bitmap decodeFile(File f){
+	 public Bitmap decodeFile(File f){
 		if (realFileCache.containsKey(f.getAbsolutePath()) && realFileCache.get(f.getAbsolutePath()) != null)
 			return realFileCache.get(f.getAbsolutePath());
 	    Bitmap b = null;
@@ -220,7 +220,31 @@ public class PackHandler {
 	        b = BitmapFactory.decodeStream(f);
 	    } catch (Exception e) {
 	    	Log.d ("RAGE", e.toString ());
-	    }
+    	} catch (OutOfMemoryError e) {
+    		Log.d ("RAGE", e.toString ());
+    	}
 	    return b;
+	}
+	
+	public void freeCache (CharSequence pack, CharSequence folder) {
+		if (!bitmapCache.containsKey(pack) || !bitmapCache.get(pack).containsKey(folder))
+			return;
+		for (CharSequence i : bitmapCache.get(pack).get(folder).keySet()) {
+			bitmapCache.get(pack).get(folder).get (i).recycle();
+		}
+		bitmapCache.get(pack).get(folder).clear();
+		bitmapCache.get(pack).clear();
+	}
+
+	public void freeAllCache () {
+		for (CharSequence p : bitmapCache.keySet()) {
+			for (CharSequence f : bitmapCache.get(p).keySet()) {
+				freeCache (p, f);
+			}
+		}
+		for (CharSequence p : realFileCache.keySet()) {
+			realFileCache.get (p).recycle();
+		}
+		realFileCache.clear ();
 	}
 }
