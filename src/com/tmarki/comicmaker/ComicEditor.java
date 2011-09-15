@@ -681,6 +681,8 @@ public class ComicEditor extends View {
 			int selectedId = -1;
 			for (int i = currentState.mDrawables.size() - 1; i >= 0; --i) {
 				ImageObject io = currentState.mDrawables.elementAt(i);
+				if (io.isInBack())
+					continue;
 				if (io.pointIn ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
 	        		io.setSelected(!io.isSelected());
 	        		currentState.mDrawables.removeElementAt(i);
@@ -689,6 +691,19 @@ public class ComicEditor extends View {
 					break;
 				}
 			}
+			if (selectedId < 0)
+				for (int i = currentState.mDrawables.size() - 1; i >= 0; --i) {
+					ImageObject io = currentState.mDrawables.elementAt(i);
+					if (!io.isInBack())
+						continue;
+					if (io.pointIn ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
+		        		io.setSelected(!io.isSelected());
+		        		currentState.mDrawables.removeElementAt(i);
+		        		currentState.mDrawables.add(io);
+						selectedId = currentState.mDrawables.size() - 1;
+						break;
+					}
+				}
 	        for (int i = 0; i < currentState.mDrawables.size(); ++i) {
 				ImageObject io = currentState.mDrawables.elementAt(i);
 	        	if (io.isSelected() && i != selectedId)
