@@ -81,7 +81,7 @@ public class ImageSelect {
 						});
 					} else {
 						Bitmap b = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename, context.getAssets());
-						if (b.isRecycled())
+						if (b == null || b.isRecycled())
 							continue;
 						final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(new BitmapDrawable (b));
 						if( bmp != null ) {
