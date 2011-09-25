@@ -19,6 +19,7 @@ import android.app.Application;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -185,8 +186,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             loadExternalSources(savedInstanceState);
             setDetailTitle ();
         }
-        else
+        else {
         	readExternalFiles();
+        }
         for (ImageObject io : loadImagesFromBundle (savedInstanceState, "")) {
         	mainView.pureAddImageObject(io);
         }
@@ -577,6 +579,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 //						layout.removeView(adView);
 //						adView = null;
 			        	ed.putInt("ShowAd", 0);
+						Toast.makeText(mainView.getContext(), "Ads will be off when the app is restarted.", Toast.LENGTH_LONG).show();
 					}
 		        	ed.commit();
 					settings.dismiss();
@@ -802,8 +805,12 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
                                     dialog.dismiss();
                         			String fname = externalImages.get (packSelected).get(folderSelected).get (item).toString();
                         			Bitmap id = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), fname, getAssets());
-                        			Bitmap.Config conf = id.getConfig(); 
-                        			boolean rec = id.isRecycled();
+                        			boolean rec = true;
+                        			Bitmap.Config conf = null;
+                        			if (id != null) {
+                        				conf = id.getConfig();
+                        				rec = id.isRecycled();
+                        			}
                         			if (conf == null)
                         				conf = Bitmap.Config.ARGB_8888;
                         			if (id != null && conf != null && !rec) {
@@ -945,6 +952,13 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		mainView.setCanvasScale(zoom);
 		mainView.invalidate();
 		setDetailTitle();
+	}
+
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		int w = mainView.getWidth();
 	}
 
 }

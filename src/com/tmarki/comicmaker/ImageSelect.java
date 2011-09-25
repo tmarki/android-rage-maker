@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnKeyListener;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -80,18 +81,21 @@ public class ImageSelect {
 							}
 						});
 					} else {
-						Bitmap b = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename, context.getAssets());
-						if (b == null || b.isRecycled())
-							continue;
-						final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(new BitmapDrawable (b));
-						if( bmp != null ) {
-							handler.post(new Runnable() {
-								public void run() {
-									if( item.listener != null) {
-										item.listener.imageLoaded(item.filename, bmp);
+						Bitmap src = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename, context.getAssets());
+						if (src != null && src.getWidth() > 0 && src.getHeight() > 0) {
+							Bitmap b = src;//Bitmap.createScaledBitmap(src, 96 * src.getWidth() / src.getHeight(), 96, true);
+							if (b == null || b.isRecycled())
+								continue;
+							final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(new BitmapDrawable (b));
+							if( bmp != null ) {
+								handler.post(new Runnable() {
+									public void run() {
+										if( item.listener != null) {
+											item.listener.imageLoaded(item.filename, bmp);
+										}
 									}
-								}
-							});
+								});
+							}
 						}
 
 					}
@@ -216,6 +220,8 @@ public class ImageSelect {
 	
 	public void cleanUp () {
 		packhandler.freeCache(packSelected, folderSelected);
+		for (SoftReference<BitmapDrawable> bd : drawableMap.values()){
+		}
 		drawableMap.clear();
 		
 	}
