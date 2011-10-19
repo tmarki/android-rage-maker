@@ -14,6 +14,7 @@ import java.util.Vector;
 
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.content.DialogInterface.OnClickListener;
@@ -35,9 +36,11 @@ import android.graphics.drawable.GradientDrawable.Orientation;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Config;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.KeyEvent;
@@ -187,7 +190,11 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
             setDetailTitle ();
         }
         else {
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
         	readExternalFiles();
+        	if (metrics.widthPixels > mainView.getCanvasDimensions().width())
+        		mainView.setCanvasScale ((float)metrics.widthPixels / (float)mainView.getCanvasDimensions().width()); 
         }
         for (ImageObject io : loadImagesFromBundle (savedInstanceState, "")) {
         	mainView.pureAddImageObject(io);
@@ -483,6 +490,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+        ActivityManager am = (ActivityManager) this.getSystemService( ACTIVITY_SERVICE );
+        Log.d ("RAGE", "Memory: " + String.valueOf(am.getMemoryClass()));
+        int[] z = new int[1];
+        z[0] = android.os.Process.myPid();
+        Debug.MemoryInfo[] mis = am.getProcessMemoryInfo(z);
+        // Print to log and read in DDMS
+//        Log.i( "RAGE", " minfo.lowMemory " + mInfo.lowMemory );
+//        Log.i( "RAGE", " minfo.threshold " + mInfo.threshold );
 		switch (item.getItemId())
 		{
 		case R.id.about:

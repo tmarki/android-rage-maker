@@ -169,6 +169,11 @@ public class ComicEditor extends View {
         zoomChangeListener = zcl;
 
     }
+	
+	public Rect getCanvasDimensions () {
+		return mCanvasLimits;
+	}
+	
 	public float getCanvasScale () {
 		return mCanvasScale;
 	}
