@@ -690,9 +690,16 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				
 			}
 			java.io.File f = new java.io.File (folder);
-			if (!f.exists())
-				f.mkdirs();
-			String fullname = Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg";
+			String fullname;
+			try {
+				if (!f.exists()) {
+					f.mkdirs();
+				}
+				fullname = Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg";
+			}
+			catch (Exception e) {
+				fullname = Environment.getExternalStorageDirectory() + "/" + value + ".jpg";
+			}
 			File f2 = new File (fullname);//openFileOutput(fname, Context.MODE_PRIVATE);//new FileOutputStream(fullname);
 			FileOutputStream fos = new FileOutputStream(f2);
 			b.compress(CompressFormat.JPEG, 95, fos);
