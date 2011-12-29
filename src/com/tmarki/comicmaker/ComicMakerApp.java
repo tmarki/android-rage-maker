@@ -56,6 +56,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
+import com.flurry.android.FlurryAgent;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
@@ -650,6 +651,8 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			break;
 		case (R.id.exit):
 			finish ();
+			System.runFinalization();
+			System.exit(2);
 			break;
 		case (R.id.redo):
 			mainView.unpopState();
@@ -673,15 +676,17 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	}
 	
 	private void doSave (String fname, boolean doShare) {
-		String value = fname;
-		Bitmap b = mainView.getSaveBitmap();
-		if (b == null) {
-			CharSequence text = "Sorry, the comic could not be saved.";
-			Toast.makeText(this, text, Toast.LENGTH_LONG).show();
-			return;
-		}
 		CharSequence text = "Comic saved as ";
+		FlurryAgent.logEvent("Save start");
 		try {
+			String value = fname;
+			Bitmap b = mainView.getSaveBitmap();
+			if (b == null) {
+				text = "Sorry, the comic could not be saved: generated bitmap is null!";
+				Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+				FlurryAgent.logEvent("Save failed: null bitmap");
+				return;
+			}
 			String folder = Environment.getExternalStorageDirectory().toString() + "/Pictures";
 			try {
 				folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
@@ -700,10 +705,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			catch (Exception e) {
 				fullname = Environment.getExternalStorageDirectory() + "/" + value + ".jpg";
 			}
+			Map<String, String> hm = new HashMap<String, String> ();
+			hm.put("filename", fullname);
+			FlurryAgent.logEvent("Save image", hm);
 			File f2 = new File (fullname);//openFileOutput(fname, Context.MODE_PRIVATE);//new FileOutputStream(fullname);
 			FileOutputStream fos = new FileOutputStream(f2);
 			b.compress(CompressFormat.JPEG, 95, fos);
 			fos.close ();
+			FlurryAgent.logEvent("Save done");
 			String[] str = new String[1];
 			str[0] = fullname;
 			MediaScannerConnection.scanFile(this, str, null, null);
@@ -711,6 +720,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			lastSaveName = value;
 			setDetailTitle ();
 			if (doShare) {
+				FlurryAgent.logEvent("Share start");
 	            Intent share = new Intent(Intent.ACTION_SEND);
 	            share.setType("image/jpeg");
 	
@@ -718,11 +728,18 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	            share.putExtra(Intent.EXTRA_TITLE, value);
 	
 	            startActivity(Intent.createChooser(share, "Share Comic"));
+	    		FlurryAgent.logEvent("Share done");
 			}
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
+			Map<String, String> hm = new HashMap<String, String> ();
+			hm.put("text", e.toString());
+			FlurryAgent.logEvent("Save exception", hm);
 			e.printStackTrace();
 			text = "There was an error while saving the comic: " + e.toString();
-		} catch (IOException e) {
+		} catch (Error e) {
+			Map<String, String> hm = new HashMap<String, String> ();
+			hm.put("text", e.toString());
+			FlurryAgent.logEvent("Save error", hm);
 			e.printStackTrace();
 			text = "There was an error while saving the comic: " + e.toString();
 		}
@@ -863,7 +880,9 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				alertDialog.setMessage("Are you sure you want to exit?");
 				alertDialog.setButton("Yes", new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-						finish ();
+						finish();
+						System.runFinalization();
+						System.exit(2);
 					}
 				});
 				alertDialog.setButton2("No", new OnClickListener() {
@@ -981,6 +1000,20 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
 		int w = mainView.getWidth();
+	}
+
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		FlurryAgent.onStartSession(this, "HUEFXH162YB8H9SA9HYY");
+	}
+
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		FlurryAgent.onEndSession(this);
 	}
 
 }

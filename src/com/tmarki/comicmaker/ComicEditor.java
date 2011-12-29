@@ -506,8 +506,8 @@ public class ComicEditor extends View {
 		catch (Exception e) {
 			return null;
 		}
-		catch (OutOfMemoryError e) {
-			Toast.makeText(getContext(), "Out of memory error!",Toast.LENGTH_SHORT).show();
+		catch (Error e) {
+			Toast.makeText(getContext(), "Error: " + e.toString(),Toast.LENGTH_SHORT).show();
 			return null;
 		}
     }
