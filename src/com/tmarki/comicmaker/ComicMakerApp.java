@@ -153,14 +153,14 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         mPrefs = getSharedPreferences("RageComicMaker", 0);
         int showAd = mPrefs.getInt("ShowAd", -1);
         if (showAd == -1) { // never been set
-        	AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+/*        	AlertDialog alertDialog = new AlertDialog.Builder(this).create();
         	alertDialog.setTitle("Information");
         	alertDialog.setMessage("Rage Comic Maker is now ad supported.\nHowever, if you do not wish to support the developer, or you are offended by ads, you can turn them off in the Settings.");
         	alertDialog.setButton("I Understand", new DialogInterface.OnClickListener () {
 				public void onClick(DialogInterface dialog, int which) {
 					
 				}  });
-        	alertDialog.show();
+        	alertDialog.show();*/
         	showAd = 1;
         	SharedPreferences.Editor ed = mPrefs.edit();
         	ed.putInt("ShowAd", 1);
@@ -679,6 +679,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 		CharSequence text = "Comic saved as ";
 		FlurryAgent.logEvent("Save start");
 		try {
+			String ReservedChars = "|\\?*<\":>+[]/'";
+			for (char c : ReservedChars.toCharArray()) {
+				fname = fname.replace(c, '_');
+			}
 			String value = fname;
 			Bitmap b = mainView.getSaveBitmap();
 			if (b == null) {
@@ -691,7 +695,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 			try {
 				folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
 			}
-			catch (Exception e) {
+			catch (NoSuchFieldError e) {
 				
 			}
 			java.io.File f = new java.io.File (folder);
@@ -724,7 +728,7 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 	            Intent share = new Intent(Intent.ACTION_SEND);
 	            share.setType("image/jpeg");
 	
-	            share.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg"));
+	            share.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + fullname.replace(" ", "%20")));
 	            share.putExtra(Intent.EXTRA_TITLE, value);
 	
 	            startActivity(Intent.createChooser(share, "Share Comic"));
