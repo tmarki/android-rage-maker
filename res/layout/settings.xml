@@ -5,6 +5,6 @@
             <SeekBar android:layout_height="wrap_content" android:id="@+id/panelCount" android:layout_width="wrap_content" android:layout_gravity="center|fill" android:layout_weight="1"></SeekBar>
         </LinearLayout>
         <CheckBox android:id="@+id/drawGrid" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="Draw Grid"></CheckBox>
-        <CheckBox android:id="@+id/showAds" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Show Ads"></CheckBox>
+        <!-- <CheckBox android:id="@+id/showAds" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Show Ads"></CheckBox> -->
         <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/settingsOk" android:text="Apply"></Button>
     </TableLayout>

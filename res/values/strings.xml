@@ -37,5 +37,10 @@
     <string name="settings_bg_color_confirm">Use Color</string>
     <string name="settings_default_color_confirm">Use Previous</string>
     <string name="settings_bg_color_dialog">Select Color</string>
+    <string name="naggerquestion">You have been using this application for a while. Care to share your experiences by rating us at the Android Market?</string>
+    <string name="naggertitle">Please rate us!</string>
+    <string name="yes">Yes</string>
+    <string name="later">Later</string>
+    <string name="never">Never</string>
     
 </resources>

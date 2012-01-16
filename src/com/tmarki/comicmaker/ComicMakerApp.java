@@ -69,6 +69,7 @@ import com.tmarki.comicmaker.ComicEditor.TouchModes;
 import com.tmarki.comicmaker.WidthPicker.OnWidthChangedListener;
 import com.tmarki.comicmaker.ComicSettings;
 import com.tmarki.comicmaker.ZoomPicker.OnZoomChangedListener;
+import com.tmarki.comicmaker.CommentNagger;
 
 
 
@@ -222,6 +223,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         	}
         	mainView.pushHistory(cs);
         }
+		CommentNagger cn = new CommentNagger(this, mPrefs);
+		int c = mPrefs.getInt("runcount", 0);
+		if (!cn.wasDismissed() && c % 3 == 2)
+			cn.show();
         
         // add some test objects
         if (false && mainView.getImageObjects().size() == 0) {
@@ -266,6 +271,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
         }
       mainView.resetHistory();
       mainView.resetObjects();
+		SharedPreferences.Editor ed = mPrefs.edit ();
+		int c = mPrefs.getInt("runcount", 0);
+		ed.putInt("runcount", c + 1);
+		ed.commit();
 //    	packhandler.freeAllCache();
         super.onDestroy();
 //        mainView = null;
@@ -884,6 +893,10 @@ public class ComicMakerApp extends Activity implements ColorPickerDialog.OnColor
 				alertDialog.setMessage("Are you sure you want to exit?");
 				alertDialog.setButton("Yes", new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
+						SharedPreferences.Editor ed = mPrefs.edit ();
+						int c = mPrefs.getInt("runcount", 0);
+						ed.putInt("runcount", c + 1);
+						ed.commit();
 						finish();
 						System.runFinalization();
 						System.exit(2);
