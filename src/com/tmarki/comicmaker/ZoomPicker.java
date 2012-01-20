@@ -27,7 +27,7 @@ public class ZoomPicker extends Dialog implements Button.OnClickListener, SeekBa
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.zoompicker);
-        setTitle("Pick zoom level: " + String.format("%.0f", origZoom * 100) + "%  ");
+        setTitle(getContext().getResources().getString(R.string.select_zoom) + " " + String.format("%.0f", origZoom * 100) + "%  ");
         Button b = (Button)findViewById(R.id.zoom_ok);
         b.setOnClickListener(this);
 		SeekBar sb = (SeekBar)findViewById(R.id.zoom_bar);
@@ -41,7 +41,7 @@ public class ZoomPicker extends Dialog implements Button.OnClickListener, SeekBa
     }
 	public void onProgressChanged(SeekBar seekBar, int progress,
 			boolean fromUser) {
-        setTitle("Pick zoom level: " + String.format("%.0f", progress + ComicEditor.CANVAS_SCALE_MIN * 100.0f) + "%");
+        setTitle(getContext().getResources().getString(R.string.select_zoom) + " " + String.format("%.0f", progress + ComicEditor.CANVAS_SCALE_MIN * 100.0f) + "%");
 		
 	}
 	public void onStartTrackingTouch(SeekBar seekBar) {

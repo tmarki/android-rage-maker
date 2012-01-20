@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
     <TableLayout android:id="@+id/tableLayout1" android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="fill_parent">
-        <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/panelCountLabel" android:text="Panel Count: 5"></TextView>
+        <TextView android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/panelCountLabel" android:text="@+string/panel_count"></TextView>
         <LinearLayout android:layout_height="wrap_content" android:id="@+id/linearLayout1" android:layout_gravity="center|fill" android:gravity="fill" android:layout_width="fill_parent">
-            <SeekBar android:layout_height="wrap_content" android:id="@+id/panelCount" android:layout_width="wrap_content" android:layout_gravity="center|fill" android:layout_weight="1"></SeekBar>
+            <SeekBar android:layout_height="wrap_content" android:id="@+id/panelCount" android:layout_width="0dip" android:layout_gravity="center|fill" android:layout_weight="1"></SeekBar>
         </LinearLayout>
-        <CheckBox android:id="@+id/drawGrid" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="Draw Grid"></CheckBox>
+        <CheckBox android:id="@+id/drawGrid" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="@+string/draw_grid"></CheckBox>
         <!-- <CheckBox android:id="@+id/showAds" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Show Ads"></CheckBox> -->
-        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/settingsOk" android:text="Apply"></Button>
+        <Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/settingsOk" android:text="@+string/ok"></Button>
     </TableLayout>

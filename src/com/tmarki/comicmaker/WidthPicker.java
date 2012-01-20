@@ -26,7 +26,7 @@ public class WidthPicker extends Dialog implements Button.OnClickListener
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.picker);
-        setTitle("Pick a Width");
+        setTitle(R.string.select_width);
         Button b = (Button)findViewById(R.id.width_ok);
         b.setOnClickListener(this);
 		SeekBar sb = (SeekBar)findViewById(R.id.width_bar);

@@ -80,7 +80,7 @@ public class ImageSelect {
 								}
 							}
 						});
-					} else {
+					} else if (packhandler != null && packSelected != null && folderSelected != null) {
 						Bitmap src = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename, context.getAssets());
 						if (src != null && src.getWidth() > 0 && src.getHeight() > 0) {
 							Bitmap b = src;//Bitmap.createScaledBitmap(src, 96 * src.getWidth() / src.getHeight(), 96, true);

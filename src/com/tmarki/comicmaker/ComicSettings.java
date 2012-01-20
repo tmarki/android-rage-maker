@@ -33,7 +33,7 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setTitle("Comic Settings");
+		setTitle(R.string.settings_title);
         setContentView(R.layout.settings);
         SeekBar pc = (SeekBar)findViewById(R.id.panelCount);
         pc.setMax(maxPanelCount - 1);
@@ -42,8 +42,8 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
         setPCLabel(curPanelCount);
         CheckBox dg = (CheckBox)findViewById(R.id.drawGrid);
         dg.setChecked(curDrawGrid);
-        CheckBox dg2 = (CheckBox)findViewById(R.id.showAds);
-        dg2.setChecked(curShowAd);
+//        CheckBox dg2 = (CheckBox)findViewById(R.id.showAds);
+//        dg2.setChecked(curShowAd);
         Button ok = (Button)findViewById(R.id.settingsOk);
         ok.setOnClickListener(okListener);
         getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
@@ -56,12 +56,13 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 		return dg.isChecked(); 
 	}
 	public boolean getShowAd () {
-        CheckBox dg = (CheckBox)findViewById(R.id.showAds);
-		return dg.isChecked(); 
+//        CheckBox dg = (CheckBox)findViewById(R.id.showAds);
+//		return dg.isChecked();
+		return true;
 	}
 	private void setPCLabel (int val) {
 		TextView tv = (TextView)findViewById(R.id.panelCountLabel);
-		tv.setText("Panel Count: " + String.valueOf(val + 1));
+		tv.setText(getContext ().getResources ().getString (R.string.panel_count) + " " + String.valueOf(val + 1));
 		curPanelCount = val;
 	}
 	public void onProgressChanged(SeekBar seekBar, int progress,

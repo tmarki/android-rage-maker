@@ -4,6 +4,7 @@ package com.tmarki.comicmaker;
 import java.util.LinkedList;
 import java.util.Vector;
 
+import com.flurry.android.FlurryAgent;
 import com.tmarki.comicmaker.R;
 
 import android.app.AlertDialog;
@@ -344,15 +345,15 @@ public class ComicEditor extends View {
     private void addImageWithPrompt (final Bitmap dr, final int x, final int y, final float rot, final float scale, final int drawableId, final String pack, final String folder, final String file) {
 		AlertDialog alertDialog;
 		alertDialog = new AlertDialog.Builder(getContext()).create();
-		alertDialog.setTitle("Select layer");
-	    alertDialog.setMessage("Please select if you want to add the image in front or behind the draw canvas.\nNOTE: You can change this later by selecting the object and long tapping it to bring up the object menu (also available as a menu option).");
-		alertDialog.setButton("To Front", new DialogInterface.OnClickListener() {
+		alertDialog.setTitle(R.string.select_layer_title);
+	    alertDialog.setMessage(getResources ().getString (R.string.select_layer_message));
+		alertDialog.setButton(getResources ().getString (R.string.to_front), new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 		    	ImageObject z = addImageObjectDirect(dr, x, y, rot, scale, drawableId, pack, folder, file);
 		    	z.setInBack(false);
 			}
 		});
-		alertDialog.setButton2("To Background", new DialogInterface.OnClickListener() {
+		alertDialog.setButton2(getResources ().getString (R.string.to_back), new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 		    	ImageObject z = addImageObjectDirect(dr, x, y, rot, scale, drawableId, pack, folder, file);
 		    	z.setInBack(true);
@@ -467,14 +468,20 @@ public class ComicEditor extends View {
     
     private void drawModeIcon (Canvas canvas) {
     	Drawable dr;
-        if (mTouchMode == TouchModes.HAND)
-        	dr = getResources().getDrawable(R.drawable.hand);
-        else if (mTouchMode == TouchModes.PENCIL)
-        	dr = getResources().getDrawable(R.drawable.pencil);
-        else if (mTouchMode == TouchModes.LINE)
-        	dr = getResources().getDrawable(R.drawable.line);
-        else
-        	dr = getResources().getDrawable(R.drawable.text);
+    	try {
+    		if (mTouchMode == TouchModes.HAND)
+    			dr = getResources().getDrawable(R.drawable.hand);
+    		else if (mTouchMode == TouchModes.PENCIL)
+    			dr = getResources().getDrawable(R.drawable.pencil);
+    		else if (mTouchMode == TouchModes.LINE)
+    			dr = getResources().getDrawable(R.drawable.line);
+    		else
+    			dr = getResources().getDrawable(R.drawable.text);
+    	}
+    	catch (OutOfMemoryError e) {
+    		FlurryAgent.logEvent("Out of memory for drawModeIcon");
+    		return;
+    	}
         mModeIconSize = (getWidth() > getHeight () ? getWidth () : getHeight ()) / 8; 
         canvas.translate(getWidth() - mModeIconSize, getHeight() - mModeIconSize);
         dr.setBounds(0, 0, dr.getIntrinsicWidth(), dr.getIntrinsicHeight());
@@ -839,12 +846,12 @@ public class ComicEditor extends View {
 		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown == false && wasMultiTouch == false) {
 			AlertDialog.Builder alert = new AlertDialog.Builder(getContext ());
 
-			alert.setTitle("Enter the text");
+			alert.setTitle(R.string.enter_text);
 
 			final EditText input = new EditText(getContext());
 			alert.setView(input);
 
-			alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			alert.setPositiveButton(getResources ().getString (R.string.ok), new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
 					String value = input.getText().toString();
 					if (value.length() > 0 && value.replace("\n", "").replace(" ", "").length() > 0) {
@@ -863,7 +870,7 @@ public class ComicEditor extends View {
 			  }
 			});
 
-			alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			alert.setNegativeButton(getResources ().getString (R.string.cancel), new DialogInterface.OnClickListener() {
 			  public void onClick(DialogInterface dialog, int whichButton) {
 			  }
 			});

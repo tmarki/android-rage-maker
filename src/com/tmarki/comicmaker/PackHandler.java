@@ -230,7 +230,8 @@ public class PackHandler {
 		if (!bitmapCache.containsKey(pack) || !bitmapCache.get(pack).containsKey(folder))
 			return;
 		for (CharSequence i : bitmapCache.get(pack).get(folder).keySet()) {
-			bitmapCache.get(pack).get(folder).get (i).recycle();
+			if (bitmapCache.get(pack).get(folder).get (i) != null)
+				bitmapCache.get(pack).get(folder).get (i).recycle();
 		}
 		bitmapCache.get(pack).get(folder).clear();
 		bitmapCache.get(pack).clear();
