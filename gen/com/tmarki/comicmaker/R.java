@@ -138,6 +138,7 @@ public final class R {
         public static final int naggertitle=0x7f050042;
         public static final int never=0x7f050048;
         public static final int no=0x7f050044;
+        public static final int object_menu=0x7f050049;
         public static final int ok=0x7f050045;
         public static final int pack=0x7f05000a;
         public static final int panel_count=0x7f05000d;

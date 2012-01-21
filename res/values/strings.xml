@@ -73,5 +73,6 @@
     <string name="cancel">Cancel</string>
     <string name="later">Later</string>
     <string name="never">Never</string>
+    <string name="object_menu">Object Menu</string>
     
 </resources>
