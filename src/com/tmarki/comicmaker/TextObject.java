@@ -9,7 +9,7 @@ import android.graphics.drawable.Drawable;
 
 
 public class TextObject extends ImageObject {
-	private int textSize = 40;
+	private int textSize = 45;
 	private int textWidth = 0;
 	private int color = Color.BLACK;
 	private int typeface = 0;
@@ -47,8 +47,9 @@ public class TextObject extends ImageObject {
 		italic = other.italic;
 		regenerateBitmap ();
 	}
+	Paint p = new Paint();
 	public void regenerateBitmap () {
-		Paint p = new Paint();
+		p.setAntiAlias(true);
 		p.setTextSize(textSize);
 		p.setTypeface(getTypefaceObj());
     	p.setColor(color);

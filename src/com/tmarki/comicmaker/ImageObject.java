@@ -133,7 +133,9 @@ public class ImageObject {
     	mPosition.y += y;
     }
     
+	Paint paint = new Paint ();
     public void draw(Canvas canvas) {
+    	paint.setAntiAlias(true);
     	int sc = canvas.save();
     	try {
 	    	canvas.translate(mPosition.x, mPosition.y);
@@ -146,15 +148,15 @@ public class ImageObject {
 	        canvas.restoreToCount(sc2);
 	        if (mSelected && interactiveMode)
 	        {
-	        	Paint paint = new Paint ();
 	        	paint.setARGB(128, 128, 128, 128);
 	        	Rect imgrect = new Rect(-getWidth() / 2, -getHeight() / 2, getWidth() / 2, getHeight() / 2);
 	        	canvas.drawRect(imgrect, paint);
 	        	Rect resizerect = new Rect ();
 	        	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
 	        	paint.setARGB(255, 0, 0, 0);
-	        	if (!resizeMode)
-	        		paint.setStyle(Style.STROKE);
+	        	paint.setStyle(Style.FILL);
+/*	        	if (!resizeMode)
+	        		paint.setStyle(Style.STROKE);*/
 	        	paint.setStrokeWidth(2.0f);
 	        	canvas.drawRect(resizerect, paint);
 	        }
@@ -200,7 +202,7 @@ public class ImageObject {
 	}
 
 	public void setScale(float Scale) {
-		if (getWidth() * Scale >= resizeBoxSize && getHeight() * Scale >= resizeBoxSize)
+		if (getWidth() * Scale >= resizeBoxSize / 2 && getHeight() * Scale >= resizeBoxSize / 2)
 			this.mScale = Scale;
 	}
 

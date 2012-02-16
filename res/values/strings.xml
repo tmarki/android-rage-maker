@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, BlahGame!</string>
     <string name="app_name">Rage Maker</string>
     <string name="add">Add Image</string>
     <string name="add_pack">Add from image pack</string>
@@ -74,5 +73,10 @@
     <string name="later">Later</string>
     <string name="never">Never</string>
     <string name="object_menu">Object Menu</string>
+    <string name="built_in">Built-in rage faces</string>
+    <string name="orientation">Orientation</string>
+    <string name="rotate_auto">Automatic</string>
+    <string name="rotate_portrait">Portrait</string>
+    <string name="rotate_landscape">Landscape</string>
     
 </resources>

@@ -1,10 +1,13 @@
 package com.tmarki.comicmaker;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+
 
 
 import android.app.AlertDialog;
@@ -13,6 +16,8 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnKeyListener;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -31,21 +36,24 @@ public class ImageSelect {
 	private CharSequence packSelected = "";
 	private CharSequence folderSelected = "";
 	private PackHandler packhandler = null;
-	Map<CharSequence, Map<CharSequence, Vector<String>>> externalImages = null;
+	Map<CharSequence, Vector<String>> externalImages = null;
     private Thread thread = new Thread ();
     private BackPressedListener backListener = null;
     public interface BackPressedListener { 
     	public void backPressed ();
     }
+    final LayoutInflater mInflater;/* = (LayoutInflater) getContext()
+            .getSystemService(
+                            Context.LAYOUT_INFLATER_SERVICE);*/
 	
-	public ImageSelect(Context c, CharSequence pack, CharSequence folder, Map<CharSequence, Map<CharSequence, Vector<String>>> externals, BackPressedListener bpl, PackHandler ph) {
+	public ImageSelect(Context c, CharSequence pack, CharSequence folder, Map<CharSequence, Vector<String>> externals, BackPressedListener bpl, PackHandler ph) {
 		context = c;
 		packSelected = pack;
 		folderSelected = folder;
 		externalImages = externals;
 		backListener = bpl;
 		packhandler = ph;
-	}
+		mInflater = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	}
 	
     static class QueueItem {
 		public String filename;
@@ -81,7 +89,7 @@ public class ImageSelect {
 							}
 						});
 					} else if (packhandler != null && packSelected != null && folderSelected != null) {
-						Bitmap src = packhandler.getPackBitmap(packSelected.toString(), folderSelected.toString(), item.filename, context.getAssets());
+						Bitmap src = packhandler.getDefaultPackDrawable(folderSelected.toString(), item.filename, 0, context.getAssets());
 						if (src != null && src.getWidth() > 0 && src.getHeight() > 0) {
 							Bitmap b = src;//Bitmap.createScaledBitmap(src, 96 * src.getWidth() / src.getHeight(), 96, true);
 							if (b == null || b.isRecycled())
@@ -118,83 +126,28 @@ public class ImageSelect {
 		
 		    public View getView(int position, View convertView,
 		                    ViewGroup parent) {
-		    		String fn = imageNames[position];
-		            final LayoutInflater inflater = (LayoutInflater) getContext()
-		                            .getSystemService(
-		                                            Context.LAYOUT_INFLATER_SERVICE);
-		
-		            if (convertView == null) {
-		                    convertView = inflater.inflate(
-		                                    R.layout.image_select_row, null);
-		
-		                    holder = new ViewHolder();
-		                    holder.icon = (ImageView) convertView
-		                                    .findViewById(R.id.icon);
-		                    holder.title = (TextView) convertView
-		                                    .findViewById(R.id.title);
-		                    convertView.setTag(holder);
-		    	            holder.icon.setTag(R.id.filename, fn);
-		            } else {
-		                    holder = (ViewHolder) convertView.getTag();
-		    	            holder.icon.setTag(R.id.filename, fn);
-		            }              
-		
-		            BitmapDrawable tile = null;
-		            
-		            if (drawableMap.containsKey(fn)) {
-		            	tile = drawableMap.get(fn).get ();
-		            	if (tile == null) {
-		            		drawableMap.remove(fn);
-		            	}
-		            }
-		            
-	            
-		            holder.title.setText(fn);
-		            if (tile != null && tile.getBitmap() != null && !tile.getBitmap().isRecycled())
-		            	holder.icon.setImageDrawable(tile);
-		            else
-		            	holder.icon.setImageResource(R.drawable.loading);
-					if (!holders.contains(holder) || !drawableMap.containsKey(fn)) {
-						if (!holders.contains(holder))
-							holders.add(holder);
-				        QueueItem item = new QueueItem();
-						item.filename =fn;
-						item.listener = new ImageLoadedListener() {
-							public void imageLoaded(String ffn, SoftReference<BitmapDrawable> imageBitmap) {
-								if (imageBitmap.get() != null) {
-									drawableMap.put(ffn, imageBitmap);
-									ViewHolder h = null;
-									for (int i = 0; i < holders.size(); ++i) {
-										if ((String)holders.get (i).icon.getTag (R.id.filename) == ffn) {
-											h = holders.get (i);
-											break;
-										}
-									}
-									if (h != null) {
-										h.icon.setImageDrawable(imageBitmap.get());
-										h.icon.setAdjustViewBounds(true);
-									}
-								}
-								
-							}
-			
-						};
-						Queue.add(item);
-						if( thread.getState() == Thread.State.NEW) {
-							thread.start();
-						} else if( thread.getState() == Thread.State.TERMINATED) {
-							thread = new Thread(runner);
-							thread.start();
-						}	        
-					}
-		
-		            return convertView;
+				View row;
+				 
+				if (null == convertView) {
+					row = mInflater.inflate(R.layout.image_select_row, null);
+				} else {
+					row = convertView;
+				}
+		 
+				ImageView tv = (ImageView) row.findViewById(R.id.icon);
+				String filename = externalImages.get(folderSelected).get(position);
+				Bitmap bmp = packhandler.getDefaultPackDrawable(folderSelected.toString(), filename, 0, context.getAssets());
+				tv.setImageBitmap(bmp);
+				TextView title = (TextView) row
+                        .findViewById(R.id.title);
+				title.setText(filename.replace('_', ' ').replace (".png", "").replace(".jpg", ""));
+				return row;
 		    }
 		};	
 	}
 
 	public void showImageSelect (DialogInterface.OnClickListener ocl) {
-		Vector<String> sv = externalImages.get (packSelected).get(folderSelected);
+		Vector<String> sv = externalImages.get(folderSelected);
 		String[] s = new String[sv.size()];
 		sv.toArray(s);
 		makeImageSelectAdapter(s);
@@ -219,7 +172,6 @@ public class ImageSelect {
 	}
 	
 	public void cleanUp () {
-		packhandler.freeCache(packSelected, folderSelected);
 		for (SoftReference<BitmapDrawable> bd : drawableMap.values()){
 		}
 		drawableMap.clear();

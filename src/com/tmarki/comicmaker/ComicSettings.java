@@ -4,14 +4,19 @@ import com.tmarki.comicmaker.R;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.SeekBar;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 
 import android.app.Dialog;
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.widget.CheckBox;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
@@ -21,14 +26,16 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 	private int curPanelCount = 5;
 	private boolean curDrawGrid = true;
 	private boolean curShowAd = true;
+	private int orient = 0;
 	private View.OnClickListener okListener = null;
 
-	public ComicSettings(Context context, int startPanelCount, boolean startDrawGrid, boolean startShowAd, View.OnClickListener oklistener) {
+	public ComicSettings(Context context, int startPanelCount, boolean startDrawGrid, boolean startShowAd, int ori, View.OnClickListener oklistener) {
 		super(context);
 		curPanelCount = startPanelCount - 1;
 		curDrawGrid = startDrawGrid;
 		curShowAd = startShowAd;
 		okListener = oklistener;
+		orient = ori;
 	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +54,15 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
         Button ok = (Button)findViewById(R.id.settingsOk);
         ok.setOnClickListener(okListener);
         getWindow().setLayout(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+        Spinner sp = (Spinner)findViewById(R.id.orientSpin);
+        if (sp != null) {
+        	String[] ss = new String[3];
+        	ss[0] = getContext().getResources().getString(R.string.rotate_auto);
+        	ss[1] = getContext().getResources().getString(R.string.rotate_portrait);
+        	ss[2] = getContext().getResources().getString(R.string.rotate_landscape);
+        	sp.setAdapter(new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, ss));
+        }
+        setOrientation(orient);
 	}
 	public int getPanelCount () {
 		return curPanelCount + 1;
@@ -59,6 +75,24 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 //        CheckBox dg = (CheckBox)findViewById(R.id.showAds);
 //		return dg.isChecked();
 		return true;
+	}
+	public int getOrientation () {
+        Spinner sp = (Spinner)findViewById(R.id.orientSpin);
+        if (sp != null) {
+        	if (sp.getSelectedItem().equals(getContext().getResources().getString(R.string.rotate_auto)))
+        		return 0;
+        	else if (sp.getSelectedItem().equals(getContext().getResources().getString(R.string.rotate_portrait)))
+        		return 1;
+        	else if (sp.getSelectedItem().equals(getContext().getResources().getString(R.string.rotate_landscape)))
+        		return 2;
+        }
+        return 0;
+	}
+	private void setOrientation (int i) {
+        Spinner sp = (Spinner)findViewById(R.id.orientSpin);
+        if (sp != null) {
+        	sp.setSelection(i);
+        }
 	}
 	private void setPCLabel (int val) {
 		TextView tv = (TextView)findViewById(R.id.panelCountLabel);
