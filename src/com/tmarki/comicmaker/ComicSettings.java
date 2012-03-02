@@ -1,5 +1,7 @@
 package com.tmarki.comicmaker;
 
+import java.util.Arrays;
+
 import com.tmarki.comicmaker.R;
 
 import android.os.Bundle;
@@ -8,6 +10,7 @@ import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
@@ -26,15 +29,18 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
 	private int curPanelCount = 5;
 	private boolean curDrawGrid = true;
 	private boolean curShowAd = true;
+	private String curFormat = "JPG";
 	private int orient = 0;
 	private View.OnClickListener okListener = null;
+    String[] cs = { "JPG", "PNG" };
 
-	public ComicSettings(Context context, int startPanelCount, boolean startDrawGrid, boolean startShowAd, int ori, View.OnClickListener oklistener) {
+	public ComicSettings(Context context, int startPanelCount, boolean startDrawGrid, boolean startShowAd, int ori, String format, View.OnClickListener oklistener) {
 		super(context);
 		curPanelCount = startPanelCount - 1;
 		curDrawGrid = startDrawGrid;
 		curShowAd = startShowAd;
 		okListener = oklistener;
+		curFormat = format;
 		orient = ori;
 	}
 	@Override
@@ -63,6 +69,12 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
         	sp.setAdapter(new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, ss));
         }
         setOrientation(orient);
+        sp = (Spinner)findViewById(R.id.saveFormat);
+        if (sp != null) {
+    		ArrayAdapter<String> adapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, cs);
+    		sp.setAdapter(adapter);
+        }
+        setSaveFormat (curFormat);
 	}
 	public int getPanelCount () {
 		return curPanelCount + 1;
@@ -94,6 +106,29 @@ public class ComicSettings extends Dialog implements OnSeekBarChangeListener {
         	sp.setSelection(i);
         }
 	}
+	
+	public String getSaveFormat () {
+        Spinner sp = (Spinner)findViewById(R.id.saveFormat);
+        if (sp != null) {
+    		return sp.getSelectedItem().toString();
+        }
+        return "";
+	}
+	
+	private void setSaveFormat (String form) {
+        Spinner sp = (Spinner)findViewById(R.id.saveFormat);
+        if (sp != null) {
+        	int ind = 0;
+        	for (int i = 0; i < cs.length; ++i) {
+        		if (cs[i].equals (form)) {
+        			ind = i;
+        			break;
+        		}
+        	}
+        	sp.setSelection(ind);
+        }
+	}
+	
 	private void setPCLabel (int val) {
 		TextView tv = (TextView)findViewById(R.id.panelCountLabel);
 		tv.setText(getContext ().getResources ().getString (R.string.panel_count) + " " + String.valueOf(val + 1));

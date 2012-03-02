@@ -545,7 +545,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 			}
 			break;
 		case (R.id.settings):
-			settings = new ComicSettings (this, mainView.getPanelCount(), mainView.isDrawGrid(), adView != null, mPrefs.getInt("orient", 0), new View.OnClickListener() {
+			settings = new ComicSettings (this, mainView.getPanelCount(), mainView.isDrawGrid(), adView != null, mPrefs.getInt("orient", 0), mPrefs.getString("format", "JPG"), new View.OnClickListener() {
 
 				public void onClick(View v) {
 					mainView.setPanelCount(settings.getPanelCount ());
@@ -564,6 +564,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 						Toast.makeText(mainView.getContext(), "Ads will be off when the app is restarted.", Toast.LENGTH_LONG).show();
 					}
 					ed.putInt("orient", settings.getOrientation());
+					ed.putString("format", settings.getSaveFormat());
 		        	ed.commit();
 		        	setOrient ();
 					settings.dismiss();
@@ -674,30 +675,52 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 				FlurryAgent.logEvent("Save failed: null bitmap");
 				return;
 			}
-			String folder = Environment.getExternalStorageDirectory().toString() + "/Pictures";
+			File folder = getFilesDir();
+			if (externalStorageAvailable()) {
+				try {
+					folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+					if (!folder.exists() || !folder.canWrite()) {
+						folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+					}
+					if (!folder.exists() || !folder.canWrite()) {
+						folder = Environment.getExternalStorageDirectory();
+					}
+				}
+				catch (Exception e) {
+					folder = Environment.getExternalStorageDirectory();
+				}
+				catch (Error e) {
+					folder = Environment.getExternalStorageDirectory();
+				}
+				if (!folder.exists() || !folder.canWrite()) {
+					folder = getFilesDir();
+				}
+			}
+/*			String folder = Environment.getExternalStorageDirectory().toString() + "/Pictures";
 			try {
 				folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
 			}
 			catch (NoSuchFieldError e) {
 				
-			}
-			java.io.File f = new java.io.File (folder);
-			String fullname;
-			try {
-				if (!f.exists()) {
-					f.mkdirs();
-				}
-				fullname = Environment.getExternalStorageDirectory() + "/Pictures/" + value + ".jpg";
-			}
-			catch (Exception e) {
-				fullname = Environment.getExternalStorageDirectory() + "/" + value + ".jpg";
-			}
+			}*/
+			String ext = ".jpg";
+			if (mPrefs.getString("format", "JPG").equals("PNG"))
+				ext = ".png";
+			String fullname = folder.getAbsolutePath() + File.separator + value + ext;
 			Map<String, String> hm = new HashMap<String, String> ();
 			hm.put("filename", fullname);
 			FlurryAgent.logEvent("Save image", hm);
-			File f2 = new File (fullname);//openFileOutput(fname, Context.MODE_PRIVATE);//new FileOutputStream(fullname);
-			FileOutputStream fos = new FileOutputStream(f2);
-			b.compress(CompressFormat.JPEG, 95, fos);
+			FileOutputStream fos;
+			if (folder == getFilesDir())
+				fos = openFileOutput(value + ext, Context.MODE_WORLD_WRITEABLE);
+			else {
+				File f2 = new File (fullname);//openFileOutput(fname, Context.MODE_PRIVATE);//new FileOutputStream(fullname);
+				fos = new FileOutputStream(f2);
+			}
+			if (ext.equals(".png"))
+				b.compress(CompressFormat.PNG, 95, fos);
+			else
+				b.compress(CompressFormat.JPEG, 95, fos);
 			fos.close ();
 			FlurryAgent.logEvent("Save done");
 			String[] str = new String[1];
@@ -705,13 +728,16 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.FROYO){
 				MediaScannerConnection.scanFile(this, str, null, null);
 			}
-			text = text + value + ".jpg " + getResources ().getString (R.string.saved_end);;
+			text = text + value + ext + " " + getResources ().getString (R.string.saved_end);;
 			lastSaveName = value;
 			setDetailTitle ();
 			if (doShare) {
 				FlurryAgent.logEvent("Share start");
 	            Intent share = new Intent(Intent.ACTION_SEND);
-	            share.setType("image/jpeg");
+				if (ext.equals(".png"))
+					share.setType("image/png");
+				else
+					share.setType("image/jpeg");
 	
 	            share.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://" + fullname.replace(" ", "%20")));
 	            share.putExtra(Intent.EXTRA_TITLE, value);
@@ -734,6 +760,27 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 		}
 		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 	}
+
+	private boolean externalStorageAvailable () {
+		boolean mExternalStorageAvailable;
+		boolean mExternalStorageWriteable;
+		String state = Environment.getExternalStorageState();
+		
+		if (state.equals(Environment.MEDIA_MOUNTED)) {
+		    // We can read and write the media
+		    mExternalStorageAvailable = mExternalStorageWriteable = true;
+		} else if (state.equals (Environment.MEDIA_MOUNTED_READ_ONLY)) {
+		    // We can only read the media
+		    mExternalStorageAvailable = true;
+		    mExternalStorageWriteable = false;
+		} else {
+		    // Something else is wrong. It may be one of many other states, but all we need
+		    //  to know is we can neither read nor write
+		    mExternalStorageAvailable = mExternalStorageWriteable = false;
+		}		
+		return mExternalStorageAvailable && mExternalStorageWriteable;
+	}
+	
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {

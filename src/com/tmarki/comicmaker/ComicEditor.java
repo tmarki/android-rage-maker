@@ -509,9 +509,9 @@ public class ComicEditor extends View {
     		canvas.drawColor(Color.WHITE);
     		if (drawGrid)
     			drawGridLines (canvas);
-    		Bitmap qbmp = BitmapFactory.decodeResource(getResources(), R.drawable.qr);
+    		/*Bitmap qbmp = BitmapFactory.decodeResource(getResources(), R.drawable.qr);
     		canvas.drawBitmap (qbmp, canvas.getWidth() - qbmp.getWidth(), canvas.getHeight() - qbmp.getHeight(), p);
-    		qbmp.recycle();
+    		qbmp.recycle();*/
     		drawImages (canvas, true);
     		if (linesLayer != null)
     			linesLayer.recycle();

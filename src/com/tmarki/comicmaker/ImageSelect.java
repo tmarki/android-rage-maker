@@ -135,12 +135,15 @@ public class ImageSelect {
 				}
 		 
 				ImageView tv = (ImageView) row.findViewById(R.id.icon);
-				String filename = externalImages.get(folderSelected).get(position);
-				Bitmap bmp = packhandler.getDefaultPackDrawable(folderSelected.toString(), filename, 0, context.getAssets());
-				tv.setImageBitmap(bmp);
-				TextView title = (TextView) row
-                        .findViewById(R.id.title);
-				title.setText(filename.replace('_', ' ').replace (".png", "").replace(".jpg", ""));
+				if (tv != null) {
+					String filename = externalImages.get(folderSelected).get(position);
+					Bitmap bmp = packhandler.getDefaultPackDrawable(folderSelected.toString(), filename, 0, context.getAssets());
+					if (bmp != null)
+						tv.setImageBitmap(bmp);
+					TextView title = (TextView) row.findViewById(R.id.title);
+					if (title != null)
+						title.setText(filename.replace('_', ' ').replace (".png", "").replace(".jpg", ""));
+				}
 				return row;
 		    }
 		};	
