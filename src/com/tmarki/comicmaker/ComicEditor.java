@@ -71,8 +71,8 @@ public class ComicEditor extends View {
 	    public int currentColor = Color.BLACK;
 	};
 	
-	public enum TouchModes { HAND, LINE, PENCIL, TEXT };
-	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode" }; 
+	public enum TouchModes { HAND, LINE, PENCIL, TEXT, ERASER };
+	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode", "Eraser" }; 
 
 	ListAdapter modeAdapter = new ArrayAdapter<String>(
 	                getContext(), R.layout.mode_select_row, TMNames) {
@@ -115,6 +115,8 @@ public class ComicEditor extends View {
 	                	tile = getResources().getDrawable(R.drawable.pencil);
 	                else if (position == 3)
 	                	tile = getResources().getDrawable(R.drawable.text);
+	                else if (position == 4)
+	                	tile = getResources().getDrawable(R.drawable.hand);
 	               
 	                holder.title.setText(TMNames[position]);
 	                if (tile != null)
@@ -479,8 +481,10 @@ public class ComicEditor extends View {
     			dr = getResources().getDrawable(R.drawable.pencil);
     		else if (mTouchMode == TouchModes.LINE)
     			dr = getResources().getDrawable(R.drawable.line);
-    		else
+    		else if (mTouchMode == TouchModes.TEXT)
     			dr = getResources().getDrawable(R.drawable.text);
+    		else
+    			dr = getResources().getDrawable(R.drawable.hand);
     	}
     	catch (OutOfMemoryError e) {
     		FlurryAgent.logEvent("Out of memory for drawModeIcon");
@@ -573,6 +577,8 @@ public class ComicEditor extends View {
                                 		mTouchMode = TouchModes.PENCIL;
                                 	else if (item == 3)
                                 		mTouchMode = TouchModes.TEXT;
+                                	else if (item == 4)
+                                		mTouchMode = TouchModes.ERASER;
                                     dialog.dismiss();
                                     invalidate();
                                 }

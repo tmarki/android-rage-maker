@@ -870,21 +870,17 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
     };
 
 	private void doComicPackImageSelect () {
-		if (imageSelector != null)
-			imageSelector.cleanUp();
-		imageSelector = new ImageSelect(this, packSelected, folderSelected, packImages, new ImageSelect.BackPressedListener() {
+		imageSelector = new ImageSelect(this, folderSelected, packImages, new ImageSelect.BackPressedListener() {
 			
 			public void backPressed() {
 				doComicPackFolderSelect();
 //				packhandler.freeCache(packSelected, folderSelected);
 			}
 		}, packhandler);
-		imageSelector.showImageSelect(new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                                int item) {
-//                                        Toast.makeText(getContext(), "You selected: " + item,Toast.LENGTH_LONG).show();
-                                    dialog.dismiss();
-                        			String fname = packImages.get(folderSelected).get (item).toString();
+		imageSelector.clickListener = new AdapterView.OnItemClickListener() {
+								public void onItemClick(AdapterView<?> arg0,
+										View arg1, int arg2, long arg3) {
+                        			String fname = imageSelector.myStuff[arg2];//packImages.get(folderSelected).get (arg2).toString();
                         			Bitmap id = packhandler.getDefaultPackDrawable(folderSelected.toString(), fname, 0, getAssets());
                         			boolean rec = true;
                         			Bitmap.Config conf = null;
@@ -901,9 +897,10 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
                         			else {
                         				Toast.makeText(getApplicationContext(), R.string.error_adding_image, Toast.LENGTH_LONG).show ();
                         			}
-//                        			imageSelector.cleanUp();
-                                }
-                        });
+                        			imageSelector.dismiss();
+								}
+                        };
+        imageSelector.show();
 	}
 	
 

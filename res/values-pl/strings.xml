@@ -74,5 +74,11 @@
     <string name="later">Później</string>
     <string name="never">Nigdy</string>
     <string name="object_menu">Menu obiektów</string>
+    <string name="built_in">Wbudowane twarze</string>
+    <string name="orientation">Orientacja</string>
+    <string name="rotate_auto">Automatyczna</string>
+    <string name="rotate_portrait">Pionowa</string>
+    <string name="rotate_landscape">Pozioma</string>
+    <string name="saveformat">Format</string>
     
 </resources>

@@ -19,11 +19,13 @@ import android.util.Log;
 import android.widget.Toast;
 
 public class PackHandler {
-	
+	public static final String ALL_THE_FACES =  "--ALL THE FACES--";
 	private final String DEFAULT_COMIC_PACK = "Default pack";
+	private Map<CharSequence, Vector<String>> imgs;
 	
 	public Map<CharSequence, Vector<String>> getBundles (AssetManager am) {
-		Map<CharSequence, Vector<String>> imgs = new HashMap<CharSequence, Vector<String>>();
+		imgs = new HashMap<CharSequence, Vector<String>>();
+		imgs.put(ALL_THE_FACES, new Vector<String>());
 		try {
 			String[] nameList = am.list(DEFAULT_COMIC_PACK);
 			for (String folder : nameList) {
@@ -41,9 +43,22 @@ public class PackHandler {
 		return imgs;
 	}
 	public Bitmap getDefaultPackDrawable (String folder, String file, int fixedHeight, AssetManager am) {
-		if (am == null)
+		if (am == null || imgs == null)
 			return null;
 		try {
+			if (folder.equals(ALL_THE_FACES)) {
+//				String[] nameList = am.list(DEFAULT_COMIC_PACK);
+				folderloop:
+				for (CharSequence ff : imgs.keySet()) {
+//					String[] subNameList = am.list(DEFAULT_COMIC_PACK + "/" + ff);
+					for (String fn : imgs.get(ff)) {
+						if (fn.equals(file)) {
+							folder = ff.toString();
+							break folderloop;
+						}
+					}
+				}
+			}
 	    	InputStream is;
 			is = am.open(DEFAULT_COMIC_PACK + "/" + folder + "/" + file);
 			Bitmap bmp = BitmapFactory.decodeStream(is);

@@ -5,40 +5,52 @@ import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
 
 
+
+
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnKeyListener;
+import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class ImageSelect {
+public class ImageSelect extends Dialog {
 	private ListAdapter packImageSelectAdapter = null;
 	private Context context = null;
-	private CharSequence packSelected = "";
 	private CharSequence folderSelected = "";
 	private PackHandler packhandler = null;
 	Map<CharSequence, Vector<String>> externalImages = null;
-    private Thread thread = new Thread ();
     private BackPressedListener backListener = null;
+    public String[] myStuff;
+    public AdapterView.OnItemClickListener clickListener;
     public interface BackPressedListener { 
     	public void backPressed ();
     }
@@ -46,9 +58,9 @@ public class ImageSelect {
             .getSystemService(
                             Context.LAYOUT_INFLATER_SERVICE);*/
 	
-	public ImageSelect(Context c, CharSequence pack, CharSequence folder, Map<CharSequence, Vector<String>> externals, BackPressedListener bpl, PackHandler ph) {
+	public ImageSelect(Context c, CharSequence folder, Map<CharSequence, Vector<String>> externals, BackPressedListener bpl, PackHandler ph) {
+		super (c);
 		context = c;
-		packSelected = pack;
 		folderSelected = folder;
 		externalImages = externals;
 		backListener = bpl;
@@ -63,66 +75,13 @@ public class ImageSelect {
 		public void imageLoaded(String filename, SoftReference<BitmapDrawable> imageBitmap );
 	}
     Map<CharSequence, Map<CharSequence, Vector<CharSequence>>> mExternalImages = null;
-    private  final ArrayList<QueueItem> Queue = new ArrayList<QueueItem>();
-    private QueueRunner runner = new QueueRunner();
-    public Map<String, SoftReference<BitmapDrawable>> drawableMap = new HashMap<String, SoftReference<BitmapDrawable>> ();
-	private final Handler handler = new Handler();	// Assumes that this is started from the main (UI) thread
-	private Vector<ViewHolder> holders = new Vector<ViewHolder>();
-
-    class QueueRunner implements Runnable {
-		public void run() {
-			synchronized(this) {
-				while(Queue.size() > 0) {
-					final QueueItem item = Queue.remove(0);
-					if (item == null)
-						break;
-
-					if( drawableMap.containsKey(item.filename.toString()) && drawableMap.get(item.filename.toString()) != null) {
-						handler.post(new Runnable() {
-							public void run() {
-								if( item.listener != null) {
-									SoftReference<BitmapDrawable> ref = drawableMap.get(item.filename.toString());
-									if( ref != null && ref.get () != null && ref.get ().getBitmap() != null && !ref.get().getBitmap().isRecycled()) {
-										item.listener.imageLoaded(item.filename, ref);
-									}
-								}
-							}
-						});
-					} else if (packhandler != null && packSelected != null && folderSelected != null) {
-						Bitmap src = packhandler.getDefaultPackDrawable(folderSelected.toString(), item.filename, 0, context.getAssets());
-						if (src != null && src.getWidth() > 0 && src.getHeight() > 0) {
-							Bitmap b = src;//Bitmap.createScaledBitmap(src, 96 * src.getWidth() / src.getHeight(), 96, true);
-							if (b == null || b.isRecycled())
-								continue;
-							final SoftReference<BitmapDrawable> bmp = new SoftReference<BitmapDrawable>(new BitmapDrawable (b));
-							if( bmp != null ) {
-								handler.post(new Runnable() {
-									public void run() {
-										if( item.listener != null) {
-											item.listener.imageLoaded(item.filename, bmp);
-										}
-									}
-								});
-							}
-						}
-
-					}
-
-				}
-			}
-		}
-	}
-    static class ViewHolder {
-        ImageView icon;
-        TextView title;
-}
 
 	private void makeImageSelectAdapter (final String[] imageNames) {
 
+		myStuff = imageNames;
 		packImageSelectAdapter = new ArrayAdapter<String>(
 				context, R.layout.image_select_row, imageNames) {
            
-		    ViewHolder holder;
 		
 		    public View getView(int position, View convertView,
 		                    ViewGroup parent) {
@@ -136,7 +95,7 @@ public class ImageSelect {
 		 
 				ImageView tv = (ImageView) row.findViewById(R.id.icon);
 				if (tv != null) {
-					String filename = externalImages.get(folderSelected).get(position);
+					String filename = imageNames[position];
 					Bitmap bmp = packhandler.getDefaultPackDrawable(folderSelected.toString(), filename, 0, context.getAssets());
 					if (bmp != null)
 						tv.setImageBitmap(bmp);
@@ -148,37 +107,108 @@ public class ImageSelect {
 		    }
 		};	
 	}
+	
 
-	public void showImageSelect (DialogInterface.OnClickListener ocl) {
-		Vector<String> sv = externalImages.get(folderSelected);
-		String[] s = new String[sv.size()];
-		sv.toArray(s);
-		makeImageSelectAdapter(s);
-	    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(context.getResources().getString(R.string.image_select_title));
-        builder.setAdapter(packImageSelectAdapter, ocl);
-        builder.setOnKeyListener(new OnKeyListener() {
-			
-			public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-				if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP && backListener != null) {
-					dialog.dismiss();
-					backListener.backPressed();
-//					cleanUp();
+	String[] filterMemes (String filt) {
+		if (!folderSelected.equals(PackHandler.ALL_THE_FACES)) {
+			List<String> sv = externalImages.get(folderSelected);
+			if (filt.length() > 0) {
+				boolean done = false;
+				while (!done) {
+					done = true;
+					for (String ss : sv) {
+						if (!ss.toLowerCase().contains(filt)) {
+							sv.remove(ss);
+							done = false;
+							break;
+						}
+					}
 				}
-				return false;
 			}
-		});
-        AlertDialog alert = builder.create();
-        alert.show();
-
-
+			if (sv.size () > 0) {
+				String[] s = new String[sv.size()];
+				sv.toArray(s);
+				return s;
+			}
+		}
+		else {
+			int ALL_LIMIT = 10000;
+			int cnt = 0;
+			outerloop:
+			for (CharSequence fold : externalImages.keySet()) {
+				for (String s : externalImages.get(fold)) {
+					if (filt.length() == 0 || s.toLowerCase().contains(filt))
+						cnt += 1;
+					if (cnt >= ALL_LIMIT)
+						break outerloop;
+				}
+			}
+			if (cnt > 0) {
+				String[] ret = new String[cnt];
+				cnt = 0;
+				outerloop:
+				for (CharSequence fold : externalImages.keySet()) {
+					for (String s : externalImages.get(fold)) {
+						if (filt.length() == 0 || s.toLowerCase().contains(filt)) {
+							ret[cnt] = s;
+							cnt += 1;
+						}
+						if (cnt >= ALL_LIMIT)
+							break outerloop;
+					}
+				}
+				return ret;
+			}
+/*			sv = new Vector<String>();
+			for (CharSequence cs : externalImages.keySet()) {
+				if (cs.equals(folderSelected)) continue;
+				sv.addAll(externalImages.get(cs));
+			}
+			if (folderSelected.equals("--ALL--") && sv.size() > 50)
+				sv = sv.subList(0, 50);*/
+		}
+		return null;
 	}
 	
-	public void cleanUp () {
-		for (SoftReference<BitmapDrawable> bd : drawableMap.values()){
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.imageselect);
+		setTitle(R.string.image_select_title);
+		String[] s = filterMemes ("");
+		final ListView lv = (ListView)findViewById(R.id.imageList);
+		if (s != null/* && !folderSelected.equals("--ALL--")*/) {
+			makeImageSelectAdapter(s);
+			if (lv != null) {
+				lv.setAdapter(packImageSelectAdapter);
+				if (clickListener != null)
+					lv.setOnItemClickListener(clickListener);
+	/*			String[] filt = filteredMemes (sharedPref.getString("filter", ""));
+				if (filt != null)
+					setupMemes (lv, filt);*/
+			}
 		}
-		drawableMap.clear();
-		
-	}
+		EditText et = (EditText)findViewById(R.id.searchText);
+		et.addTextChangedListener(new TextWatcher() {
+			public void afterTextChanged(Editable s) {
+			}
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+			}
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
+				String str = s.toString();
+				String[] filtered = filterMemes(str);
+				if (filtered != null) {
+					makeImageSelectAdapter(filtered);
+					lv.setAdapter(packImageSelectAdapter);
+				}
+				else if (packImageSelectAdapter != null) {
+					lv.setAdapter(null);
+				}
+			}
+		});
+}
+	
 
 }
