@@ -56,13 +56,23 @@ public class ColorPickerDialog extends Dialog {
 
 	    private int button1Left = 5;
 	    private int button1Top = 205;
-	    private int button1Right = 90;
+	    private int button1Right = 45;
 	    private int button1Bottom = 250;
 
-	    private int button2Left = 95;
+	    private int button2Left = 50;
 	    private int button2Top = 205;
-	    private int button2Right = 200;
+	    private int button2Right = 90;
 	    private int button2Bottom = 250;
+
+	    private int button3Left = 95;
+	    private int button3Top = 205;
+	    private int button3Right = 135;
+	    private int button3Bottom = 250;
+
+	    private int button4Left = 140;
+	    private int button4Top = 205;
+	    private int button4Right = 180;
+	    private int button4Bottom = 250;
 
 		ColorPickerView(Context c, OnColorChangedListener l, int color, int defaultColor) {
 			super(c);
@@ -129,13 +139,15 @@ public class ColorPickerDialog extends Dialog {
 			hueBarRight = getWidth() - hueBarLeft * 2;
 			mainFieldRight = getWidth() - mainFieldLeft * 2;
 			int bh = button1Bottom - button1Top;
-			button1Top = getHeight() - bh - hueBarLeft;
-			button1Right = getWidth() / 2 - button1Left;
-			button2Top = getHeight() - bh - button1Left;
-			button2Left = getWidth() / 2;
+			button1Top =button4Top = button3Top = button2Top = getHeight() - bh - hueBarLeft;
+			button4Bottom = button3Bottom = button1Bottom = button2Bottom = button1Top + bh;
+			button1Right = getWidth() / 4- button1Left;
+			button2Left = getWidth() / 4;
 			button2Right = button2Left + button1Right - button1Left;
-			button1Bottom = button1Top + bh;
-			button2Bottom = button2Top + bh;
+			button3Left = getWidth () / 2;
+			button3Right = button3Left + button1Right - button1Left;
+			button4Left = 3 * getWidth () / 4;
+			button4Right = button4Left + button1Right - button1Left;
 			mainFieldBottom = getHeight() - bh - hueBarLeft;
 			
 			for (int x=hueBarLeft; x<hueBarRight; x++)
@@ -199,7 +211,21 @@ public class ColorPickerDialog extends Dialog {
 			else
 				mPaint.setColor(Color.BLACK);
 			canvas.drawText(getResources().getString(R.string.settings_default_color_confirm), button2Left + (button2Right - button2Left) / 2, button2Top + (button2Bottom - button2Top) / 2, mPaint);
-		}
+
+			// Draw a 'button' with black
+			mPaint.setStyle(Paint.Style.FILL);
+			mPaint.setColor(Color.BLACK);
+			canvas.drawRect(button3Left, button3Top, button3Right, button3Bottom, mPaint);
+			mPaint.setColor(Color.WHITE);
+			canvas.drawText(getResources().getString(R.string.black), button3Left + (button3Right - button3Left) / 2, button3Top + (button3Bottom - button3Top) / 2, mPaint);
+
+			// Draw a 'button' with white
+			mPaint.setStyle(Paint.Style.FILL);
+			mPaint.setColor(Color.WHITE);
+			canvas.drawRect(button4Left, button4Top, button4Right, button4Bottom, mPaint);
+			mPaint.setColor(Color.BLACK);
+			canvas.drawText(getResources().getString(R.string.white), button4Left + (button4Right - button4Left) / 2, button4Top + (button4Bottom - button4Top) / 2, mPaint);
+}
 
 		@Override
 		public boolean onTouchEvent(MotionEvent event) {
@@ -232,6 +258,12 @@ public class ColorPickerDialog extends Dialog {
 			// If the touch event is located in the right button, notify the listener with the default color
 			if (x > button2Left && x < button2Right && y > button2Top && y < button2Bottom)
 				mListener.colorChanged("", mDefaultColor);
+
+			if (x > button3Left && x < button3Right && y > button3Top && y < button3Bottom)
+				mListener.colorChanged("", Color.BLACK);
+			
+			if (x > button4Left && x < button4Right && y > button4Top && y < button4Bottom)
+				mListener.colorChanged("", Color.WHITE);
 
 			return true;
 		}

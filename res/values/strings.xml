@@ -79,5 +79,7 @@
     <string name="rotate_portrait">Portrait</string>
     <string name="rotate_landscape">Landscape</string>
     <string name="saveformat">Save format</string>
+    <string name="black">Black</string>
+    <string name="white">White</string>
     
 </resources>

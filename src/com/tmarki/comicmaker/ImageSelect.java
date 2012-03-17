@@ -101,7 +101,7 @@ public class ImageSelect extends Dialog {
 						tv.setImageBitmap(bmp);
 					TextView title = (TextView) row.findViewById(R.id.title);
 					if (title != null)
-						title.setText(filename.replace('_', ' ').replace (".png", "").replace(".jpg", ""));
+						title.setText(filename.replace('-', ' ').replace('_', ' ').replace (".png", "").replace(".jpg", ""));
 				}
 				return row;
 		    }

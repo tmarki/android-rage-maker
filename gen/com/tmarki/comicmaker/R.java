@@ -12,32 +12,33 @@ public final class R {
     }
     public static final class drawable {
         public static final int awesome=0x7f020000;
-        public static final int hand=0x7f020001;
-        public static final int ic_menu_refresh=0x7f020002;
-        public static final int icon=0x7f020003;
-        public static final int line=0x7f020004;
-        public static final int loading=0x7f020005;
-        public static final int pencil=0x7f020006;
-        public static final int qr=0x7f020007;
-        public static final int text=0x7f020008;
-        public static final int timepicker_down_btn=0x7f020009;
-        public static final int timepicker_down_disabled=0x7f02000a;
-        public static final int timepicker_down_disabled_focused=0x7f02000b;
-        public static final int timepicker_down_normal=0x7f02000c;
-        public static final int timepicker_down_pressed=0x7f02000d;
-        public static final int timepicker_down_selected=0x7f02000e;
-        public static final int timepicker_input=0x7f02000f;
-        public static final int timepicker_input_disabled=0x7f020010;
-        public static final int timepicker_input_normal=0x7f020011;
-        public static final int timepicker_input_pressed=0x7f020012;
-        public static final int timepicker_input_selected=0x7f020013;
-        public static final int timepicker_up_btn=0x7f020014;
-        public static final int timepicker_up_disabled=0x7f020015;
-        public static final int timepicker_up_disabled_focused=0x7f020016;
-        public static final int timepicker_up_normal=0x7f020017;
-        public static final int timepicker_up_pressed=0x7f020018;
-        public static final int timepicker_up_selected=0x7f020019;
-        public static final int trollface=0x7f02001a;
+        public static final int eraser=0x7f020001;
+        public static final int hand=0x7f020002;
+        public static final int ic_menu_refresh=0x7f020003;
+        public static final int icon=0x7f020004;
+        public static final int line=0x7f020005;
+        public static final int loading=0x7f020006;
+        public static final int pencil=0x7f020007;
+        public static final int qr=0x7f020008;
+        public static final int text=0x7f020009;
+        public static final int timepicker_down_btn=0x7f02000a;
+        public static final int timepicker_down_disabled=0x7f02000b;
+        public static final int timepicker_down_disabled_focused=0x7f02000c;
+        public static final int timepicker_down_normal=0x7f02000d;
+        public static final int timepicker_down_pressed=0x7f02000e;
+        public static final int timepicker_down_selected=0x7f02000f;
+        public static final int timepicker_input=0x7f020010;
+        public static final int timepicker_input_disabled=0x7f020011;
+        public static final int timepicker_input_normal=0x7f020012;
+        public static final int timepicker_input_pressed=0x7f020013;
+        public static final int timepicker_input_selected=0x7f020014;
+        public static final int timepicker_up_btn=0x7f020015;
+        public static final int timepicker_up_disabled=0x7f020016;
+        public static final int timepicker_up_disabled_focused=0x7f020017;
+        public static final int timepicker_up_normal=0x7f020018;
+        public static final int timepicker_up_pressed=0x7f020019;
+        public static final int timepicker_up_selected=0x7f02001a;
+        public static final int trollface=0x7f02001b;
     }
     public static final class id {
         public static final int about=0x7f04002e;
@@ -113,6 +114,7 @@ public final class R {
         public static final int add_other=0x7f050003;
         public static final int add_pack=0x7f050002;
         public static final int app_name=0x7f050000;
+        public static final int black=0x7f05004f;
         public static final int bold=0x7f050020;
         public static final int built_in=0x7f050049;
         public static final int cancel=0x7f050045;
@@ -129,7 +131,7 @@ public final class R {
         public static final int exit=0x7f050006;
         public static final int flipH=0x7f050023;
         public static final int flipV=0x7f050022;
-        public static final int hello=0x7f05004f;
+        public static final int hello=0x7f050051;
         public static final int home_page=0x7f05002a;
         public static final int image_select_title=0x7f050017;
         public static final int italic=0x7f050021;
@@ -184,6 +186,7 @@ public final class R {
         public static final int to_front=0x7f050035;
         public static final int toback=0x7f050018;
         public static final int tofront=0x7f050019;
+        public static final int white=0x7f050050;
         public static final int yes=0x7f050042;
         public static final int zoom=0x7f05000e;
     }

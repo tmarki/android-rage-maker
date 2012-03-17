@@ -33,6 +33,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.hardware.Camera.Size;
 import android.media.MediaScannerConnection;
@@ -395,6 +397,8 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
     	Paint pp = new Paint ();
     	pp.setStrokeWidth(savedInstanceState.getFloat(String.format(tag + "line%dstroke", lineInd)));
     	pp.setColor(savedInstanceState.getInt(String.format(tag + "line%dcolor", lineInd)));
+    	if (pp.getAlpha() == 0)
+    		pp.setXfermode(mainView.transparentXfer);
     	return pp;
     }
 
@@ -479,7 +483,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 			catch (NameNotFoundException nof) {
 				
 			}
-		    alertDialog.setMessage("Rage Comic Maker v"+versionname+"\nfor Android\n\n(c) 2011 Tamas Marki\n" + getResources().getString(R.string.abouttext));
+		    alertDialog.setMessage("Rage Comic Maker v"+versionname+"\nfor Android\n\n(c) 2011-2012 Tamas Marki\n" + getResources().getString(R.string.abouttext));
 			alertDialog.setButton(getResources().getString(R.string.home_page), new OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					String url = "http://code.google.com/p/android-rage-maker/";
@@ -944,7 +948,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		menu.findItem(R.id.pen_color).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL || mainView.getmTouchMode() == TouchModes.LINE);
-		menu.findItem(R.id.pen_width).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL || mainView.getmTouchMode() == TouchModes.LINE);
+		menu.findItem(R.id.pen_width).setVisible(mainView.getmTouchMode() == TouchModes.PENCIL || mainView.getmTouchMode() == TouchModes.LINE || mainView.getmTouchMode() == TouchModes.ERASER);
 		menu.findItem(R.id.text_color).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
 		menu.findItem(R.id.text_type).setVisible(mainView.getmTouchMode() == TouchModes.TEXT);
 		menu.findItem(R.id.redo).setVisible(mainView.isRedoAvailable());

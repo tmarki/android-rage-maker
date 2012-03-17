@@ -18,9 +18,16 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
+import android.graphics.DrawFilter;
+import android.graphics.MaskFilter;
 import android.graphics.Paint;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Xfermode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
@@ -72,6 +79,7 @@ public class ComicEditor extends View {
 	};
 	
 	public enum TouchModes { HAND, LINE, PENCIL, TEXT, ERASER };
+	public PorterDuffXfermode transparentXfer = new PorterDuffXfermode(Mode.SRC);
 	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode", "Eraser" }; 
 
 	ListAdapter modeAdapter = new ArrayAdapter<String>(
@@ -116,7 +124,7 @@ public class ComicEditor extends View {
 	                else if (position == 3)
 	                	tile = getResources().getDrawable(R.drawable.text);
 	                else if (position == 4)
-	                	tile = getResources().getDrawable(R.drawable.hand);
+	                	tile = getResources().getDrawable(R.drawable.eraser);
 	               
 	                holder.title.setText(TMNames[position]);
 	                if (tile != null)
@@ -428,11 +436,12 @@ public class ComicEditor extends View {
     	drawLines (canvas, true);
     }
 
-	Paint p = new Paint ();
+	Paint paint = new Paint ();
+	Paint erasePaint = new Paint ();
     private void drawLines (Canvas canvas, boolean useLineLayer) {
     	if (linesLayer == null) {
     		Canvas canv = canvas;
-    		if (useLineLayer == true) {
+    		if (useLineLayer) {
 	    		try {
 	    			linesLayer = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
 	    			canv = new Canvas (linesLayer);
@@ -451,7 +460,6 @@ public class ComicEditor extends View {
 	    	for (int i = 0; i < currentState.linePoints.size(); ++i) {
 	    		float[] lp = currentState.linePoints.get (i);
 	    		Paint p = currentState.mLinePaints.get (i);
-	    		p.setAntiAlias(true);
 	    		canv.drawLines(lp, p);
 	    		for (int j = 0; j < lp.length; j += 4) {
 	    			canv.drawCircle(lp[j], lp[j + 1], p.getStrokeWidth() / 2.0f, p);
@@ -459,17 +467,33 @@ public class ComicEditor extends View {
     			canv.drawCircle(lp[lp.length - 2], lp[lp.length - 1], p.getStrokeWidth() / 2.0f, p);
 	    	}
     	}
-//		p.setAntiAlias(true);
-		p.setColor(this.currentState.currentColor);
-		p.setStrokeWidth(currentStrokeWidth);
-		if (linesLayer != null)
-			canvas.drawBitmap(linesLayer, 0, 0, p);
-    	if (currentState.currentLinePoints == null)  return;
-    	canvas.drawLines(currentState.currentLinePoints, p);
-		for (int j = 0; j < currentState.currentLinePoints.length; j += 4) {
-			canvas.drawCircle(currentState.currentLinePoints[j], currentState.currentLinePoints[j + 1], currentStrokeWidth / 2, p);
+		if (mTouchMode == TouchModes.ERASER && currentState.currentLinePoints != null && linesLayer != null) {
+			Canvas canv = new Canvas (linesLayer);
+			//p.setAntiAlias(true);
+			erasePaint.setARGB(0, 255, 255, 255);
+			erasePaint.setXfermode(transparentXfer);
+			erasePaint.setStrokeWidth(currentStrokeWidth);
+	    	canv.drawLines(currentState.currentLinePoints, erasePaint);
+			/*for (int j = 0; j < currentState.currentLinePoints.length; j += 4) {
+				canvas.drawCircle(currentState.currentLinePoints[j], currentState.currentLinePoints[j + 1], currentStrokeWidth / 2, p);
+			}
+			canv.drawCircle(currentState.currentLinePoints[currentState.currentLinePoints.length - 2], currentState.currentLinePoints[currentState.currentLinePoints.length - 1], p.getStrokeWidth() / 2.0f, p);*/
 		}
-		canvas.drawCircle(currentState.currentLinePoints[currentState.currentLinePoints.length - 2], currentState.currentLinePoints[currentState.currentLinePoints.length - 1], p.getStrokeWidth() / 2.0f, p);
+		paint.setAntiAlias(true);
+		if (linesLayer != null) {
+			canvas.drawBitmap(linesLayer, 0, 0, paint);
+		}
+    	if (currentState.currentLinePoints == null)  return;
+    	paint.setStrokeWidth(currentStrokeWidth);
+		if (mTouchMode != TouchModes.ERASER) {
+	    	paint.setColor(this.currentState.currentColor);
+	    	paint.setStrokeWidth(currentStrokeWidth);
+	    	canvas.drawLines(currentState.currentLinePoints, paint);
+			for (int j = 0; j < currentState.currentLinePoints.length; j += 4) {
+				canvas.drawCircle(currentState.currentLinePoints[j], currentState.currentLinePoints[j + 1], currentStrokeWidth / 2, paint);
+			}
+			canvas.drawCircle(currentState.currentLinePoints[currentState.currentLinePoints.length - 2], currentState.currentLinePoints[currentState.currentLinePoints.length - 1], paint.getStrokeWidth() / 2.0f, paint);
+		}
     }
     
     private void drawModeIcon (Canvas canvas) {
@@ -484,7 +508,7 @@ public class ComicEditor extends View {
     		else if (mTouchMode == TouchModes.TEXT)
     			dr = getResources().getDrawable(R.drawable.text);
     		else
-    			dr = getResources().getDrawable(R.drawable.hand);
+    			dr = getResources().getDrawable(R.drawable.eraser);
     	}
     	catch (OutOfMemoryError e) {
     		FlurryAgent.logEvent("Out of memory for drawModeIcon");
@@ -612,7 +636,7 @@ public class ComicEditor extends View {
 			else {
 				if (mTouchMode == TouchModes.HAND)
 					handleSingleTouchManipulateEvent(event);
-				else if (mTouchMode == TouchModes.PENCIL || mTouchMode == TouchModes.LINE)
+				else if (mTouchMode == TouchModes.PENCIL || mTouchMode == TouchModes.LINE || mTouchMode == TouchModes.ERASER)
 					handleSingleTouchDrawEvent(event);
 				else if (mTouchMode == TouchModes.TEXT)
 					handleSingleTouchTextEvent(event);
@@ -827,6 +851,10 @@ public class ComicEditor extends View {
 				p.setColor(this.currentState.currentColor);
 				p.setStrokeWidth(currentStrokeWidth);
 				p.setAntiAlias(true);
+				if (mTouchMode == TouchModes.ERASER) {
+					p.setXfermode(transparentXfer);
+					p.setAlpha(0);
+				}
 				float tmp[] = new float[currentState.currentLinePoints.length];
 				System.arraycopy(currentState.currentLinePoints, 0, tmp, 0, tmp.length);
 				currentState.linePoints.add(tmp);
