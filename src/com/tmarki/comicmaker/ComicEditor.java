@@ -541,10 +541,10 @@ public class ComicEditor extends View {
     		canvas.drawBitmap (qbmp, canvas.getWidth() - qbmp.getWidth(), canvas.getHeight() - qbmp.getHeight(), p);
     		qbmp.recycle();*/
     		drawImages (canvas, true);
-    		if (linesLayer != null)
+/*    		if (linesLayer != null)
     			linesLayer.recycle();
-    		linesLayer = null;
-    		drawLines (canvas, false);
+    		linesLayer = null;*/
+    		drawLines (canvas, true);
     		linesLayer = null;
     		drawImages (canvas, false);
         	return bmp;
