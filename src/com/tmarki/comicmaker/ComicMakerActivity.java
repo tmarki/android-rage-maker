@@ -293,7 +293,8 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
         	outState.putBoolean(String.format(tag + "ImageObject%dfv", i), ios.get(i).isFlipVertical());
         	outState.putBoolean(String.format(tag + "ImageObject%dfh", i), ios.get(i).isFlipHorizontal());
         	outState.putBoolean(String.format(tag + "ImageObject%dselected", i), ios.get(i).isSelected());
-        	outState.putBoolean(String.format(tag + "ImageObject%sback", i), ios.get(i).isInBack());
+        	outState.putBoolean(String.format(tag + "ImageObject%dback", i), ios.get(i).isInBack());
+        	outState.putBoolean(String.format(tag + "ImageObject%dlocked", i), ios.get(i).locked);
         	try {
         		TextObject to = (TextObject)ios.get(i);
         		if (to != null) {
@@ -369,6 +370,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 				Toast.makeText(this, "Comic Maker internal problem: " + e.toString(),Toast.LENGTH_SHORT).show();
         	}
         	if (io != null) {
+				io.locked = savedInstanceState.getBoolean(String.format(tag + "ImageObject%dlocked", i));
         		io.setSelected(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dselected", i)));
         		io.setFlipHorizontal(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfh", i)));
         		io.setFlipVertical(savedInstanceState.getBoolean(String.format(tag + "ImageObject%dfv", i)));
@@ -450,13 +452,16 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 		else if (item.getItemId() == R.id.flipV && io != null) {
 			io.setFlipVertical(!io.isFlipVertical());
 		}
+		else if (item.getItemId() == R.id.lock && io != null) {
+			io.locked = !io.locked;
+		}
 		mainView.invalidate();
 		return super.onContextItemSelected(item);
 	}
 	
 	private void makeAdView () {
 		if (adView == null)
-			adView = new AdView(this, AdSize.BANNER, "a14e6b86ed7b452");
+			adView = new AdView(this, AdSize.SMART_BANNER, "a14e6b86ed7b452");
 	}
 
 	@Override

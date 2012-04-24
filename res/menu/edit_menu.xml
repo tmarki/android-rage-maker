@@ -10,4 +10,6 @@
           android:title="@string/flipH" />
     <item android:id="@+id/remove"
           android:title="@string/remove" />
+    <item android:id="@+id/lock"
+          android:title="@string/lock" />
 </menu>

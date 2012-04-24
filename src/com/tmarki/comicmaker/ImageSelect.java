@@ -109,7 +109,7 @@ public class ImageSelect extends Dialog {
 	}
 	
 
-	String[] filterMemes (String filt) {
+	private String[] filterMemes (String filt) {
 		if (!folderSelected.equals(PackHandler.ALL_THE_FACES)) {
 			List<String> sv = externalImages.get(folderSelected);
 			if (filt.length() > 0) {
@@ -197,7 +197,7 @@ public class ImageSelect extends Dialog {
 			}
 			public void onTextChanged(CharSequence s, int start, int before,
 					int count) {
-				String str = s.toString();
+				String str = s.toString().toLowerCase();
 				String[] filtered = filterMemes(str);
 				if (filtered != null) {
 					makeImageSelectAdapter(filtered);

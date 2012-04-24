@@ -80,7 +80,8 @@ public class ComicEditor extends View {
 	
 	public enum TouchModes { HAND, LINE, PENCIL, TEXT, ERASER };
 	public PorterDuffXfermode transparentXfer = new PorterDuffXfermode(Mode.SRC);
-	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode", "Eraser" }; 
+	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode", "Eraser" };
+	
 
 	ListAdapter modeAdapter = new ArrayAdapter<String>(
 	                getContext(), R.layout.mode_select_row, TMNames) {
@@ -164,6 +165,7 @@ public class ComicEditor extends View {
     private boolean wasMultiTouch = false;
 	private Time lastInvalidate = new Time ();
 	private Bitmap linesLayer = null;
+	private Bitmap padlock = null;
 	private ZoomChangeListener zoomChangeListener = null;
 	static public final double ROTATION_STEP = 2.0;
 	static public final  double ZOOM_STEP = 0.01;
@@ -178,6 +180,7 @@ public class ComicEditor extends View {
         setFocusable(true);
         setFocusableInTouchMode(true);
         zoomChangeListener = zcl;
+        padlock = BitmapFactory.decodeResource(getResources(), R.drawable.padlock, new BitmapFactory.Options ());
 
     }
 	
@@ -273,6 +276,7 @@ public class ComicEditor extends View {
 			linesLayer.recycle ();
 		linesLayer = null;
 		pushState ();
+		padlock.recycle();
 		currentState.mDrawables.clear ();
 		currentState.mLinePaints.clear();
 		currentState.linePoints.clear ();
@@ -382,6 +386,7 @@ public class ComicEditor extends View {
     private ImageObject addImageObjectDirect (Bitmap dr, int x, int y, float rot, float scale, int drawableId, String pack, String folder, String file) {
 		pushState ();
 		ImageObject io = new ImageObject(dr, x, y, rot, scale, drawableId, pack, folder, file);
+		io.padlock = padlock;
 		io.setPosition(new Point (x + io.getWidth() / 2, y + io.getHeight() / 2));
 		for (ImageObject ioo : currentState.mDrawables) {
 			ioo.setSelected(false);
@@ -427,6 +432,8 @@ public class ComicEditor extends View {
     	ImageObject.setResizeMode(resizeObjectMode);
         for (ImageObject ad : currentState.mDrawables) {
         	if (ad != null && (ad.isInBack() == back)) {
+        		if (ad.padlock == null)
+        			ad.padlock = padlock;
         		ad.draw(canvas);
         	}
         }
@@ -672,7 +679,7 @@ public class ComicEditor extends View {
 			mStartDistance = diff;
 			boolean found = false;
 	        for (ImageObject io : currentState.mDrawables) {
-	        	if (io.isSelected())
+	        	if (io.isSelected() && !io.locked)
 	        	{
 	        		mStartScale = io.getScale();
 	        		mStartRot = io.getRotation();
@@ -693,7 +700,7 @@ public class ComicEditor extends View {
 	        for (ImageObject io : currentState.mDrawables) {
 	        	float newscale = mStartScale * scale;
 	        	float rotdiff = rot - mPrevRot;
-	        	if (io.isSelected() && newscale < 10.0f && newscale > 0.1f)
+	        	if (io.isSelected() && newscale < 10.0f && newscale > 0.1f && !io.locked)
 	        	{
 	        		float newrot = Math.round((mStartRot + rotdiff) / 1.0f);
 	        		if (((a < 0 && mStarta > 0) || (a > 0 && mStarta < 0)) && Math.abs(io.getRotation() - newrot) > ROTATION_STEP)
@@ -736,26 +743,18 @@ public class ComicEditor extends View {
 			}
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP && !mMovedSinceDown && !resizeObjectMode && !wasMultiTouch) {
-			resizeObjectMode = false;
-			if (previousStates.size() > 0)
-				previousStates.remove(previousStates.size() - 1);
-			int selectedId = -1;
-			for (int i = currentState.mDrawables.size() - 1; i >= 0; --i) {
-				ImageObject io = currentState.mDrawables.elementAt(i);
-				if (io.isInBack())
-					continue;
-				if (io.pointIn ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
-	        		io.setSelected(!io.isSelected());
-	        		currentState.mDrawables.removeElementAt(i);
-	        		currentState.mDrawables.add(io);
-					selectedId = currentState.mDrawables.size() - 1;
-					break;
-				}
+			ImageObject tio = getSelected();
+			if (tio != null && tio.pointInMenu ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
+				showContextMenu();
 			}
-			if (selectedId < 0)
+			else {
+				resizeObjectMode = false;
+				if (previousStates.size() > 0)
+					previousStates.remove(previousStates.size() - 1);
+				int selectedId = -1;
 				for (int i = currentState.mDrawables.size() - 1; i >= 0; --i) {
 					ImageObject io = currentState.mDrawables.elementAt(i);
-					if (!io.isInBack())
+					if (io.isInBack())
 						continue;
 					if (io.pointIn ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
 		        		io.setSelected(!io.isSelected());
@@ -765,13 +764,28 @@ public class ComicEditor extends View {
 						break;
 					}
 				}
-	        for (int i = 0; i < currentState.mDrawables.size(); ++i) {
-				ImageObject io = currentState.mDrawables.elementAt(i);
-	        	if (io.isSelected() && i != selectedId)
-	        	{
-	        		io.setSelected(!io.isSelected());
-	        	}
-	        }
+				if (selectedId < 0) {
+					for (int i = currentState.mDrawables.size() - 1; i >= 0; --i) {
+						ImageObject io = currentState.mDrawables.elementAt(i);
+						if (!io.isInBack())
+							continue;
+						if (io.pointIn ((int) (event.getX() / mCanvasScale - mCanvasOffset.x), (int) (event.getY() / mCanvasScale - mCanvasOffset.y))){
+			        		io.setSelected(!io.isSelected());
+			        		currentState.mDrawables.removeElementAt(i);
+			        		currentState.mDrawables.add(io);
+							selectedId = currentState.mDrawables.size() - 1;
+							break;
+						}
+					}
+				}
+		        for (int i = 0; i < currentState.mDrawables.size(); ++i) {
+					ImageObject io = currentState.mDrawables.elementAt(i);
+		        	if (io.isSelected() && i != selectedId)
+		        	{
+		        		io.setSelected(!io.isSelected());
+		        	}
+		        }
+			}
 		}
 		else if (event.getAction() == MotionEvent.ACTION_UP && mMovedSinceDown && !resizeObjectMode) {
 			boolean found = false;
@@ -791,7 +805,7 @@ public class ComicEditor extends View {
 					mMovedSinceDown = true;
 				boolean found = false;
 		        for (ImageObject ad : currentState.mDrawables) {
-		        	if (ad.isSelected()) {
+		        	if (ad.isSelected() && !ad.locked) {
 		        		found = true;
 		        		Point p = ad.getPosition();
 		        		if (p.x + diffX >= mCanvasLimits.left
@@ -818,7 +832,7 @@ public class ComicEditor extends View {
 			else {
 				cancelLongPress();
 				ImageObject sel = getSelected();
-				if (sel != null) {
+				if (sel != null && !sel.locked) {
 					int direction = 1;
 					double diffSize = event.getX () - mPreviousPos.x;
 					if (Math.abs(diffSize) < Math.abs(event.getY () - mPreviousPos.y))

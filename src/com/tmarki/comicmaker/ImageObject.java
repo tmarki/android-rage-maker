@@ -16,6 +16,8 @@ public class ImageObject {
 	public String pack = "";
 	public String folder = "";
 	public String filename = "";
+	public boolean locked = false;
+	public Bitmap padlock = null;
     protected Point mPosition = new Point ();
     protected float mRotation = 0.0f;
     protected float mScale = 1.0f;
@@ -146,10 +148,10 @@ public class ImageObject {
 	//            dr.draw(canvas);
 	    	canvas.drawBitmap(content, -getWidth() / 2, -getHeight() / 2, new Paint ());
 	        canvas.restoreToCount(sc2);
+        	Rect imgrect = new Rect(-getWidth() / 2, -getHeight() / 2, getWidth() / 2, getHeight() / 2);
 	        if (mSelected && interactiveMode)
 	        {
 	        	paint.setARGB(128, 128, 128, 128);
-	        	Rect imgrect = new Rect(-getWidth() / 2, -getHeight() / 2, getWidth() / 2, getHeight() / 2);
 	        	canvas.drawRect(imgrect, paint);
 	        	Rect resizerect = new Rect ();
 	        	resizerect.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.bottom - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.right, imgrect.bottom);
@@ -158,7 +160,26 @@ public class ImageObject {
 /*	        	if (!resizeMode)
 	        		paint.setStyle(Style.STROKE);*/
 	        	paint.setStrokeWidth(2.0f);
-	        	canvas.drawRect(resizerect, paint);
+	        	if (!locked)
+	        		canvas.drawRect(resizerect, paint);
+	        	int lines = 5;
+        		int f = (int)(resizeBoxSize * (1.0/ mScale)) / (lines + 2);
+        		for (int i = 0; i < lines; ++i) {
+        			resizerect.set(imgrect.left, imgrect.top + 2 * i * f, imgrect.left + f * (lines + 2), imgrect.top + (2 * i + 1) * f);
+        			canvas.drawRect(resizerect, paint);
+        		}
+/*        		resizerect.set(imgrect.left, imgrect.top, imgrect.left + f * 5, imgrect.top + f);
+        		canvas.drawRect(resizerect, paint);
+	        	resizerect.set(imgrect.left, imgrect.top + 2 * f, imgrect.left + f * 5, imgrect.top + 3 * f);
+        		canvas.drawRect(resizerect, paint);
+	        	resizerect.set(imgrect.left, imgrect.top + 4 * f, imgrect.left + f * 5, imgrect.top + 5 * f);*/
+        		canvas.drawRect(resizerect, paint);
+	        }
+	        if (locked && padlock != null && !padlock.isRecycled() && interactiveMode) {
+	        	Rect dst = new Rect ();
+	        	dst.set(imgrect.right - (int)(resizeBoxSize * (1.0/ mScale)), imgrect.top, imgrect.right, imgrect.top + (int)(resizeBoxSize * (1.0/ mScale)));
+	        	Rect src = new Rect (0, 0, padlock.getWidth(), padlock.getHeight());
+	        	canvas.drawBitmap(padlock, src, dst, paint);
 	        }
     	}
     	catch (Exception e) {
@@ -180,6 +201,14 @@ public class ImageObject {
         return (x >= mPosition.x + wp2 - resizeBoxSize) && (x <= mPosition.x + wp2) &&
         	(y >= mPosition.y + hp2 - resizeBoxSize) && (y <= mPosition.y + hp2);
     }
+
+    public boolean pointInMenu(int x, int y){
+        int wp2 = (int)(((float)getWidth() / 2.0) * mScale);
+        int hp2 = (int)((getHeight() / 2.0) * mScale);
+        return (x >= mPosition.x - wp2) && (x <= mPosition.x - wp2 + resizeBoxSize) &&
+        	(y >= mPosition.y - hp2) && (y <= mPosition.y - hp2 + resizeBoxSize);
+    }
+
 
 	public Point getPosition() {
 		return mPosition;
