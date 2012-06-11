@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="app_name">Creador Rage</string>
+<string name="add">Agregar Imagen</string>
+<string name="add_pack"> Añadir del paquete de la imagen </string>
+<string name="add_other"> Añadir de otra fuente </string>
+<string name="scale"> Escala </string>
+<string name="clear"> Clear </string>
+<string name="exit"> Salir </string>
+<string name="save"> Guardar </string>
+<string name="load"> Carga </string>
+<string name="pack"> Pack: </string>
+<string name="settings"> Configuración </string>
+<string name="settings_title"> Comic Configuración </string>
+<string name="panel_count">Recuento grupo: </string>
+<string name="about">Acerca de </string>
+<string name="zoom">Zoom ajustado </string>
+<string name="redo">Rehacer </string>
+<string name="remove"> Eliminar </string>
+<string name="share">Compartir </string>
+<string name="mode_hand"> Manipular el modo </string>
+<string name="mode_pencil"> Gratis sorteo modo </string>
+<string name="mode_text"> Modo de tipo </string>
+<string name="mode_line"> Modo de línea </string>
+<string name="mode_select_title"> Seleccione el modo de interacción </string>
+<string name="image_select_title"> Seleccione la imagen para añadir </string>
+<string name="toback"> Enviar a realizar copias de seguridad </string>
+<string name="tofront"> Traer al frente </string>
+<string  name="pen_color">Color de la pluma </string>
+<string  name="pen_width">Ancho de la pluma </string>
+<string name="text_color">Texto de color </string>
+<string name="text_type">Tipo de texto </string>
+<string name="select_image"> Seleccionar Imagen </string>
+<string name="select_font"> Seleccionar tipo de fuente </string>
+<string name="bold">Negrita</string>
+<string name="italic"> Cursiva </string>
+<string name="flipV"> Voltear verticalmente </string>
+<string name="flipH"> Voltear horizontalmente </string>
+<string name="settings_bg_color_confirm"> Utilizar color </string>
+<string name="settings_default_color_confirm"> Utilice Anterior </string>
+<string name="settings_bg_color_dialog"> Seleccionar color </string>
+<string name="abouttext">
+Este es un software de código abierto. Úselo bajo su propio riesgo. Código \ nLa fuente está disponible en la página principal.
+</string>
+<string name="abouttitle"> Acerca de Creador de Rage Comic </string>
+<string name="report_bug"> Informe un error </string>
+<string name="home_page">Página principal </string>
+<string name="confirmation"> Confirmación </string>
+<string name="clear_question"> Cómica claro? </string>
+<string name="select_object_first"> Por favor, seleccione un objeto de imagen o texto primero! </string>
+<string name="select_picture"> imagen Seleccionar </string>
+<string name="select_name"> Introduzca el nombre de archivo </string>
+<string name="select_folder"> Seleccionar carpeta </string>
+<string name="select_layer_title"> capa Seleccionar </string>
+<string name="select_layer_message">
+Por favor, seleccione si desea agregar la imagen delante o detrás de la tela empate \ ■ NOTA: Puedes cambiar esta tarde seleccionando el objeto y el tiempo tocando para que aparezca el menú de objetos (también disponible como una opción de menú).
+</string>
+<string name="select_width"> Elija una anchura </string>
+<string name="select_zoom"> Pick nivel de zoom: </string>
+<string name="to_front"> al frente </string>
+<string name="to_back"> al fondo </string>
+<string name="draw_grid"> Dibujar la red </string>
+<string name="enter_text"> Introduzca el texto </string>
+<string name="comic_saved_as"> Comic guarda como </string>
+<string name="comic_save_fail_1">
+Lo sentimos, el cómic no podía ser salvado: mapa de bits generado es nulo!
+</string>
+<string name="comic_save_fail_2"> Hubo un error al guardar el cómic: </string>
+<string name="error_adding_image"> Hubo un error al agregar la imagen </string>
+<string name="saved_end">
+en la carpeta Imágenes en la tarjeta SD. Debería aparecer en la galería en breve.
+</string>
+<string name="share_comic"> Compartir Comic </string>
+<string name="confirm_exit"> ¿Seguro que desea salir? </string>
+<string name="naggerquestion">
+Usted ha estado utilizando esta aplicación durante un tiempo. Atención a compartir sus experiencias por nota con nosotros en el Android Market?
+</string>
+<string name="naggertitle"> Por favor, tasa de nosotros! </string>
+<string name="yes"> Sí </string>
+<string name="no"> No </string>
+<string name="ok"> Ok </string>
+<string name="cancel"> Cancelar </string>
+<string name="later"> tarde </string>
+<string name="never"> Nunca </string>
+<string  name="object_menu">Menú del objeto </string>
+<string name="built_in"> incorporado en los rostros de ira </string>
+<string name="orientation"> Orientación </string>
+<string name="rotate_auto"> Automática </string>
+<string name="rotate_portrait">Retrato  </string>
+<string name="rotate_landscape">Paisaje </string>
+<string name="saveformat"> Guardar en formato </string>
+<string name="black"> Negro </string>
+<string name="white"> Blanco </string>
+<string name="lock"> de bloqueo / desbloqueo </string>
+   
+</resources>
