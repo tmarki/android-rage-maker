@@ -71,7 +71,6 @@ import com.google.ads.AdView;
 import com.tmarki.comicmaker.ColorPickerDialog;
 import com.tmarki.comicmaker.ComicEditor;
 import com.tmarki.comicmaker.R;
-import com.tmarki.comicmaker.ComicEditor.ComicState;
 import com.tmarki.comicmaker.WidthPicker;
 import com.tmarki.comicmaker.ComicEditor.TouchModes;
 import com.tmarki.comicmaker.WidthPicker.OnWidthChangedListener;
@@ -99,6 +98,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 //	private LinearLayout layout = null; 
 	private SharedPreferences mPrefs = null;
 	private PackHandler packhandler = new PackHandler ();
+	private DraftManager draftManager;
 	
 	
 	@Override
@@ -115,7 +115,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 		outState.putString ("lastSaveName", lastSaveName);
 		saveImagesToBundle(outState, mainView.getImageObjects(), "");
 		saveLinesToBundle (outState, mainView.getPoints(), mainView.getPaints(), "");
-		Vector<ComicEditor.ComicState> history = mainView.getHistory();
+		Vector<ComicState> history = mainView.getHistory();
 		outState.putInt("historySize", history.size ());
 		for (int i = 0; i < history.size (); ++i) {
 			//saveImagesToBundle(outState, history.get (i).mDrawables, String.format("h%s", i));
@@ -255,7 +255,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
         for (ImageObject io : mainView.getImageObjects()) {
         	io.recycle();
         }
-        for (ComicEditor.ComicState cs : mainView.getHistory()) {
+        for (ComicState cs : mainView.getHistory()) {
             for (ImageObject io : cs.mDrawables) {
             	try {
             		io.recycle();
@@ -432,6 +432,15 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 			inflater.inflate(R.menu.edit_menu, menu);
 			menu.findItem(R.id.tofront).setVisible(io.isInBack());
 			menu.findItem(R.id.toback).setVisible(!io.isInBack());
+			TextObject to = null;
+			try {
+				to =(TextObject)io;
+			}
+			catch (Exception e) {
+				
+			}
+			menu.findItem(R.id.edit).setVisible(to != null);
+			menu.findItem(R.id.color).setVisible(to != null);
 			mainView.resetClick();
 		}
 	}
@@ -454,6 +463,52 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 		}
 		else if (item.getItemId() == R.id.lock && io != null) {
 			io.locked = !io.locked;
+		}
+		else if (item.getItemId() == R.id.edit && io != null) {
+			try {
+				final TextObject to = (TextObject)io;
+				AlertDialog.Builder salert = new AlertDialog.Builder(this);
+				
+				salert.setTitle(R.string.enter_text);
+				// Set an EditText view to get user input 
+				final EditText sinput = new EditText(this);
+				sinput.setText(to.getText());
+				salert.setView(sinput);
+		
+				salert.setPositiveButton(getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						to.setText(sinput.getText().toString());
+						mainView.invalidate();
+				  }
+				});
+		
+				salert.setNegativeButton(getResources().getString(R.string.cancel), new DialogInterface.OnClickListener() {
+				  public void onClick(DialogInterface dialog, int whichButton) {
+				  }
+				});
+		
+				salert.show();
+			}
+			catch (Exception e) {
+				
+			}
+		}
+		else if (item.getItemId() == R.id.color && io != null) {
+			try {
+				final TextObject to = (TextObject)io;
+				ColorPickerDialog.OnColorChangedListener ocl = new ColorPickerDialog.OnColorChangedListener() {
+					public void colorChanged(String key, int color) {
+						to.setColor(color);
+						to.regenerateBitmap();
+						mainView.invalidate();
+					}
+				};
+				ColorPickerDialog cpd = new ColorPickerDialog(this, ocl, "key", to.getColor(), to.getColor());
+				cpd.show();
+			}
+			catch (Exception e) {
+				
+			}
 		}
 		mainView.invalidate();
 		return super.onContextItemSelected(item);
@@ -520,6 +575,16 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 		case (R.id.zoom):
 			ZoomPicker zp = new ZoomPicker (this, this, mainView.getCanvasScale());
 			zp.show();
+			break;
+		case (R.id.drafts):
+	        draftManager = new DraftManager(this, mainView, packhandler);
+			draftManager.show();
+			draftManager.setOnDismissListener(new DialogInterface.OnDismissListener() {
+				public void onDismiss(DialogInterface dialog) {
+					mainView.resetLinesCache();
+					mainView.invalidate();
+				}
+			});
 			break;
 		case (R.id.clear):
 			AlertDialog alertDialog2;
@@ -937,8 +1002,21 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 						System.exit(2);
 					}
 				});
-				alertDialog.setButton2(getResources ().getString (R.string.no), new OnClickListener() {
+				alertDialog.setButton3(getResources ().getString (R.string.no), new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
+						
+					}
+				});
+				alertDialog.setButton2(getResources().getString(R.string.drafts), new OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+				        draftManager = new DraftManager(ComicMakerActivity.this, mainView, packhandler);
+						draftManager.show();
+						draftManager.setOnDismissListener(new DialogInterface.OnDismissListener() {
+							public void onDismiss(DialogInterface dialog) {
+								mainView.resetLinesCache();
+								mainView.invalidate();
+							}
+						});
 						
 					}
 				});

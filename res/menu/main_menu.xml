@@ -15,6 +15,8 @@
           android:title="@string/object_menu" />
     <item android:id="@+id/redo"
           android:title="@string/redo" />
+    <item android:id="@+id/drafts"
+          android:title="@string/drafts" />
     <item android:id="@+id/pen_color"
           android:title="@string/pen_color" />
     <item android:id="@+id/pen_width"

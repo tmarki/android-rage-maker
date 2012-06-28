@@ -82,5 +82,7 @@
     <string name="black">Black</string>
     <string name="white">White</string>
     <string name="lock">Lock/Unlock</string>
+    <string name="drafts">Drafts</string>
+    <string name="draft_options">Draft options</string>
     
 </resources>

@@ -48,36 +48,6 @@ import android.text.format.Time;
 
 public class ComicEditor extends View {
 	
-	public class ComicState {
-	    public ComicState() {
-		}
-	    @SuppressWarnings("unchecked")
-		public ComicState(ComicState os) {
-	    	mDrawables = (Vector<ImageObject>)os.mDrawables.clone();
-	    	linePoints = new Vector<float[]>();
-	    	for (int i = 0; i < os.linePoints.size(); ++i) {
-	    		float tmp[] = new float[os.linePoints.get(i).length];
-	    		System.arraycopy(os.linePoints.get (i), 0, tmp, 0, os.linePoints.get (i).length);
-	    		linePoints.add (tmp);
-	    	}
-	    		
-	    	mLinePaints = new LinkedList<Paint>(os.mLinePaints);
-	    	if (os.currentLinePoints != null) {
-	    		float src[] = os.currentLinePoints;
-	    		currentLinePoints = new float[os.currentLinePoints.length];
-	    		System.arraycopy(src, 0, currentLinePoints, 0, os.currentLinePoints.length);
-	    	}
-	    	mPanelCount = os.mPanelCount;
-	    	currentColor = os.currentColor;
-		}
-	    public Vector<ImageObject> mDrawables = new Vector<ImageObject>();
-	    public Vector<float[]> linePoints = new Vector<float[]>();
-	    public LinkedList<Paint> mLinePaints = new LinkedList<Paint>();
-	    public float[] currentLinePoints = null;
-	    public int mPanelCount = 4;
-	    public int currentColor = Color.BLACK;
-	};
-	
 	public enum TouchModes { HAND, LINE, PENCIL, TEXT, ERASER };
 	public PorterDuffXfermode transparentXfer = new PorterDuffXfermode(Mode.SRC);
 	private String[] TMNames = { "Manipulate mode", "Line mode", "Draw mode", "Type mode", "Eraser" };
@@ -161,7 +131,6 @@ public class ComicEditor extends View {
     private boolean defaultBold = false;
     private boolean defaultItalic = false;
     private int defaultFontSize = 48;
-    private boolean drawGrid = true;
     private boolean wasMultiTouch = false;
 	private Time lastInvalidate = new Time ();
 	private Bitmap linesLayer = null;
@@ -202,6 +171,9 @@ public class ComicEditor extends View {
 	
 	public ComicState getStateCopy () {
 		return new ComicState (currentState);
+	}
+	public ComicState getStateRef () {
+		return currentState;
 	}
 	
 	public void pushHistory (ComicState cs) {
@@ -271,10 +243,14 @@ public class ComicEditor extends View {
 		defaultFontType = ft;
 	}
 	
-	public void resetObjects () {
+	public void resetLinesCache () {
 		if (linesLayer != null)
 			linesLayer.recycle ();
 		linesLayer = null;
+	}
+	
+	public void resetObjects () {
+		resetLinesCache ();
 		pushState ();
 		padlock.recycle();
 		currentState.mDrawables.clear ();
@@ -542,7 +518,7 @@ public class ComicEditor extends View {
     		Bitmap bmp = Bitmap.createBitmap(mCanvasLimits.right, mCanvasLimits.bottom, Bitmap.Config.ARGB_8888);
     		Canvas canvas = new Canvas (bmp);
     		canvas.drawColor(Color.WHITE);
-    		if (drawGrid)
+    		if (currentState.drawGrid)
     			drawGridLines (canvas);
     		/*Bitmap qbmp = BitmapFactory.decodeResource(getResources(), R.drawable.qr);
     		canvas.drawBitmap (qbmp, canvas.getWidth() - qbmp.getWidth(), canvas.getHeight() - qbmp.getHeight(), p);
@@ -565,6 +541,13 @@ public class ComicEditor extends View {
 		}
     }
 
+    public Bitmap getThumbBitmap () {
+    	Bitmap tmp = getSaveBitmap();
+    	Bitmap ret = Bitmap.createScaledBitmap(tmp, 100, 100, true);
+    	tmp.recycle();
+    	return ret;
+    }
+
     @Override 
     protected void onDraw(Canvas canvas) {
     	ImageObject.setInteractiveMode(true);
@@ -575,7 +558,7 @@ public class ComicEditor extends View {
         canvas.clipRect(mCanvasLimits);
         canvas.drawColor(Color.WHITE);
         
-        if (drawGrid)
+        if (currentState.drawGrid)
         	drawGridLines (canvas);
         drawImages (canvas, true);
         drawLines (canvas);
@@ -1024,12 +1007,12 @@ public class ComicEditor extends View {
 
 
 	public boolean isDrawGrid() {
-		return drawGrid;
+		return currentState.drawGrid;
 	}
 
 
 	public void setDrawGrid(boolean drawGrid) {
-		this.drawGrid = drawGrid;
+		this.currentState.drawGrid = drawGrid;
 	}
 	
 	public void moveEvent (int diffX, int diffY) {
