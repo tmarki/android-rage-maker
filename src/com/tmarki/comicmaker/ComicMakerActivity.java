@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Vector;
 
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -176,6 +177,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
         }
         setContentView(layout);
     	packImages = packhandler.getBundles(getAssets());
+        draftManager = new DraftManager(ComicMakerActivity.this, mainView, packhandler);
         if (savedInstanceState != null) {
         	if (savedInstanceState.getSerializable("touchMode") != null)
         		mainView.setmTouchMode((ComicEditor.TouchModes)savedInstanceState.getSerializable("touchMode"));
@@ -189,6 +191,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
             setDetailTitle ();
         }
         else {
+	        draftManager.autoLoad(mainView.getStateRef());
             DisplayMetrics metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
         	if (metrics.widthPixels > mainView.getCanvasDimensions().width())
@@ -577,7 +580,6 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 			zp.show();
 			break;
 		case (R.id.drafts):
-	        draftManager = new DraftManager(this, mainView, packhandler);
 			draftManager.show();
 			draftManager.setOnDismissListener(new DialogInterface.OnDismissListener() {
 				public void onDismiss(DialogInterface dialog) {
@@ -693,6 +695,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 			salert.show();
 			break;
 		case (R.id.exit):
+	        draftManager.saveDraft(mainView.getStateRef(), "auto", true);
 			finish ();
 			System.runFinalization();
 			System.exit(2);
@@ -733,6 +736,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 		}
 	}
 	
+	@SuppressLint("NewApi")
 	private void doSave (String fname, boolean doShare) {
 		CharSequence text = getResources ().getString (R.string.comic_saved_as) + " ";
 		FlurryAgent.logEvent("Save start");
@@ -997,6 +1001,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 						int c = mPrefs.getInt("runcount", 0);
 						ed.putInt("runcount", c + 1);
 						ed.commit();
+				        draftManager.saveDraft(mainView.getStateRef(), "auto", true);
 						finish();
 						System.runFinalization();
 						System.exit(2);
@@ -1009,7 +1014,6 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 				});
 				alertDialog.setButton2(getResources().getString(R.string.drafts), new OnClickListener() {
 					public void onClick(DialogInterface dialog, int which) {
-				        draftManager = new DraftManager(ComicMakerActivity.this, mainView, packhandler);
 						draftManager.show();
 						draftManager.setOnDismissListener(new DialogInterface.OnDismissListener() {
 							public void onDismiss(DialogInterface dialog) {
@@ -1142,6 +1146,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 
 	@Override
 	protected void onStop() {
+        draftManager.saveDraft(mainView.getStateRef(), "auto", true);
 		super.onStop();
 		FlurryAgent.onEndSession(this);
 	}

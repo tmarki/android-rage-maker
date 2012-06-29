@@ -43,7 +43,7 @@ public class DraftManager extends Dialog {
 		}
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			db.execSQL("CREATE TABLE draft (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, panel_count INTEGER, draw_grid INTEGER)");
+			db.execSQL("CREATE TABLE draft (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, panel_count INTEGER, draw_grid INTEGER, autosave INTEGER)");
 			db.execSQL("CREATE TABLE draft_line (id INTEGER PRIMARY KEY AUTOINCREMENT, draft_id INTEGER NOT NULL, points BLOB, stroke_width REAL, color INTEGER)");
 			db.execSQL("CREATE TABLE draft_object (id INTEGER PRIMARY KEY AUTOINCREMENT, draft_id INTEGER NOT NULL, position BLOB,rotation REAL, scale REAL," +
 					"pack BLOB, folder BLOB, file BLOB, flip_vertical INTEGER, flip_horizontal INTEGER,bck INTEGER, locked INTEGER," +
@@ -52,13 +52,30 @@ public class DraftManager extends Dialog {
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		}
-		public long putDraft (String name, int panelCount, boolean drawGrid) {
+		
+		public long putDraft (String name, int panelCount, boolean drawGrid, boolean autosave) {
+			if (autosave) {
+				int aid = getAutodraftId();
+				if (aid > 0)
+					removeDraft(aid);
+			}
 			SQLiteDatabase db = getWritableDatabase();
 			ContentValues cv=new ContentValues();
 			cv.put("name", name);
 			cv.put("panel_count", panelCount);
 			cv.put("draw_grid", drawGrid ? 1 : 0);
+			cv.put("autosave", autosave ? 1 : 0);
 			return db.insert("draft", null, cv);
+		}
+		public int getAutodraftId () {
+			SQLiteDatabase rdb=this.getReadableDatabase();
+			Cursor c = rdb.query("draft", new String[]{"id"},
+					"autosave=?", new String[]{"1"}, null, null, null);
+			if (c.getCount() > 0) {
+				c.moveToFirst();
+				return c.getInt(c.getColumnIndex("id"));
+			}
+			return 0;
 		}
 		public long putLine (long draft_id, float[] points, double strokeWidth, int color) {
 			String spoints = "";
@@ -108,7 +125,7 @@ public class DraftManager extends Dialog {
 		public Integer[] getDraftIds() {
 			SQLiteDatabase db=this.getReadableDatabase();
 			Cursor c = db.query("draft", new String[]{"id as _id"},
-					"id>?", new String[]{"0"}, null, null, null);
+					"autosave=?", new String[]{"0"}, null, null, null);
 			Integer[] ret = new Integer[c.getCount()];
 			for (int i = 0; i < ret.length; ++i) {
 				c.moveToPosition(i);
@@ -256,15 +273,34 @@ public class DraftManager extends Dialog {
 		mInflater = (LayoutInflater)getContext ().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	}
 	
-	private long saveDraft (ComicState cs, String name) {
-		long id = draftDB.putDraft(name, cs.mPanelCount, cs.drawGrid);
+	public long saveDraft (ComicState cs, String name, boolean autosave) {
+		long id = draftDB.putDraft(name, cs.mPanelCount, cs.drawGrid, autosave);
 		for (ImageObject io : cs.mDrawables)
 			draftDB.putObject(id, io);
 		for (int i = 0; i < cs.linePoints.size(); ++i) {
 			Paint p = cs.mLinePaints.get(i);
 			draftDB.putLine(id, cs.linePoints.get(i), p.getStrokeWidth(), p.getColor());
 		}
+		if (!autosave) {
+			Bitmap b = editor.getThumbBitmap();
+			FileOutputStream fos;
+			try {
+				File dir = getContext().getDir("thumbs", 0);
+				File myFile = new File(dir, String.format("%d.jpg", id));
+				fos = new FileOutputStream(myFile);
+				b.compress(CompressFormat.JPEG, 80, fos);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 		return id;
+	}
+	
+	public void autoLoad (ComicState cs) {
+		int aid = draftDB.getAutodraftId();
+		if (aid > 0) {
+			loadDraft(cs, aid);
+		}
 	}
 	
 	private void loadDraft (ComicState cs, int id) {
@@ -287,17 +323,7 @@ public class DraftManager extends Dialog {
 				alert.setView(input);
 				alert.setPositiveButton(getContext().getResources().getString(R.string.ok), new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
-						long id = saveDraft(curState, input.getText().toString());
-						Bitmap b = editor.getThumbBitmap();
-						FileOutputStream fos;
-						try {
-							File dir = getContext().getDir("thumbs", 0);
-							File myFile = new File(dir, String.format("%d.jpg", id));
-							fos = new FileOutputStream(myFile);
-							b.compress(CompressFormat.JPEG, 80, fos);
-						} catch (FileNotFoundException e) {
-							e.printStackTrace();
-						}
+						saveDraft(curState, input.getText().toString(), false);
 						populateList();
 				  }
 				});
@@ -389,46 +415,7 @@ public class DraftManager extends Dialog {
 }
 
 
-/*
- * 		outState.putInt(tag + "lineCount", points.size ());
-		for (int i = 0; i < points.size (); ++i) {
-			outState.putFloatArray(String.format(tag + "line%s", i), points.get(i));
-            outState.putFloat(String.format(tag + "line%dstroke", i), paints.get (i).getStrokeWidth());
-            outState.putInt(String.format(tag + "line%dcolor", i), paints.get (i).getColor());
-		}
-*/
 
-/*		outState.putInt(tag + "imageObjectCount", ios.size ());
-for (int i = 0; i < ios.size (); ++i) {
-int[] params = new int[2];
-params[0] = ios.get(i).getPosition().x;
-params[1] = ios.get(i).getPosition().y;
-outState.putIntArray(String.format(tag + "ImageObject%dpos", i), params);
-outState.putFloat(String.format(tag + "ImageObject%drot", i), ios.get(i).getRotation());
-outState.putFloat(String.format(tag + "ImageObject%dscale", i), ios.get (i).getScale ());
-outState.putString(String.format(tag + "ImageObject%dpack", i), ios.get (i).pack);
-outState.putString(String.format(tag + "ImageObject%dfolder", i), ios.get (i).folder);
-outState.putString(String.format(tag + "ImageObject%dfile", i), ios.get (i).filename);
-outState.putBoolean(String.format(tag + "ImageObject%dfv", i), ios.get(i).isFlipVertical());
-outState.putBoolean(String.format(tag + "ImageObject%dfh", i), ios.get(i).isFlipHorizontal());
-outState.putBoolean(String.format(tag + "ImageObject%dselected", i), ios.get(i).isSelected());
-outState.putBoolean(String.format(tag + "ImageObject%dback", i), ios.get(i).isInBack());
-outState.putBoolean(String.format(tag + "ImageObject%dlocked", i), ios.get(i).locked);
-try {
-	TextObject to = (TextObject)ios.get(i);
-	if (to != null) {
-		outState.putInt(String.format(tag + "TextObject%dtextSize", i), to.getTextSize());
-		outState.putInt(String.format(tag + "TextObject%dcolor", i), to.getColor());
-		outState.putInt(String.format(tag + "TextObject%dtypeface", i), to.getTypeface());
-		outState.putString(String.format(tag + "ImageObject%dtext", i), to.getText());
-		outState.putBoolean(String.format(tag + "TextObject%dbold", i), to.isBold());
-		outState.putBoolean(String.format(tag + "TextObject%ditalic", i), to.isItalic());
-	}
-}
-catch (Exception e) {
-	Log.w ("RAGE", e.toString());
-	outState.putString(String.format(tag + "ImageObject%dtext", i), "");
-}
-//ios.get(i).recycle();
-}
-*/
+
+
+
