@@ -35,7 +35,7 @@
     <string name="bold">Жирный</string>
     <string name="italic">Курсив</string>
     <string name="flipV">Отразить по вертикали</string>
-    <string name="flipH">Отразить по горизонтале</string>
+    <string name="flipH">Отразить по горизонтали</string>
     <string name="settings_bg_color_confirm">Выбрать цвет</string>
     <string name="settings_default_color_confirm">Предыдущий цвет</string>
     <string name="settings_bg_color_dialog">Выбор цвета</string>
