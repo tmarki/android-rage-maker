@@ -31,6 +31,7 @@ import android.graphics.Xfermode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.Point;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -117,7 +118,7 @@ public class ComicEditor extends View {
 	private Vector<ComicState> poppedStates = new Vector<ComicState>();
 	
     private Point mCanvasOffset = new Point (0, 0);
-    private Rect mCanvasLimits = new Rect (0, 0, 640, 500);
+    private Rect mCanvasLimits = new Rect (0, 0, 651, 500);
     private float mCanvasScale = 1.0f;
     private int currentStrokeWidth = 3;
 	private Point mPreviousPos = new Point (0, 0); // single touch events
@@ -135,7 +136,7 @@ public class ComicEditor extends View {
 	private Time lastInvalidate = new Time ();
 	private Bitmap linesLayer = null;
 	private Bitmap padlock = null;
-	private ZoomChangeListener zoomChangeListener = null;
+	public ZoomChangeListener zoomChangeListener = null;
 	static public final double ROTATION_STEP = 2.0;
 	static public final  double ZOOM_STEP = 0.01;
 	static public final float CANVAS_SCALE_MIN = 0.25f;
@@ -144,6 +145,14 @@ public class ComicEditor extends View {
 	
 	private TouchModes mTouchMode = TouchModes.HAND;
 	
+
+	public ComicEditor(Context context, AttributeSet as) {
+		super (context, as);
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        padlock = BitmapFactory.decodeResource(getResources(), R.drawable.padlock, new BitmapFactory.Options ());
+	}
+
 	public ComicEditor(Context context, ZoomChangeListener zcl) {
         super(context);
         setFocusable(true);
@@ -306,7 +315,8 @@ public class ComicEditor extends View {
     	if (currentState.currentLinePoints != null) {
     		currentState.linePoints.add(currentState.currentLinePoints);
 			Paint p = new Paint ();
-			p.setAntiAlias(true);
+	        p.setFlags(Paint.DITHER_FLAG | Paint.ANTI_ALIAS_FLAG);
+			//p.setAntiAlias(true);
 			p.setStrokeWidth(currentStrokeWidth);
 			p.setColor(currentState.currentColor);
 			currentState.mLinePaints.add(p);
@@ -387,8 +397,8 @@ public class ComicEditor extends View {
     		return;
         Paint paint = new Paint ();
         paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(3.0f);
-        paint.setAntiAlias(true);
+        paint.setStrokeWidth(2.0f);
+        paint.setFlags(Paint.DITHER_FLAG | Paint.ANTI_ALIAS_FLAG);
         int bott = mCanvasLimits.bottom;
         int dy = mCanvasLimits.height() / (currentState.mPanelCount / 2);
         if (currentState.mPanelCount % 2 == 1) {
@@ -443,6 +453,8 @@ public class ComicEditor extends View {
 	    	for (int i = 0; i < currentState.linePoints.size(); ++i) {
 	    		float[] lp = currentState.linePoints.get (i);
 	    		Paint p = currentState.mLinePaints.get (i);
+	    		p.setFlags(0);
+	    		p.setAntiAlias(true);
 	    		canv.drawLines(lp, p);
 	    		for (int j = 0; j < lp.length; j += 4) {
 	    			canv.drawCircle(lp[j], lp[j + 1], p.getStrokeWidth() / 2.0f, p);
@@ -462,7 +474,8 @@ public class ComicEditor extends View {
 			}
 			canv.drawCircle(currentState.currentLinePoints[currentState.currentLinePoints.length - 2], currentState.currentLinePoints[currentState.currentLinePoints.length - 1], p.getStrokeWidth() / 2.0f, p);*/
 		}
-		paint.setAntiAlias(true);
+		paint.setFlags(Paint.ANTI_ALIAS_FLAG);
+		paint.setFilterBitmap(true);
 		if (linesLayer != null) {
 			canvas.drawBitmap(linesLayer, 0, 0, paint);
 		}
@@ -506,7 +519,7 @@ public class ComicEditor extends View {
         canvas.scale((float)mModeIconSize / dr.getIntrinsicWidth(), (float)mModeIconSize / dr.getIntrinsicHeight());
         RectF r = new RectF (-5.0f, -5.0f, (float)dr.getIntrinsicWidth() + 10.0f, (float)dr.getIntrinsicHeight() + 10.0f);
         Paint p = new Paint ();
-        p.setAntiAlias(true);
+        p.setFilterBitmap(true);
         p.setColor(currentState.currentColor);
         canvas.drawRoundRect(r, 4, 4, p);
         dr.draw(canvas);
@@ -847,7 +860,8 @@ public class ComicEditor extends View {
 				Paint p = new Paint ();
 				p.setColor(this.currentState.currentColor);
 				p.setStrokeWidth(currentStrokeWidth);
-				p.setAntiAlias(true);
+		        p.setFlags(Paint.DITHER_FLAG | Paint.ANTI_ALIAS_FLAG);
+				//p.setAntiAlias(true);
 				if (mTouchMode == TouchModes.ERASER) {
 					p.setXfermode(transparentXfer);
 					p.setAlpha(0);

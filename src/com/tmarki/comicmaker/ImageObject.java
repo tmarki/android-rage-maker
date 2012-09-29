@@ -138,6 +138,8 @@ public class ImageObject {
 	Paint paint = new Paint ();
     public void draw(Canvas canvas) {
     	paint.setAntiAlias(true);
+    	paint.setFilterBitmap(true);
+    	//paint.setDither(true);
     	int sc = canvas.save();
     	try {
 	    	canvas.translate(mPosition.x, mPosition.y);
@@ -146,7 +148,7 @@ public class ImageObject {
 	    	canvas.rotate((float)mRotation);
 	    	canvas.scale((flipHorizontal ? -1 : 1), (flipVertical ? -1 : 1));
 	//            dr.draw(canvas);
-	    	canvas.drawBitmap(content, -getWidth() / 2, -getHeight() / 2, new Paint ());
+	    	canvas.drawBitmap(content, -getWidth() / 2, -getHeight() / 2, paint);
 	        canvas.restoreToCount(sc2);
         	Rect imgrect = new Rect(-getWidth() / 2, -getHeight() / 2, getWidth() / 2, getHeight() / 2);
 	        if (mSelected && interactiveMode)

@@ -1,3 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
-</LinearLayout>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	xmlns:ads="http://schemas.android.com/apk/lib/com.google.ads" 
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+    >
+    <com.tmarki.comicmaker.ComicEditor android:id="@+id/editor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/adview"
+        />
+    <com.google.ads.AdView android:id="@+id/adview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        ads:adSize="SMART_BANNER"
+        ads:adUnitId="a14e6b86ed7b452"
+        ads:loadAdOnCreate="true" />
+</RelativeLayout>

@@ -9,7 +9,7 @@ import android.graphics.drawable.Drawable;
 
 
 public class TextObject extends ImageObject {
-	private int textSize = 45;
+	private int textSize = 52;
 	private int textWidth = 0;
 	private int color = Color.BLACK;
 	private int typeface = 0;
@@ -54,6 +54,8 @@ public class TextObject extends ImageObject {
 		p.setTypeface(getTypefaceObj());
     	p.setColor(color);
 		p.setStyle(Paint.Style.FILL);
+		p.setDither(true);
+		p.setFlags(Paint.SUBPIXEL_TEXT_FLAG);
 		String lines[] = text.split("\n");
 		textWidth = 0;
 		for (String s : lines) {

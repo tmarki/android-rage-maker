@@ -54,6 +54,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -66,9 +68,12 @@ import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 import com.flurry.android.FlurryAgent;
+import com.google.ads.Ad;
+import com.google.ads.AdListener;
 import com.google.ads.AdRequest;
 import com.google.ads.AdSize;
 import com.google.ads.AdView;
+import com.google.ads.AdRequest.ErrorCode;
 import com.tmarki.comicmaker.ColorPickerDialog;
 import com.tmarki.comicmaker.ComicEditor;
 import com.tmarki.comicmaker.R;
@@ -139,22 +144,21 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        mainView = new ComicEditor (this, new ComicEditor.ZoomChangeListener() {
+		setContentView(R.layout.main);
+        mainView = (ComicEditor)findViewById(R.id.editor); /*new ComicEditor (this, new ComicEditor.ZoomChangeListener() {
 			public void ZoomChanged(float newScale) {
 				setDetailTitle ();
 			}
-		});
+		});*/
+        mainView.zoomChangeListener =new ComicEditor.ZoomChangeListener() {
+			public void ZoomChanged(float newScale) {
+				setDetailTitle ();
+			}
+		}; 
         registerForContextMenu(mainView);
         
-        LinearLayout layout = new LinearLayout(getApplicationContext());
-        layout.setOrientation (LinearLayout.VERTICAL);
-
-        // Create the adView
-
-        // Add the adView to it
-
-
         mPrefs = getSharedPreferences("RageComicMaker", 0);
+
         int showAd = mPrefs.getInt("ShowAd", -1);
         if (showAd == -1) { // never been set
         	showAd = 1;
@@ -165,17 +169,15 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
         if (showAd == 1) {
         // Initiate a generic request to load it with an ad
         	makeAdView();
-        	layout.addView(adView);
-            layout.addView(mainView);
             adRequest.addTestDevice("4ABF1B0878CAB4C0B1B400C2C5700EBD");
             adRequest.addTestDevice("362F2B1F5C44CF8ECD1E5576D6DBF48F");
             adRequest.addTestDevice("D2969CCA1FE9C413CCD93BE710F04DC3");
-        	adView.loadAd(adRequest);
+        	//adView.loadAd(adRequest);
         }
         else {
-            layout.addView(mainView);
+            //layout.addView(mainView);
         }
-        setContentView(layout);
+        //setContentView(layout);
     	packImages = packhandler.getBundles(getAssets());
         draftManager = new DraftManager(ComicMakerActivity.this, mainView, packhandler);
         if (savedInstanceState != null) {
@@ -191,11 +193,38 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
             setDetailTitle ();
         }
         else {
-	        draftManager.autoLoad(mainView.getStateRef());
             DisplayMetrics metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
         	if (metrics.widthPixels > mainView.getCanvasDimensions().width())
         		mainView.setCanvasScale ((float)metrics.widthPixels / (float)mainView.getCanvasDimensions().width()); 
+            mainView.resetHistory();
+    		AlertDialog alertDialog;
+    		alertDialog = new AlertDialog.Builder(this).create();
+    		alertDialog.setTitle(R.string.autoload_question);
+    		final Bundle sis = savedInstanceState; 
+    		alertDialog.setButton(getResources().getString(R.string.yes), new OnClickListener() {
+    			public void onClick(DialogInterface dialog, int which) {
+    		        draftManager.autoLoad(mainView.getStateRef());
+    		        int hs = 0;
+    		        if (sis != null)
+    		        	hs = sis.getInt("historySize", 0);
+    		        for (int i = 0; i < hs; ++i) {
+    		        	ComicState cs = mainView.getStateCopy();
+//    		        	cs.mDrawables = //loadImagesFromBundle(savedInstanceState, String.format("h%s", i));
+    		        	cs.linePoints = loadPointsFromBundle(sis, String.format("h%s", i));
+    		        	cs.mLinePaints = new LinkedList<Paint> ();
+    		        	cs.mPanelCount = sis.getInt(String.format("h%spanelCount", i));
+    		        	for (int j = 0; j < cs.linePoints.size (); ++j) {
+    		        		cs.mLinePaints.add(getPaintForPoint(sis, j, String.format("h%s", i)));
+    		        	}
+    		        	mainView.pushHistory(cs);
+    		        }
+    		        mainView.resetLinesCache();
+    		        mainView.invalidate();
+    			}
+    		});
+    		alertDialog.setButton2(getResources().getString(R.string.no), (DialogInterface.OnClickListener)null);
+    		alertDialog.show();
         }
         for (ImageObject io : loadImagesFromBundle (savedInstanceState, "")) {
         	mainView.pureAddImageObject(io);
@@ -206,21 +235,6 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
         	if (p == null)
         		continue;
         	mainView.pureAddLine (p, getPaintForPoint(savedInstanceState, i, ""));
-        }
-        mainView.resetHistory();
-        int hs = 0;
-        if (savedInstanceState != null)
-        	hs = savedInstanceState.getInt("historySize", 0);
-        for (int i = 0; i < hs; ++i) {
-        	ComicState cs = mainView.getStateCopy();
-//        	cs.mDrawables = //loadImagesFromBundle(savedInstanceState, String.format("h%s", i));
-        	cs.linePoints = loadPointsFromBundle(savedInstanceState, String.format("h%s", i));
-        	cs.mLinePaints = new LinkedList<Paint> ();
-        	cs.mPanelCount = savedInstanceState.getInt(String.format("h%spanelCount", i));
-        	for (int j = 0; j < cs.linePoints.size (); ++j) {
-        		cs.mLinePaints.add(getPaintForPoint(savedInstanceState, j, String.format("h%s", i)));
-        	}
-        	mainView.pushHistory(cs);
         }
 		CommentNagger cn = new CommentNagger(this, mPrefs);
 		int c = mPrefs.getInt("runcount", 0);
@@ -519,7 +533,7 @@ public class ComicMakerActivity extends Activity implements ColorPickerDialog.On
 	
 	private void makeAdView () {
 		if (adView == null)
-			adView = new AdView(this, AdSize.SMART_BANNER, "a14e6b86ed7b452");
+			adView = (AdView)findViewById(R.id.adview);//new AdView(this, AdSize.SMART_BANNER, "a14e6b86ed7b452");
 	}
 
 	@Override

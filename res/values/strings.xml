@@ -84,5 +84,6 @@
     <string name="lock">Lock/Unlock</string>
     <string name="drafts">Drafts</string>
     <string name="draft_options">Draft options</string>
+    <string name="autoload_question">Load last comic?</string>
     
 </resources>
