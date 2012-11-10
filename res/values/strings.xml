@@ -39,7 +39,7 @@
     <string name="settings_bg_color_confirm">Use Color</string>
     <string name="settings_default_color_confirm">Use Previous</string>
     <string name="settings_bg_color_dialog">Select Color</string>
-    <string name="abouttext">This is open source software. Use it at your own risk.\nThe source code is available at the home page.</string>
+    <string name="abouttext">\nGreek Translation:\nGeorge D. Flamours\nThis is open source software. Use it at your own risk.\nThe source code is available at the home page.</string>
     <string name="abouttitle">About Rage Comic Maker</string>
     <string name="report_bug">Report a Bug</string>
     <string name="home_page">Home Page</string>

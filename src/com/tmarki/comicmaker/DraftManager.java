@@ -126,6 +126,8 @@ public class DraftManager extends Dialog {
 			SQLiteDatabase db=this.getReadableDatabase();
 			Cursor c = db.query("draft", new String[]{"id as _id"},
 					"autosave=?", new String[]{"0"}, null, null, null);
+			if (c.getCount() <= 0)
+				return null;
 			Integer[] ret = new Integer[c.getCount()];
 			for (int i = 0; i < ret.length; ++i) {
 				c.moveToPosition(i);
@@ -343,6 +345,8 @@ public class DraftManager extends Dialog {
 	private void populateList () {
 		ListView lv = (ListView)findViewById(R.id.draftList);
 		final Integer[] dids = draftDB.getDraftIds();
+		if (dids == null)
+			return;
 		lv.setAdapter(new ArrayAdapter<Integer>(
 				getContext(), R.layout.image_select_row, dids) {
            

@@ -39,7 +39,7 @@
     <string name="settings_bg_color_confirm">Χρησιμοποίησε αυτό το χρώμα</string>
     <string name="settings_default_color_confirm">Χρησιμοποίησε το προηγούμενο</string>
     <string name="settings_bg_color_dialog">Επιλέξτε χρώμα</string>
-    <string name="abouttext">Αυτό είναι προϊόν ελεύθερου λογισμικού. Χρησιμοποιήστε το με δική σας ευθύνη.\nΟ κώδικας πηγής βρίσκεται στην αρχική σελίδα.</string>
+    <string name="abouttext">Αυτό είναι προϊόν ελεύθερου λογισμικού. Χρησιμοποιήστε το με δική σας ευθύνη.\nΟ κώδικας πηγής βρίσκεται στην αρχική σελίδα.\n Μετάφραση: George D. Flamouris / Γιώργος Φλαμούρης</string>
     <string name="abouttitle">Σχετικά με Rage Comic Maker</string>
     <string name="report_bug">Αναφορά προβλήματος</string>
     <string name="home_page">Αρχική</string>
@@ -64,7 +64,7 @@
     <string name="saved_end"> στο φάκελο Pictures στην κάρτα SD. Θα εμφανιστεί στην έκθεση σύντομα.</string>
     <string name="share_comic">Δημοσίευση κόμικ</string>
     <string name="confirm_exit">Είστε σίγουρος/η πως θέλετε να βγείτε από την εφαρμογή;</string>
-    <string name="naggerquestion">Χρησιμοποιείτε την εφαρμογή για κάποιο διάστημα. Θα θέλατε να μοιραστείτε την εμπειρία σας βαθμολογώντας μας στο Google Play Store;\n Μετάφραση: George D. Flamouris</string>
+    <string name="naggerquestion">Χρησιμοποιείτε την εφαρμογή για κάποιο διάστημα. Θα θέλατε να μοιραστείτε την εμπειρία σας βαθμολογώντας μας στο Google Play Store;</string>
     <string name="naggertitle">Βαθμολογήστε μας!</string>
     <string name="yes">Ναι</string>
     <string name="no">Οχι.</string>
