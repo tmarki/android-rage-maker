@@ -80,5 +80,8 @@
     <string name="rotate_portrait">Pionowa</string>
     <string name="rotate_landscape">Pozioma</string>
     <string name="saveformat">Format</string>
+        <string name="drafts">Szkice</string>
+    <string name="draft_options">Ustawienia szkiców</string>
+    <string name="autoload_question">Załadować ostatni komiks?</string>
     
 </resources>
