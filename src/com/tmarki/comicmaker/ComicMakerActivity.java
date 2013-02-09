@@ -635,7 +635,7 @@ public class ComicMakerActivity extends Activity implements
 
 			}
 			alertDialog.setMessage("Rage Comic Maker v" + versionname
-					+ "\nfor Android\n\n(c) 2011-2012 Tamas Marki\n"
+					+ "\nfor Android\n\n(c) 2011-2013 Tamas Marki\n"
 					+ getResources().getString(R.string.abouttext));
 			alertDialog.setButton(getResources().getString(R.string.home_page),
 					new OnClickListener() {
