@@ -124,7 +124,7 @@ public class ImageSelect extends Dialog {
 
 	private String[] filterMemes (String filt) {
 		if (!folderSelected.equals(PackHandler.ALL_THE_FACES)) {
-			List<String> sv = externalImages.get(folderSelected);
+			List<String> sv = (List<String>)externalImages.get(folderSelected).clone();
 			if (filt.length() > 0) {
 				boolean done = false;
 				while (!done) {
