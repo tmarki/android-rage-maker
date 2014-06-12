@@ -13,7 +13,9 @@
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package com.tmarki.comicmaker;
 
-import com.flurry.android.FlurryAgent;
+
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -31,7 +33,7 @@ public class CommentNagger extends Dialog {
 	
 	private View.OnClickListener yesClick = new View.OnClickListener() {
 		public void onClick(View v) {
-			FlurryAgent.logEvent("Rate Yes");
+			EasyTracker.getInstance(getContext()).send(MapBuilder.createEvent("ui_action", "rate", "yes", null).build());
 			Intent goToMarket = null;
 			goToMarket = new Intent(Intent.ACTION_VIEW,Uri.parse("http://www.amazon.com/gp/mas/dl/android?p=com.tmarki.comicmaker"));
 			//goToMarket = new Intent(Intent.ACTION_VIEW,Uri.parse("market://details?id=com.tmarki.comicmaker"));
@@ -42,14 +44,14 @@ public class CommentNagger extends Dialog {
 
 	private View.OnClickListener laterClick = new View.OnClickListener() {
 		public void onClick(View v) {
-			FlurryAgent.logEvent("Rate Later");
+			EasyTracker.getInstance(getContext()).send(MapBuilder.createEvent("ui_action", "rate", "later", null).build());
 			dismiss();
 		}
 	}; 
 
 	private View.OnClickListener neverClick = new View.OnClickListener() {
 		public void onClick(View v) {
-			FlurryAgent.logEvent("Rate Never");
+			EasyTracker.getInstance(getContext()).send(MapBuilder.createEvent("ui_action", "rate", "never", null).build());
 			setDismissed();
 		}
 	}; 

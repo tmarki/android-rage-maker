@@ -9,94 +9,307 @@ package com.tmarki.comicmaker;
 
 public final class R {
     public static final class attr {
+        /** 
+    The size of the ad. It must be one of BANNER, FULL_BANNER, LEADERBOARD,
+    MEDIUM_RECTANGLE, SMART_BANNER, WIDE_SKYSCRAPER, or
+    &lt;width&gt;x&lt;height&gt;.
+    
+         <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int adSize=0x7f010000;
+        /** 
+    A comma-separated list of the supported ad sizes. The sizes must be one of
+    BANNER, FULL_BANNER, LEADERBOARD, MEDIUM_RECTANGLE, SMART_BANNER,
+    WIDE_SKYSCRAPER, or &lt;width&gt;x&lt;height&gt;.
+    
+         <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int adSizes=0x7f010001;
+        /**  The ad unit ID. 
+         <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int adUnitId=0x7f010002;
+        /** <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int cameraBearing=0x7f010004;
+        /** <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int cameraTargetLat=0x7f010005;
+        /** <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int cameraTargetLng=0x7f010006;
+        /** <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int cameraTilt=0x7f010007;
+        /** <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int cameraZoom=0x7f010008;
+        /** <p>Must be one of the following constant values.</p>
+<table>
+<colgroup align="left" />
+<colgroup align="left" />
+<colgroup align="left" />
+<tr><th>Constant</th><th>Value</th><th>Description</th></tr>
+<tr><td><code>none</code></td><td>0</td><td></td></tr>
+<tr><td><code>normal</code></td><td>1</td><td></td></tr>
+<tr><td><code>satellite</code></td><td>2</td><td></td></tr>
+<tr><td><code>terrain</code></td><td>3</td><td></td></tr>
+<tr><td><code>hybrid</code></td><td>4</td><td></td></tr>
+</table>
+         */
+        public static final int mapType=0x7f010003;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int uiCompass=0x7f010009;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int uiRotateGestures=0x7f01000a;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int uiScrollGestures=0x7f01000b;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int uiTiltGestures=0x7f01000c;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int uiZoomControls=0x7f01000d;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int uiZoomGestures=0x7f01000e;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int useViewLifecycle=0x7f01000f;
+        /** <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+         */
+        public static final int zOrderOnTop=0x7f010010;
+    }
+    public static final class bool {
+        /** Enable automatic activity tracking
+         */
+        public static final int ga_autoActivityTracking=0x7f080000;
+        /** Enable automatic exception tracking
+         */
+        public static final int ga_reportUncaughtExceptions=0x7f080001;
+    }
+    public static final class color {
+        public static final int common_action_bar_splitter=0x7f040009;
+        /**  Sign-in Button Colors 
+         */
+        public static final int common_signin_btn_dark_text_default=0x7f040000;
+        public static final int common_signin_btn_dark_text_disabled=0x7f040002;
+        public static final int common_signin_btn_dark_text_focused=0x7f040003;
+        public static final int common_signin_btn_dark_text_pressed=0x7f040001;
+        public static final int common_signin_btn_default_background=0x7f040008;
+        public static final int common_signin_btn_light_text_default=0x7f040004;
+        public static final int common_signin_btn_light_text_disabled=0x7f040006;
+        public static final int common_signin_btn_light_text_focused=0x7f040007;
+        public static final int common_signin_btn_light_text_pressed=0x7f040005;
+        public static final int common_signin_btn_text_dark=0x7f04000a;
+        public static final int common_signin_btn_text_light=0x7f04000b;
     }
     public static final class drawable {
         public static final int awesome=0x7f020000;
-        public static final int eraser=0x7f020001;
-        public static final int hand=0x7f020002;
-        public static final int ic_menu_refresh=0x7f020003;
-        public static final int icon=0x7f020004;
-        public static final int line=0x7f020005;
-        public static final int loading=0x7f020006;
-        public static final int padlock=0x7f020007;
-        public static final int pencil=0x7f020008;
-        public static final int qr=0x7f020009;
-        public static final int text=0x7f02000a;
-        public static final int timepicker_down_btn=0x7f02000b;
-        public static final int timepicker_down_disabled=0x7f02000c;
-        public static final int timepicker_down_disabled_focused=0x7f02000d;
-        public static final int timepicker_down_normal=0x7f02000e;
-        public static final int timepicker_down_pressed=0x7f02000f;
-        public static final int timepicker_down_selected=0x7f020010;
-        public static final int timepicker_input=0x7f020011;
-        public static final int timepicker_input_disabled=0x7f020012;
-        public static final int timepicker_input_normal=0x7f020013;
-        public static final int timepicker_input_pressed=0x7f020014;
-        public static final int timepicker_input_selected=0x7f020015;
-        public static final int timepicker_up_btn=0x7f020016;
-        public static final int timepicker_up_disabled=0x7f020017;
-        public static final int timepicker_up_disabled_focused=0x7f020018;
-        public static final int timepicker_up_normal=0x7f020019;
-        public static final int timepicker_up_pressed=0x7f02001a;
-        public static final int timepicker_up_selected=0x7f02001b;
-        public static final int trollface=0x7f02001c;
+        public static final int common_signin_btn_icon_dark=0x7f020001;
+        public static final int common_signin_btn_icon_disabled_dark=0x7f020002;
+        public static final int common_signin_btn_icon_disabled_focus_dark=0x7f020003;
+        public static final int common_signin_btn_icon_disabled_focus_light=0x7f020004;
+        public static final int common_signin_btn_icon_disabled_light=0x7f020005;
+        public static final int common_signin_btn_icon_focus_dark=0x7f020006;
+        public static final int common_signin_btn_icon_focus_light=0x7f020007;
+        public static final int common_signin_btn_icon_light=0x7f020008;
+        public static final int common_signin_btn_icon_normal_dark=0x7f020009;
+        public static final int common_signin_btn_icon_normal_light=0x7f02000a;
+        public static final int common_signin_btn_icon_pressed_dark=0x7f02000b;
+        public static final int common_signin_btn_icon_pressed_light=0x7f02000c;
+        public static final int common_signin_btn_text_dark=0x7f02000d;
+        public static final int common_signin_btn_text_disabled_dark=0x7f02000e;
+        public static final int common_signin_btn_text_disabled_focus_dark=0x7f02000f;
+        public static final int common_signin_btn_text_disabled_focus_light=0x7f020010;
+        public static final int common_signin_btn_text_disabled_light=0x7f020011;
+        public static final int common_signin_btn_text_focus_dark=0x7f020012;
+        public static final int common_signin_btn_text_focus_light=0x7f020013;
+        public static final int common_signin_btn_text_light=0x7f020014;
+        public static final int common_signin_btn_text_normal_dark=0x7f020015;
+        public static final int common_signin_btn_text_normal_light=0x7f020016;
+        public static final int common_signin_btn_text_pressed_dark=0x7f020017;
+        public static final int common_signin_btn_text_pressed_light=0x7f020018;
+        public static final int eraser=0x7f020019;
+        public static final int hand=0x7f02001a;
+        public static final int ic_menu_refresh=0x7f02001b;
+        public static final int ic_plusone_medium_off_client=0x7f02001c;
+        public static final int ic_plusone_small_off_client=0x7f02001d;
+        public static final int ic_plusone_standard_off_client=0x7f02001e;
+        public static final int ic_plusone_tall_off_client=0x7f02001f;
+        public static final int icon=0x7f020020;
+        public static final int line=0x7f020021;
+        public static final int loading=0x7f020022;
+        public static final int padlock=0x7f020023;
+        public static final int pencil=0x7f020024;
+        public static final int qr=0x7f020025;
+        public static final int text=0x7f020026;
+        public static final int timepicker_down_btn=0x7f020027;
+        public static final int timepicker_down_disabled=0x7f020028;
+        public static final int timepicker_down_disabled_focused=0x7f020029;
+        public static final int timepicker_down_normal=0x7f02002a;
+        public static final int timepicker_down_pressed=0x7f02002b;
+        public static final int timepicker_down_selected=0x7f02002c;
+        public static final int timepicker_input=0x7f02002d;
+        public static final int timepicker_input_disabled=0x7f02002e;
+        public static final int timepicker_input_normal=0x7f02002f;
+        public static final int timepicker_input_pressed=0x7f020030;
+        public static final int timepicker_input_selected=0x7f020031;
+        public static final int timepicker_up_btn=0x7f020032;
+        public static final int timepicker_up_disabled=0x7f020033;
+        public static final int timepicker_up_disabled_focused=0x7f020034;
+        public static final int timepicker_up_normal=0x7f020035;
+        public static final int timepicker_up_pressed=0x7f020036;
+        public static final int timepicker_up_selected=0x7f020037;
+        public static final int trollface=0x7f020038;
     }
     public static final class id {
-        public static final int about=0x7f040036;
-        public static final int adview=0x7f04000f;
-        public static final int bold=0x7f040005;
-        public static final int button_later=0x7f040011;
-        public static final int button_never=0x7f040012;
-        public static final int button_yes=0x7f040010;
-        public static final int clear=0x7f040033;
-        public static final int color=0x7f040028;
-        public static final int draftList=0x7f040001;
-        public static final int drafts=0x7f04002c;
-        public static final int drawGrid=0x7f04001a;
-        public static final int edit=0x7f040027;
-        public static final int editor=0x7f04000e;
-        public static final int exit=0x7f040035;
-        public static final int filename=0x7f040000;
-        public static final int flipH=0x7f040024;
-        public static final int flipV=0x7f040023;
-        public static final int icon=0x7f04000a;
-        public static final int imageList=0x7f040007;
-        public static final int imageRow=0x7f040008;
-        public static final int italic=0x7f040006;
-        public static final int linearLayout1=0x7f040003;
-        public static final int linearLayout2=0x7f040004;
-        public static final int linearLayout3=0x7f04001c;
-        public static final int lock=0x7f040026;
-        public static final int objmenu=0x7f04002a;
-        public static final int orientSpin=0x7f04001b;
-        public static final int panelCount=0x7f040019;
-        public static final int panelCountLabel=0x7f040018;
-        public static final int pen_color=0x7f04002d;
-        public static final int pen_width=0x7f04002e;
-        public static final int redo=0x7f04002b;
-        public static final int remove=0x7f040025;
-        public static final int rowImage=0x7f040016;
-        public static final int rowText=0x7f040009;
-        public static final int save=0x7f040029;
-        public static final int saveDraft=0x7f040002;
-        public static final int saveFormat=0x7f04001d;
-        public static final int searchText=0x7f04000d;
-        public static final int settings=0x7f040031;
-        public static final int settingsOk=0x7f04001e;
-        public static final int share=0x7f040032;
-        public static final int tableLayout1=0x7f040017;
-        public static final int textView1=0x7f04000c;
-        public static final int textView2=0x7f040013;
-        public static final int text_color=0x7f04002f;
-        public static final int text_type=0x7f040030;
-        public static final int title=0x7f04000b;
-        public static final int toback=0x7f040021;
-        public static final int tofront=0x7f040022;
-        public static final int width_bar=0x7f040014;
-        public static final int width_ok=0x7f040015;
-        public static final int zoom=0x7f040034;
-        public static final int zoom_bar=0x7f04001f;
-        public static final int zoom_ok=0x7f040020;
+        public static final int about=0x7f05003b;
+        public static final int adview=0x7f050014;
+        public static final int bold=0x7f05000a;
+        public static final int button_later=0x7f050016;
+        public static final int button_never=0x7f050017;
+        public static final int button_yes=0x7f050015;
+        public static final int clear=0x7f050038;
+        public static final int color=0x7f05002d;
+        public static final int draftList=0x7f050006;
+        public static final int drafts=0x7f050031;
+        public static final int drawGrid=0x7f05001f;
+        public static final int edit=0x7f05002c;
+        public static final int editor=0x7f050013;
+        public static final int exit=0x7f05003a;
+        public static final int filename=0x7f050005;
+        public static final int flipH=0x7f050029;
+        public static final int flipV=0x7f050028;
+        public static final int hybrid=0x7f050004;
+        public static final int icon=0x7f05000f;
+        public static final int imageList=0x7f05000c;
+        public static final int imageRow=0x7f05000d;
+        public static final int italic=0x7f05000b;
+        public static final int linearLayout1=0x7f050008;
+        public static final int linearLayout2=0x7f050009;
+        public static final int linearLayout3=0x7f050021;
+        public static final int lock=0x7f05002b;
+        public static final int none=0x7f050000;
+        public static final int normal=0x7f050001;
+        public static final int objmenu=0x7f05002f;
+        public static final int orientSpin=0x7f050020;
+        public static final int panelCount=0x7f05001e;
+        public static final int panelCountLabel=0x7f05001d;
+        public static final int pen_color=0x7f050032;
+        public static final int pen_width=0x7f050033;
+        public static final int redo=0x7f050030;
+        public static final int remove=0x7f05002a;
+        public static final int rowImage=0x7f05001b;
+        public static final int rowText=0x7f05000e;
+        public static final int satellite=0x7f050002;
+        public static final int save=0x7f05002e;
+        public static final int saveDraft=0x7f050007;
+        public static final int saveFormat=0x7f050022;
+        public static final int searchText=0x7f050012;
+        public static final int settings=0x7f050036;
+        public static final int settingsOk=0x7f050023;
+        public static final int share=0x7f050037;
+        public static final int tableLayout1=0x7f05001c;
+        public static final int terrain=0x7f050003;
+        public static final int textView1=0x7f050011;
+        public static final int textView2=0x7f050018;
+        public static final int text_color=0x7f050034;
+        public static final int text_type=0x7f050035;
+        public static final int title=0x7f050010;
+        public static final int toback=0x7f050026;
+        public static final int tofront=0x7f050027;
+        public static final int width_bar=0x7f050019;
+        public static final int width_ok=0x7f05001a;
+        public static final int zoom=0x7f050039;
+        public static final int zoom_bar=0x7f050024;
+        public static final int zoom_ok=0x7f050025;
+    }
+    public static final class integer {
+        public static final int google_play_services_version=0x7f070000;
     }
     public static final class layout {
         public static final int drafts=0x7f030000;
@@ -113,95 +326,516 @@ public final class R {
         public static final int zoompicker=0x7f03000b;
     }
     public static final class menu {
-        public static final int edit_menu=0x7f060000;
-        public static final int main_menu=0x7f060001;
+        public static final int edit_menu=0x7f090000;
+        public static final int main_menu=0x7f090001;
     }
     public static final class string {
-        public static final int about=0x7f05000d;
-        public static final int abouttext=0x7f050027;
-        public static final int abouttitle=0x7f050028;
-        public static final int add=0x7f050001;
-        public static final int add_other=0x7f050003;
-        public static final int add_pack=0x7f050002;
-        public static final int app_name=0x7f050000;
-        public static final int autoload_question=0x7f050054;
-        public static final int black=0x7f05004f;
-        public static final int bold=0x7f050020;
-        public static final int built_in=0x7f050049;
-        public static final int cancel=0x7f050045;
-        public static final int clear=0x7f050005;
-        public static final int clear_question=0x7f05002c;
-        public static final int comic_save_fail_1=0x7f05003a;
-        public static final int comic_save_fail_2=0x7f05003b;
-        public static final int comic_saved_as=0x7f050039;
-        public static final int confirm_exit=0x7f05003f;
-        public static final int confirmation=0x7f05002b;
-        public static final int draft_options=0x7f050053;
-        public static final int drafts=0x7f050052;
-        public static final int draw_grid=0x7f050037;
-        public static final int enter_text=0x7f050038;
-        public static final int error_adding_image=0x7f05003c;
-        public static final int exit=0x7f050006;
-        public static final int flipH=0x7f050023;
-        public static final int flipV=0x7f050022;
-        public static final int hello=0x7f050055;
-        public static final int home_page=0x7f05002a;
-        public static final int image_select_title=0x7f050017;
-        public static final int italic=0x7f050021;
-        public static final int later=0x7f050046;
-        public static final int load=0x7f050008;
-        public static final int lock=0x7f050051;
-        public static final int mode_hand=0x7f050012;
-        public static final int mode_line=0x7f050015;
-        public static final int mode_pencil=0x7f050013;
-        public static final int mode_select_title=0x7f050016;
-        public static final int mode_text=0x7f050014;
-        public static final int naggerquestion=0x7f050040;
-        public static final int naggertitle=0x7f050041;
-        public static final int never=0x7f050047;
-        public static final int no=0x7f050043;
-        public static final int object_menu=0x7f050048;
-        public static final int ok=0x7f050044;
-        public static final int orientation=0x7f05004a;
-        public static final int pack=0x7f050009;
-        public static final int panel_count=0x7f05000c;
-        public static final int pen_color=0x7f05001a;
-        public static final int pen_width=0x7f05001b;
-        public static final int redo=0x7f05000f;
-        public static final int remove=0x7f050010;
-        public static final int report_bug=0x7f050029;
-        public static final int rotate_auto=0x7f05004b;
-        public static final int rotate_landscape=0x7f05004d;
-        public static final int rotate_portrait=0x7f05004c;
-        public static final int save=0x7f050007;
-        public static final int saved_end=0x7f05003d;
-        public static final int saveformat=0x7f05004e;
-        public static final int scale=0x7f050004;
-        public static final int select_folder=0x7f050030;
-        public static final int select_font=0x7f05001f;
-        public static final int select_image=0x7f05001e;
-        public static final int select_layer_message=0x7f050032;
-        public static final int select_layer_title=0x7f050031;
-        public static final int select_name=0x7f05002f;
-        public static final int select_object_first=0x7f05002d;
-        public static final int select_picture=0x7f05002e;
-        public static final int select_width=0x7f050033;
-        public static final int select_zoom=0x7f050034;
-        public static final int settings=0x7f05000a;
-        public static final int settings_bg_color_confirm=0x7f050024;
-        public static final int settings_bg_color_dialog=0x7f050026;
-        public static final int settings_default_color_confirm=0x7f050025;
-        public static final int settings_title=0x7f05000b;
-        public static final int share=0x7f050011;
-        public static final int share_comic=0x7f05003e;
-        public static final int text_color=0x7f05001c;
-        public static final int text_type=0x7f05001d;
-        public static final int to_back=0x7f050036;
-        public static final int to_front=0x7f050035;
-        public static final int toback=0x7f050018;
-        public static final int tofront=0x7f050019;
-        public static final int white=0x7f050050;
-        public static final int yes=0x7f050042;
-        public static final int zoom=0x7f05000e;
+        public static final int about=0x7f060029;
+        public static final int abouttext=0x7f060043;
+        public static final int abouttitle=0x7f060044;
+        public static final int add=0x7f06001d;
+        public static final int add_other=0x7f06001f;
+        public static final int add_pack=0x7f06001e;
+        public static final int app_name=0x7f06001c;
+        /**   Title for notification shown when GooglePlayServices needs to be
+        enabled for a application to work. [CHAR LIMIT=70] 
+         */
+        public static final int auth_client_needs_enabling_title=0x7f060015;
+        /**   Title for notification shown when GooglePlayServices needs to be
+        installed for a application to work. [CHAR LIMIT=70] 
+         */
+        public static final int auth_client_needs_installation_title=0x7f060016;
+        /**   Title for notification shown when GooglePlayServices needs to be
+        udpated for a application to work. [CHAR LIMIT=70] 
+         */
+        public static final int auth_client_needs_update_title=0x7f060017;
+        /**   Title for notification shown when GooglePlayServices is unavailable [CHAR LIMIT=42] 
+         */
+        public static final int auth_client_play_services_err_notification_msg=0x7f060018;
+        /**   Requested by string saying which app requested the notification. [CHAR LIMIT=42] 
+         */
+        public static final int auth_client_requested_by_msg=0x7f060019;
+        /**   Title for notification shown when a bad version of GooglePlayServices
+        has been installed and needs correction for an application to work.
+        [CHAR LIMIT=70] 
+         */
+        public static final int auth_client_using_bad_version_title=0x7f060014;
+        public static final int autoload_question=0x7f060070;
+        public static final int black=0x7f06006b;
+        public static final int bold=0x7f06003c;
+        public static final int built_in=0x7f060065;
+        public static final int cancel=0x7f060061;
+        public static final int clear=0x7f060021;
+        public static final int clear_question=0x7f060048;
+        public static final int comic_save_fail_1=0x7f060056;
+        public static final int comic_save_fail_2=0x7f060057;
+        public static final int comic_saved_as=0x7f060055;
+        /**  Button in confirmation dialog to enable Google Play services.  Clicking it
+        will direct user to application settings of Google Play services where they
+        can enable it [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_enable_button=0x7f060006;
+        /**  Message in confirmation dialog informing user they need to enable
+        Google Play services in application settings [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_enable_text=0x7f060005;
+        /**  Title of confirmation dialog informing user they need to enable
+        Google Play services in application settings [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_enable_title=0x7f060004;
+        /**  Button in confirmation dialog for installing Google Play services [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_install_button=0x7f060003;
+        /**  (For phones) Message in confirmation dialog informing user that
+        they need to install Google Play services (from Play Store) [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_install_text_phone=0x7f060001;
+        /**  (For tablets) Message in confirmation dialog informing user that
+        they need to install Google Play services (from Play Store) [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_install_text_tablet=0x7f060002;
+        /**  Title of confirmation dialog informing user that they need to install
+        Google Play services (from Play Store) [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_install_title=0x7f060000;
+        /**  Message in confirmation dialog informing the user that they provided an invalid account. [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_invalid_account_text=0x7f06000c;
+        /**  Title of confirmation dialog informing the user that they provided an invalid account. [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_invalid_account_title=0x7f06000b;
+        /**  Message in confirmation dialog informing the user that a network error occurred. [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_network_error_text=0x7f06000a;
+        /**  Title of confirmation dialog informing the user that a network error occurred. [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_network_error_title=0x7f060009;
+        /**  Message in confirmation dialog informing user there is an unknown issue in Google Play
+        services [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_unknown_issue=0x7f06000d;
+        /**  Message in confirmation dialog informing user that date on the device is not correct,
+    causing certificate checks to fail. [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_unsupported_date_text=0x7f060010;
+        /**  Message in confirmation dialog informing user that Google Play services is not supported on their device [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_unsupported_text=0x7f06000f;
+        /**  Title of confirmation dialog informing user that Google Play services is not supported on their device [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_unsupported_title=0x7f06000e;
+        /**  Button in confirmation dialog for updating Google Play services [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_update_button=0x7f060011;
+        /**  Message in confirmation dialog informing user that they need to update
+        Google Play services (from Play Store) [CHAR LIMIT=NONE] 
+         */
+        public static final int common_google_play_services_update_text=0x7f060008;
+        /**  Title of confirmation dialog informing user that they need to update
+        Google Play services (from Play Store) [CHAR LIMIT=40] 
+         */
+        public static final int common_google_play_services_update_title=0x7f060007;
+        /**  Sign-in button text [CHAR LIMIT=15] 
+         */
+        public static final int common_signin_button_text=0x7f060012;
+        /**  Long form sign-in button text [CHAR LIMIT=30] 
+         */
+        public static final int common_signin_button_text_long=0x7f060013;
+        public static final int confirm_exit=0x7f06005b;
+        public static final int confirmation=0x7f060047;
+        public static final int draft_options=0x7f06006f;
+        public static final int drafts=0x7f06006e;
+        public static final int draw_grid=0x7f060053;
+        public static final int enter_text=0x7f060054;
+        public static final int error_adding_image=0x7f060058;
+        public static final int exit=0x7f060022;
+        public static final int flipH=0x7f06003f;
+        public static final int flipV=0x7f06003e;
+        /** Replace placeholder ID with your tracking ID
+         */
+        public static final int ga_trackingId=0x7f06001b;
+        public static final int hello=0x7f060071;
+        public static final int home_page=0x7f060046;
+        public static final int image_select_title=0x7f060033;
+        public static final int italic=0x7f06003d;
+        public static final int later=0x7f060062;
+        public static final int load=0x7f060024;
+        /**  Location client code resources (prefix with location_client) 
+         */
+        public static final int location_client_powered_by_google=0x7f06001a;
+        public static final int lock=0x7f06006d;
+        public static final int mode_hand=0x7f06002e;
+        public static final int mode_line=0x7f060031;
+        public static final int mode_pencil=0x7f06002f;
+        public static final int mode_select_title=0x7f060032;
+        public static final int mode_text=0x7f060030;
+        public static final int naggerquestion=0x7f06005c;
+        public static final int naggertitle=0x7f06005d;
+        public static final int never=0x7f060063;
+        public static final int no=0x7f06005f;
+        public static final int object_menu=0x7f060064;
+        public static final int ok=0x7f060060;
+        public static final int orientation=0x7f060066;
+        public static final int pack=0x7f060025;
+        public static final int panel_count=0x7f060028;
+        public static final int pen_color=0x7f060036;
+        public static final int pen_width=0x7f060037;
+        public static final int redo=0x7f06002b;
+        public static final int remove=0x7f06002c;
+        public static final int report_bug=0x7f060045;
+        public static final int rotate_auto=0x7f060067;
+        public static final int rotate_landscape=0x7f060069;
+        public static final int rotate_portrait=0x7f060068;
+        public static final int save=0x7f060023;
+        public static final int saved_end=0x7f060059;
+        public static final int saveformat=0x7f06006a;
+        public static final int scale=0x7f060020;
+        public static final int select_folder=0x7f06004c;
+        public static final int select_font=0x7f06003b;
+        public static final int select_image=0x7f06003a;
+        public static final int select_layer_message=0x7f06004e;
+        public static final int select_layer_title=0x7f06004d;
+        public static final int select_name=0x7f06004b;
+        public static final int select_object_first=0x7f060049;
+        public static final int select_picture=0x7f06004a;
+        public static final int select_width=0x7f06004f;
+        public static final int select_zoom=0x7f060050;
+        public static final int settings=0x7f060026;
+        public static final int settings_bg_color_confirm=0x7f060040;
+        public static final int settings_bg_color_dialog=0x7f060042;
+        public static final int settings_default_color_confirm=0x7f060041;
+        public static final int settings_title=0x7f060027;
+        public static final int share=0x7f06002d;
+        public static final int share_comic=0x7f06005a;
+        public static final int text_color=0x7f060038;
+        public static final int text_type=0x7f060039;
+        public static final int to_back=0x7f060052;
+        public static final int to_front=0x7f060051;
+        public static final int toback=0x7f060034;
+        public static final int tofront=0x7f060035;
+        public static final int white=0x7f06006c;
+        public static final int yes=0x7f06005e;
+        public static final int zoom=0x7f06002a;
     }
+    public static final class styleable {
+        /** Attributes that can be used with a AdsAttrs.
+           <p>Includes the following attributes:</p>
+           <table>
+           <colgroup align="left" />
+           <colgroup align="left" />
+           <tr><th>Attribute</th><th>Description</th></tr>
+           <tr><td><code>{@link #AdsAttrs_adSize com.tmarki.comicmaker:adSize}</code></td><td>
+    The size of the ad.</td></tr>
+           <tr><td><code>{@link #AdsAttrs_adSizes com.tmarki.comicmaker:adSizes}</code></td><td>
+    A comma-separated list of the supported ad sizes.</td></tr>
+           <tr><td><code>{@link #AdsAttrs_adUnitId com.tmarki.comicmaker:adUnitId}</code></td><td> The ad unit ID.</td></tr>
+           </table>
+           @see #AdsAttrs_adSize
+           @see #AdsAttrs_adSizes
+           @see #AdsAttrs_adUnitId
+         */
+        public static final int[] AdsAttrs = {
+            0x7f010000, 0x7f010001, 0x7f010002
+        };
+        /**
+          <p>
+          @attr description
+          
+    The size of the ad. It must be one of BANNER, FULL_BANNER, LEADERBOARD,
+    MEDIUM_RECTANGLE, SMART_BANNER, WIDE_SKYSCRAPER, or
+    &lt;width&gt;x&lt;height&gt;.
+    
+
+
+          <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          <p>This is a private symbol.
+          @attr name com.tmarki.comicmaker:adSize
+        */
+        public static final int AdsAttrs_adSize = 0;
+        /**
+          <p>
+          @attr description
+          
+    A comma-separated list of the supported ad sizes. The sizes must be one of
+    BANNER, FULL_BANNER, LEADERBOARD, MEDIUM_RECTANGLE, SMART_BANNER,
+    WIDE_SKYSCRAPER, or &lt;width&gt;x&lt;height&gt;.
+    
+
+
+          <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          <p>This is a private symbol.
+          @attr name com.tmarki.comicmaker:adSizes
+        */
+        public static final int AdsAttrs_adSizes = 1;
+        /**
+          <p>
+          @attr description
+           The ad unit ID. 
+
+
+          <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          <p>This is a private symbol.
+          @attr name com.tmarki.comicmaker:adUnitId
+        */
+        public static final int AdsAttrs_adUnitId = 2;
+        /** Attributes that can be used with a MapAttrs.
+           <p>Includes the following attributes:</p>
+           <table>
+           <colgroup align="left" />
+           <colgroup align="left" />
+           <tr><th>Attribute</th><th>Description</th></tr>
+           <tr><td><code>{@link #MapAttrs_cameraBearing com.tmarki.comicmaker:cameraBearing}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_cameraTargetLat com.tmarki.comicmaker:cameraTargetLat}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_cameraTargetLng com.tmarki.comicmaker:cameraTargetLng}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_cameraTilt com.tmarki.comicmaker:cameraTilt}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_cameraZoom com.tmarki.comicmaker:cameraZoom}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_mapType com.tmarki.comicmaker:mapType}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_uiCompass com.tmarki.comicmaker:uiCompass}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_uiRotateGestures com.tmarki.comicmaker:uiRotateGestures}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_uiScrollGestures com.tmarki.comicmaker:uiScrollGestures}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_uiTiltGestures com.tmarki.comicmaker:uiTiltGestures}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_uiZoomControls com.tmarki.comicmaker:uiZoomControls}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_uiZoomGestures com.tmarki.comicmaker:uiZoomGestures}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_useViewLifecycle com.tmarki.comicmaker:useViewLifecycle}</code></td><td></td></tr>
+           <tr><td><code>{@link #MapAttrs_zOrderOnTop com.tmarki.comicmaker:zOrderOnTop}</code></td><td></td></tr>
+           </table>
+           @see #MapAttrs_cameraBearing
+           @see #MapAttrs_cameraTargetLat
+           @see #MapAttrs_cameraTargetLng
+           @see #MapAttrs_cameraTilt
+           @see #MapAttrs_cameraZoom
+           @see #MapAttrs_mapType
+           @see #MapAttrs_uiCompass
+           @see #MapAttrs_uiRotateGestures
+           @see #MapAttrs_uiScrollGestures
+           @see #MapAttrs_uiTiltGestures
+           @see #MapAttrs_uiZoomControls
+           @see #MapAttrs_uiZoomGestures
+           @see #MapAttrs_useViewLifecycle
+           @see #MapAttrs_zOrderOnTop
+         */
+        public static final int[] MapAttrs = {
+            0x7f010003, 0x7f010004, 0x7f010005, 0x7f010006,
+            0x7f010007, 0x7f010008, 0x7f010009, 0x7f01000a,
+            0x7f01000b, 0x7f01000c, 0x7f01000d, 0x7f01000e,
+            0x7f01000f, 0x7f010010
+        };
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#cameraBearing}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:cameraBearing
+        */
+        public static final int MapAttrs_cameraBearing = 1;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#cameraTargetLat}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:cameraTargetLat
+        */
+        public static final int MapAttrs_cameraTargetLat = 2;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#cameraTargetLng}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:cameraTargetLng
+        */
+        public static final int MapAttrs_cameraTargetLng = 3;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#cameraTilt}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:cameraTilt
+        */
+        public static final int MapAttrs_cameraTilt = 4;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#cameraZoom}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a floating point value, such as "<code>1.2</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:cameraZoom
+        */
+        public static final int MapAttrs_cameraZoom = 5;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#mapType}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be one of the following constant values.</p>
+<table>
+<colgroup align="left" />
+<colgroup align="left" />
+<colgroup align="left" />
+<tr><th>Constant</th><th>Value</th><th>Description</th></tr>
+<tr><td><code>none</code></td><td>0</td><td></td></tr>
+<tr><td><code>normal</code></td><td>1</td><td></td></tr>
+<tr><td><code>satellite</code></td><td>2</td><td></td></tr>
+<tr><td><code>terrain</code></td><td>3</td><td></td></tr>
+<tr><td><code>hybrid</code></td><td>4</td><td></td></tr>
+</table>
+          @attr name com.tmarki.comicmaker:mapType
+        */
+        public static final int MapAttrs_mapType = 0;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#uiCompass}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:uiCompass
+        */
+        public static final int MapAttrs_uiCompass = 6;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#uiRotateGestures}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:uiRotateGestures
+        */
+        public static final int MapAttrs_uiRotateGestures = 7;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#uiScrollGestures}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:uiScrollGestures
+        */
+        public static final int MapAttrs_uiScrollGestures = 8;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#uiTiltGestures}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:uiTiltGestures
+        */
+        public static final int MapAttrs_uiTiltGestures = 9;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#uiZoomControls}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:uiZoomControls
+        */
+        public static final int MapAttrs_uiZoomControls = 10;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#uiZoomGestures}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:uiZoomGestures
+        */
+        public static final int MapAttrs_uiZoomGestures = 11;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#useViewLifecycle}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:useViewLifecycle
+        */
+        public static final int MapAttrs_useViewLifecycle = 12;
+        /**
+          <p>This symbol is the offset where the {@link com.tmarki.comicmaker.R.attr#zOrderOnTop}
+          attribute's value can be found in the {@link #MapAttrs} array.
+
+
+          <p>Must be a boolean value, either "<code>true</code>" or "<code>false</code>".
+<p>This may also be a reference to a resource (in the form
+"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
+theme attribute (in the form
+"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
+containing a value of this type.
+          @attr name com.tmarki.comicmaker:zOrderOnTop
+        */
+        public static final int MapAttrs_zOrderOnTop = 13;
+    };
 }

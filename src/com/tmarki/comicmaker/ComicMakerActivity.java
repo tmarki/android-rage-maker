@@ -64,9 +64,10 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.flurry.android.FlurryAgent;
-import com.google.ads.AdRequest;
-import com.google.ads.AdView;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.tmarki.comicmaker.ComicEditor.TouchModes;
 import com.tmarki.comicmaker.WidthPicker.OnWidthChangedListener;
 import com.tmarki.comicmaker.ZoomPicker.OnZoomChangedListener;
@@ -74,7 +75,7 @@ import com.tmarki.comicmaker.ZoomPicker.OnZoomChangedListener;
 public class ComicMakerActivity extends Activity implements
 		ColorPickerDialog.OnColorChangedListener, OnWidthChangedListener,
 		OnZoomChangedListener {
-	private AdRequest adRequest = new AdRequest();
+	private AdRequest adRequest;
 	private AdView adView = null;
 	private ComicEditor mainView;
 	private Map<CharSequence, Vector<String>> packImages = new HashMap<CharSequence, Vector<String>>();
@@ -170,10 +171,10 @@ public class ComicMakerActivity extends Activity implements
 		if (showAd == 1) {
 			// Initiate a generic request to load it with an ad
 			makeAdView();
-			adRequest.addTestDevice("4ABF1B0878CAB4C0B1B400C2C5700EBD");
-			adRequest.addTestDevice("362F2B1F5C44CF8ECD1E5576D6DBF48F");
-			adRequest.addTestDevice("D2969CCA1FE9C413CCD93BE710F04DC3");
-			// adView.loadAd(adRequest);
+			adRequest = new AdRequest.Builder().addTestDevice("4ABF1B0878CAB4C0B1B400C2C5700EBD")
+			.addTestDevice("362F2B1F5C44CF8ECD1E5576D6DBF48F")
+			.addTestDevice("D2969CCA1FE9C413CCD93BE710F04DC3").build();
+			adView.loadAd(adRequest);
 		} else {
 			// layout.addView(mainView);
 		}
@@ -857,7 +858,7 @@ public class ComicMakerActivity extends Activity implements
 	private void doSave(String fname, boolean doShare) {
 		CharSequence text = getResources().getString(R.string.comic_saved_as)
 				+ " ";
-		FlurryAgent.logEvent("Save start");
+		EasyTracker.getInstance(this).send(MapBuilder.createEvent("ui_action", "save", "start", null).build());
 		try {
 			String ReservedChars = "|\\?*<\":>+[]/'";
 			for (char c : ReservedChars.toCharArray()) {
@@ -869,7 +870,7 @@ public class ComicMakerActivity extends Activity implements
 				text = getResources().getString(R.string.comic_save_fail_1);
 				;
 				Toast.makeText(this, text, Toast.LENGTH_LONG).show();
-				FlurryAgent.logEvent("Save failed: null bitmap");
+				EasyTracker.getInstance(this).send(MapBuilder.createEvent("ui_action", "save", "error", null).build());
 				return;
 			}
 			File folder = getFilesDir();
@@ -908,9 +909,6 @@ public class ComicMakerActivity extends Activity implements
 				ext = ".png";
 			String fullname = folder.getAbsolutePath() + File.separator + value
 					+ ext;
-			Map<String, String> hm = new HashMap<String, String>();
-			hm.put("filename", fullname);
-			FlurryAgent.logEvent("Save image", hm);
 			FileOutputStream fos;
 			if (folder == getFilesDir())
 				fos = openFileOutput(value + ext, Context.MODE_WORLD_WRITEABLE);
@@ -925,7 +923,7 @@ public class ComicMakerActivity extends Activity implements
 			else
 				b.compress(CompressFormat.JPEG, 95, fos);
 			fos.close();
-			FlurryAgent.logEvent("Save done");
+			EasyTracker.getInstance(this).send(MapBuilder.createEvent("ui_action", "save", "done", null).build());
 			String[] str = new String[1];
 			str[0] = fullname;
 			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.FROYO) {
@@ -937,7 +935,7 @@ public class ComicMakerActivity extends Activity implements
 			lastSaveName = value;
 			setDetailTitle();
 			if (doShare) {
-				FlurryAgent.logEvent("Share start");
+				EasyTracker.getInstance(this).send(MapBuilder.createEvent("ui_action", "share", "start", null).build());
 				Intent share = new Intent(Intent.ACTION_SEND);
 				if (ext.equals(".png"))
 					share.setType("image/png");
@@ -950,19 +948,19 @@ public class ComicMakerActivity extends Activity implements
 
 				startActivity(Intent.createChooser(share, getResources()
 						.getString(R.string.share_comic)));
-				FlurryAgent.logEvent("Share done");
+				EasyTracker.getInstance(this).send(MapBuilder.createEvent("ui_action", "share", "done", null).build());
 			}
 		} catch (Exception e) {
 			Map<String, String> hm = new HashMap<String, String>();
 			hm.put("text", e.toString());
-			FlurryAgent.logEvent("Save exception", hm);
+			EasyTracker.getInstance(this).send(MapBuilder.createEvent("ui_action", "save", "exception", null).build());
 			e.printStackTrace();
 			text = getResources().getString(R.string.comic_save_fail_2)
 					+ e.toString();
 		} catch (Error e) {
 			Map<String, String> hm = new HashMap<String, String>();
 			hm.put("text", e.toString());
-			FlurryAgent.logEvent("Save error", hm);
+			EasyTracker.getInstance(this).send(MapBuilder.createEvent("ui_action", "save", "error", null).build());
 			e.printStackTrace();
 			text = getResources().getString(R.string.comic_save_fail_2)
 					+ e.toString();
@@ -999,11 +997,13 @@ public class ComicMakerActivity extends Activity implements
 
 			if (requestCode == 1) {
 				String fname = data.getData().toString();
-				if (fname.startsWith("content://"))
+				if (fname == null) {
+				}
+				else if (fname.startsWith("content://"))
 					fname = getRealPathFromURI(data.getData());
-				if (fname.startsWith("file://"))
+				else if (fname.startsWith("file://"))
 					fname = fname.replace("file://", "");
-				if (fname != "") {
+				else if (fname != "") {
 					BitmapFactory.Options options = new BitmapFactory.Options();
 					options.inSampleSize = 8;
 					// Bitmap b = BitmapFactory.decodeFile(fname, options);
@@ -1048,8 +1048,6 @@ public class ComicMakerActivity extends Activity implements
 
 			return cursor.getString(column_index);
 		} catch (Exception e) {
-			FlurryAgent.logEvent("getRealPathFromURI exception: "
-					+ e.toString());
 		}
 		return "";
 	}
@@ -1286,14 +1284,14 @@ public class ComicMakerActivity extends Activity implements
 	@Override
 	protected void onStart() {
 		super.onStart();
-		FlurryAgent.onStartSession(this, "HUEFXH162YB8H9SA9HYY");
+		EasyTracker.getInstance(this).activityStart(this);
 	}
 
 	@Override
 	protected void onStop() {
 		draftManager.saveDraft(mainView.getStateRef(), "auto", true);
 		super.onStop();
-		FlurryAgent.onEndSession(this);
+		EasyTracker.getInstance(this).activityStop(this);
 	}
 
 }

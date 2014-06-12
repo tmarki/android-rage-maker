@@ -17,33 +17,25 @@ package com.tmarki.comicmaker;
 import java.util.LinkedList;
 import java.util.Vector;
 
-import com.flurry.android.FlurryAgent;
-import com.tmarki.comicmaker.R;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.MapBuilder;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.DialogInterface.OnClickListener;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.DashPathEffect;
-import android.graphics.DrawFilter;
-import android.graphics.MaskFilter;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PorterDuff.Mode;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Xfermode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.Point;
+import android.text.format.Time;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -56,8 +48,6 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.net.Uri;
-import android.text.format.Time;
 
 
 public class ComicEditor extends View {
@@ -520,7 +510,7 @@ public class ComicEditor extends View {
     			dr = getResources().getDrawable(R.drawable.eraser);
     	}
     	catch (OutOfMemoryError e) {
-    		FlurryAgent.logEvent("Out of memory for drawModeIcon");
+			EasyTracker.getInstance(getContext()).send(MapBuilder.createEvent("error", "drawmodeicon", "oom", null).build());
     		return;
     	}
         mModeIconSize = (getWidth() > getHeight () ? getWidth () : getHeight ()) / 8; 
