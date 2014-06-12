@@ -35,8 +35,8 @@ public class CommentNagger extends Dialog {
 		public void onClick(View v) {
 			EasyTracker.getInstance(getContext()).send(MapBuilder.createEvent("ui_action", "rate", "yes", null).build());
 			Intent goToMarket = null;
-			goToMarket = new Intent(Intent.ACTION_VIEW,Uri.parse("http://www.amazon.com/gp/mas/dl/android?p=com.tmarki.comicmaker"));
-			//goToMarket = new Intent(Intent.ACTION_VIEW,Uri.parse("market://details?id=com.tmarki.comicmaker"));
+			//goToMarket = new Intent(Intent.ACTION_VIEW,Uri.parse("http://www.amazon.com/gp/mas/dl/android?p=com.tmarki.comicmaker"));
+			goToMarket = new Intent(Intent.ACTION_VIEW,Uri.parse("market://details?id=com.tmarki.comicmaker"));
 			getContext().startActivity(goToMarket);			
 			setDismissed();
 		}
